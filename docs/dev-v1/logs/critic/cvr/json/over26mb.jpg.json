@@ -1,0 +1,13 @@
+{
+  "file": "over26mb.jpg",
+  "upload": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "upload_failed",
+        "message": "Failed to parse body as FormData."
+      }
+    },
+    "ms": 23
+  }
+}

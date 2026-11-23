@@ -1,0 +1,64 @@
+$ pnpm -r --if-present test
+Scope: 9 of 10 workspace projects
+pocs/core test$ vitest run
+pocs/ui test$ vitest run --passWithNoTests
+pocs/ui test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/ui
+pocs/ui test: No test files found, exiting with code 0
+pocs/ui test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+pocs/ui test: exclude:  **/node_modules/**, **/.git/**
+pocs/ui test: Done
+pocs/core test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/core
+pocs/core test:  Test Files  6 passed | 1 skipped (7)
+pocs/core test:       Tests  117 passed | 1 skipped (118)
+pocs/core test:    Start at  05:43:09
+pocs/core test:    Duration  263ms (import 61%, tests 25%, transform 11%, worker 2%)
+pocs/core test: Done
+pocs/camera-face test$ vitest run --passWithNoTests
+pocs/camera-body test$ vitest run --passWithNoTests
+pocs/hub test$ vitest run --passWithNoTests
+pocs/celeb-vibe test$ vitest run --passWithNoTests
+pocs/camera-body test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/camera-body
+pocs/hub test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/hub
+pocs/celeb-vibe test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/celeb-vibe
+pocs/camera-face test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/camera-face
+pocs/hub test:  Test Files  1 passed (1)
+pocs/hub test:       Tests  5 passed (5)
+pocs/hub test:    Start at  05:43:09
+pocs/hub test:    Duration  180ms (import 37%, transform 34%, tests 18%, worker 11%)
+pocs/hub test: Done
+pocs/search-celeb test$ vitest run --passWithNoTests
+pocs/search-celeb test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/search-celeb
+pocs/camera-body test:  Test Files  6 passed (6)
+pocs/camera-body test:       Tests  89 passed (89)
+pocs/camera-body test:    Start at  05:43:09
+pocs/camera-body test:    Duration  761ms (import 45%, tests 36%, transform 18%, worker 1%)
+pocs/camera-body test: Done
+pocs/search-celeb test:  Test Files  5 passed | 2 skipped (7)
+pocs/search-celeb test:       Tests  52 passed | 9 skipped (61)
+pocs/search-celeb test:    Start at  05:43:10
+pocs/search-celeb test:    Duration  455ms (import 47%, tests 34%, transform 17%, worker 2%)
+pocs/search-celeb test: Done
+pocs/celeb-vibe test:  Test Files  6 passed (6)
+pocs/celeb-vibe test:       Tests  89 passed (89)
+pocs/celeb-vibe test:    Start at  05:43:09
+pocs/celeb-vibe test:    Duration  987ms (import 45%, tests 31%, transform 24%, worker 1%)
+pocs/celeb-vibe test: Done
+pocs/camera-face test:  Test Files  4 passed (4)
+pocs/camera-face test:       Tests  50 passed (50)
+pocs/camera-face test:    Start at  05:43:09
+pocs/camera-face test:    Duration  1.40s (tests 54%, import 37%, transform 8%, worker 1%)
+pocs/camera-face test: Done
+pocs/personal-color-report test$ vitest run --passWithNoTests
+pocs/personal-color-report test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/personal-color-report
+pocs/personal-color-report test:  Test Files  5 passed | 1 skipped (6)
+pocs/personal-color-report test:       Tests  51 passed | 1 skipped (52)
+pocs/personal-color-report test:    Start at  05:43:11
+pocs/personal-color-report test:    Duration  232ms (import 44%, tests 36%, transform 18%, worker 1%)
+pocs/personal-color-report test: Done
+pocs/celeb-vibe-report test$ vitest run --passWithNoTests
+pocs/celeb-vibe-report test:  RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/celeb-vibe-report
+pocs/celeb-vibe-report test:  Test Files  5 passed | 1 skipped (6)
+pocs/celeb-vibe-report test:       Tests  65 passed | 6 skipped (71)
+pocs/celeb-vibe-report test:    Start at  05:43:11
+pocs/celeb-vibe-report test:    Duration  403ms (import 50%, tests 28%, transform 21%, worker 1%)
+pocs/celeb-vibe-report test: Done

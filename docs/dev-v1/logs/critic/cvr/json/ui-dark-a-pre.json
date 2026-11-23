@@ -1,0 +1,30 @@
+{
+ "tag": "dark-a-pre",
+ "console": [],
+ "api": [
+  {
+   "u": "/api/uploads",
+   "s": 200,
+   "sum": {
+    "id": "up_mwtm7feid1ec111c6b"
+   }
+  },
+  {
+   "u": "/api/vibe/precheck",
+   "s": 200,
+   "sum": {
+    "analyzable": true,
+    "personCount": 1,
+    "reasons": [
+     "extreme-lighting/warn:사진이 매우 어둡습니다."
+    ],
+    "measured": true
+   }
+  }
+ ],
+ "t": {
+  "pre": 22010
+ },
+ "url0": "http://localhost:3106/new?report=pcr_mwtm4dbxdbc20b6778",
+ "preText": "데모 데이터\n추구미 찾기\n내 리포트\n추구미 사진\n분석 확인\n가이드\n내 타입 여름쿨 트루\n리포트 바꾸기\n분석 가능 여부\n데모 모델 사진\n데모 모델\n분석 가능 여부\n코디·분위기만 분석할 수 있습니다\n코디\n퍼스널컬러\n분위기\n전신 · 인물 1명\n극단적 조명\n사진이 매우 어둡습니다.\n추구미 분석하기\n다른 사진 고르기\n\n측정 참고: 얼굴이 작아 머리 영역(원본 514px)을 확대해 측정했습니다."
+}

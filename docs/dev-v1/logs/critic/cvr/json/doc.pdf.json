@@ -1,0 +1,13 @@
+{
+  "file": "doc.pdf",
+  "upload": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "upload_failed",
+        "message": "지원하지 않는 이미지 형식입니다 (JPEG/PNG/WebP/HEIC/AVIF/GIF/SVG)."
+      }
+    },
+    "ms": 5
+  }
+}

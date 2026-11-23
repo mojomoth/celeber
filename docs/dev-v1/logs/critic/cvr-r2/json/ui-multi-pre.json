@@ -1,0 +1,30 @@
+{
+ "tag": "multi-pre",
+ "console": [],
+ "api": [
+  {
+   "u": "/api/uploads",
+   "s": 200,
+   "sum": {
+    "id": "up_mwtn2of467d645752c"
+   }
+  },
+  {
+   "u": "/api/vibe/precheck",
+   "s": 200,
+   "sum": {
+    "analyzable": false,
+    "personCount": 2,
+    "reasons": [
+     "multiple-people/error:인물이 2명 보입니다. 한 명만 나온 사진이 정확합니다."
+    ],
+    "measured": true
+   }
+  }
+ ],
+ "t": {
+  "pre": 29919
+ },
+ "url0": "http://localhost:3106/new?report=pcr_mwtiidd798d9cc8769",
+ "preText": "데모 데이터\n추구미 찾기\n내 리포트\n추구미 사진\n분석 확인\n가이드\n내 타입 여름쿨 뮤트\n리포트 바꾸기\n분석 가능 여부\n데모 모델 사진\n데모 모델\n분석 가능 여부\n이 사진은 분석하기 어렵습니다\n코디\n퍼스널컬러\n분위기\n전신 · 인물 2명\n여러 명\n인물이 2명 보입니다. 한 명만 나온 사진이 정확합니다.\n다른 사진 고르기\n가장 큰 인물 기준으로 분석\n\n측정 참고: 얼굴이 작아 머리 영역(원본 405px)을 확대해 측정했습니다."
+}

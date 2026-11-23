@@ -1,0 +1,12 @@
+ Test Files  5 passed | 1 skipped (6)
+      Tests  51 passed | 1 skipped (52)
+   Start at  04:10:54
+   Duration  550ms (import 40%, tests 33%, transform 26%, worker 1%)
+
+$ tsc --noEmit -p tsconfig.json
+$ eslint .
+
+# 3105 dev (CELEBER_FORCE_MOCK=1) 업로드 재현: curl -F file=@padN.jpg -F kind=body localhost:3105/api/uploads
+pad9 200 / pad11 200 / pad16 200 / pad24 200 / pad26 413 '이미지가 너무 큽니다.' / 40MB 413 '이미지가 너무 큽니다 (최대 25MB).'
+잘린 multipart: 400 {code:upload_failed, message:'사진 파일을 끝까지 읽지 못했습니다. 25MB 이하의 사진으로 다시 시도해 주세요.'}
+skipAi 리포트 ⑭: '조명 조건이 좋지 않고 사진이 너무 밝아 하얗게 날아간 부분이 있습니다. (주광(자연광) · 5,540K)', '타입 구분 명확도 26', 근거에 gray-world·엠대시 없음. 확인용 리포트는 삭제. 서버 종료.

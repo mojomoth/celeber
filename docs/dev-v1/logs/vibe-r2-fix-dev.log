@@ -1,0 +1,19 @@
+$ node ../../scripts/sync-public.mjs .
+$ next dev --port 3104
+▲ Next.js 16.4.6 (Turbopack)
+- Local:         http://localhost:3104
+- Network:       http://192.168.31.61:3104
+✓ Ready in 129ms
+✓ Running next.config.ts took 17ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: 41943040
+  · serverActions
+
+ GET /api/health 200 in 379ms (next.js: 325ms, proxy.ts: 37ms, application-code: 17ms)
+ GET / 200 in 367ms (next.js: 215ms, proxy.ts: 1.0ms, application-code: 151ms)
+ GET / 200 in 14ms (next.js: 1.2ms, proxy.ts: 1.6ms, application-code: 12ms)
+ GET /analyses 200 in 51ms (next.js: 24ms, proxy.ts: 0.9ms, application-code: 26ms)
+ GET / 200 in 15ms (next.js: 1.6ms, proxy.ts: 1.2ms, application-code: 12ms)
+ GET / 200 in 12ms (next.js: 1.0ms, proxy.ts: 1.0ms, application-code: 10ms)
+ GET /analyses 200 in 15ms (next.js: 0.9ms, proxy.ts: 0.8ms, application-code: 13ms)
+[?25h

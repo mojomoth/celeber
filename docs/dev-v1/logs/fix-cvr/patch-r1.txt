@@ -1,0 +1,8 @@
+guide=guide_mwtn034l8734b8b4a1
+{"save":false} 400 validation_error
+{} 400 nothing_to_update
+{"saved":false} 200 saved=False updatedAt=2026-11-23T19:06:39.703Z
+after: saved=False updatedAt=2026-11-23T19:06:39.703Z
+/guides/guide_mwtn034l8734b8b4a1 200
+/new 200
+/pocs/celeb-vibe-report/guides/guide_mwtn034l8734b8b4a1 200

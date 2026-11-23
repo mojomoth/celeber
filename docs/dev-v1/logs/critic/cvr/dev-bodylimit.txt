@@ -1,0 +1,2 @@
+37:Request body exceeded 10MB for /api/uploads. Only the first 10MB will be available unless configured. See https://nextjs.org/docs/app/api-reference/config/next-config-js/middlewareClientMaxBodySize for more details.
+39:Request body exceeded 10MB for /api/uploads. Only the first 10MB will be available unless configured. See https://nextjs.org/docs/app/api-reference/config/next-config-js/middlewareClientMaxBodySize for more details.

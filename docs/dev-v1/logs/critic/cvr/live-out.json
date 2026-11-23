@@ -1,0 +1,672 @@
+{
+  "health": {
+    "ai": true,
+    "aiProvider": "anthropic",
+    "imageSearch": "mock",
+    "reverseImageSearch": false,
+    "reverseImageSearchUploads": false,
+    "model": "claude-opus-5-5",
+    "forceMock": false,
+    "aiBlockedReason": null
+  },
+  "report": {
+    "ms": 21978,
+    "aiSource": "ai",
+    "id": "pcr_mwtm4dbxdbc20b6778",
+    "source": "hybrid",
+    "isMock": false,
+    "tone": "여름쿨 트루"
+  },
+  "vibe": {
+    "precheck": {
+      "analyzable": true,
+      "partial": {
+        "outfit": true,
+        "personalColor": false,
+        "mood": true
+      },
+      "personCount": 1,
+      "framing": "unknown",
+      "reasons": [
+        {
+          "code": "other",
+          "message": "브라우저 측정 없이 사진 통계만으로 판정했습니다. 얼굴을 직접 측정하지 않아 퍼스널컬러는 참고용 추정입니다.",
+          "severity": "info"
+        }
+      ]
+    },
+    "ms": 22940,
+    "id": "vibe_mwtm4v4ofe2f074ae2",
+    "source": "ai",
+    "isMock": false,
+    "lookName": "오트밀 차콜 미니멀 룩",
+    "summary": "오트밀 스웨트셔츠로 슬랙스의 격식을 낮추고, 토프 토트백과 블랙 슈즈로 차분하게 마무리한 코디입니다.",
+    "outfit": {
+      "items": [
+        {
+          "category": "top",
+          "name": "크루넥 스웨트셔츠",
+          "color": {
+            "hex": "#CECABB",
+            "name": "오트밀 베이지"
+          },
+          "material": "면 혼방 스웨트 원단으로 추정",
+          "fit": "드롭 숄더 오버핏",
+          "pattern": "무지",
+          "box": {
+            "x": 0.064,
+            "y": 0.153,
+            "w": 0.92,
+            "h": 0.363
+          },
+          "note": "목 아래에 작은 V자 스티치가 있고 소맷단은 리브로 마감되어 있습니다."
+        },
+        {
+          "category": "bottom",
+          "name": "턱 와이드 슬랙스",
+          "color": {
+            "hex": "#4B494D",
+            "name": "차콜 그레이"
+          },
+          "material": "울 혼방처럼 보이는 직물",
+          "fit": "롱 와이드핏",
+          "pattern": "잔잔한 멜란지",
+          "box": {
+            "x": 0.157,
+            "y": 0.412,
+            "w": 0.71,
+            "h": 0.556
+          },
+          "note": "앞주름에서 넓게 떨어지고 밑단이 신발 위에 살짝 쌓입니다. 중앙 측정값은 오프 블랙이지만 바지 전체는 차콜 그레이로 보입니다. 측정색 오프 블랙(#212123)과 차이가 있습니다(조명 영향 가능)."
+        },
+        {
+          "category": "shoes",
+          "name": "러그솔 라운드토 슈즈",
+          "color": {
+            "hex": "#171719",
+            "name": "블랙"
+          },
+          "material": "광택 있는 가죽 또는 합성가죽으로 추정",
+          "pattern": "무지",
+          "box": {
+            "x": 0.164,
+            "y": 0.936,
+            "w": 0.744,
+            "h": 0.062
+          },
+          "note": "둥근 앞코와 두꺼운 밑창이 보이며 여밈은 바짓단에 가려져 있습니다."
+        },
+        {
+          "category": "bag",
+          "name": "긴 손잡이 소프트 토트백",
+          "color": {
+            "hex": "#918B85",
+            "name": "토프 그레이"
+          },
+          "material": "표면 결이 보이는 패브릭으로 추정",
+          "pattern": "무지",
+          "box": {
+            "x": 0.006,
+            "y": 0.534,
+            "w": 0.346,
+            "h": 0.226
+          },
+          "note": "사진 왼쪽에 들고 있으며 몸체가 부드럽게 접힙니다."
+        }
+      ],
+      "styleKeywords": [
+        "미니멀",
+        "모던",
+        "캐주얼"
+      ],
+      "silhouette": "어깨가 내려오는 여유로운 상의와 신발 위까지 길게 떨어지는 와이드 팬츠를 매치했습니다.",
+      "summary": "오트밀 스웨트셔츠로 슬랙스의 격식을 낮추고, 토프 토트백과 블랙 슈즈로 차분하게 마무리한 코디입니다."
+    },
+    "mood": {
+      "keywords": [
+        "절제된",
+        "차분한",
+        "도회적인",
+        "편안한"
+      ],
+      "firstImpression": "여유로운 핏은 편안하고, 낮은 채도의 배색과 또렷한 바지 주름은 차분하고 정돈된 인상을 줍니다.",
+      "references": [
+        "미니멀 룩북",
+        "소프트 테일러링",
+        "뉴트럴 레이어링"
+      ]
+    },
+    "personalColor": "autumn-deep"
+  },
+  "guide": {
+    "ms": 29882,
+    "aiSource": "ai",
+    "guide": {
+      "id": "guide_mwtm5i6u6fcbca3d12",
+      "version": 1,
+      "createdAt": "2026-11-23T18:42:52.374Z",
+      "updatedAt": "2026-11-23T18:42:52.374Z",
+      "reportId": "pcr_mwtm4dbxdbc20b6778",
+      "vibeAnalysisId": "vibe_mwtm4v4ofe2f074ae2",
+      "celebName": "데모 모델",
+      "lookName": "오트밀 차콜 미니멀 룩",
+      "thumbnail": {
+        "uploadId": "up_mwtih5sm3615303631",
+        "url": "/api/uploads/up_mwtih5sm3615303631",
+        "width": 700,
+        "height": 1940
+      },
+      "summary": "오트밀 베이지 스웨트셔츠를 라이트 그레이로 바꿔 얼굴 가까이에 여름쿨 트루 팔레트를 적용하세요. 차콜 그레이 와이드 슬랙스와 블랙 슈즈, 토프 그레이 토트는 유지해 원본의 차분한 실루엣을 살리세요.",
+      "face": {
+        "hair": [
+          {
+            "title": "헤어 컬러",
+            "detail": "연예인 헤어 블랙은 내 추천 헤어 소프트 블랙과 가까워 그대로 따라 해도 됩니다.",
+            "colors": [
+              {
+                "hex": "#1B1716",
+                "name": "블랙"
+              },
+              {
+                "hex": "#2A2A2E",
+                "name": "소프트 블랙"
+              }
+            ]
+          },
+          {
+            "title": "피할 헤어 컬러",
+            "detail": "염색으로 변화를 주려면 애쉬 브라운을 고르고, 노란 기가 강한 골드 브라운과 주황빛 코퍼는 피하는 편이 좋습니다.",
+            "colors": [
+              {
+                "hex": "#9A5A2C",
+                "name": "오렌지 브라운",
+                "nameEn": "Orange Brown"
+              },
+              {
+                "hex": "#C9A25E",
+                "name": "골드 블론드",
+                "nameEn": "Golden Blonde"
+              }
+            ]
+          },
+          {
+            "title": "소프트 블랙과 가운데 가르마",
+            "detail": "사진처럼 가운데 가르마를 타고 옆머리를 귀 뒤로 넘기세요. 가벼운 제품으로 잔머리만 눌러 매끈하게 정리하세요."
+          },
+          {
+            "title": "쿨 다크 브라운과 자연스러운 뿌리 볼륨",
+            "detail": "가운데 가르마는 유지하되 뿌리를 살짝 띄우고 옆머리는 귀 뒤로 넘기세요. 사진보다 부드러운 인상을 내고 싶을 때 적합합니다."
+          }
+        ],
+        "makeup": [
+          {
+            "title": "립",
+            "detail": "로즈 베리 / 쿨 로즈 / 라즈베리 계열이 혈색을 살립니다.",
+            "colors": [
+              {
+                "hex": "#C25A7C",
+                "name": "로즈 베리"
+              },
+              {
+                "hex": "#D47A93",
+                "name": "쿨 로즈"
+              },
+              {
+                "hex": "#B0234A",
+                "name": "라즈베리"
+              }
+            ]
+          },
+          {
+            "title": "아이",
+            "detail": "쿨 토프 / 쿨 그레이 섀도로 음영만 주세요.",
+            "colors": [
+              {
+                "hex": "#8C7F95",
+                "name": "쿨 토프"
+              },
+              {
+                "hex": "#A5A3AA",
+                "name": "쿨 그레이"
+              }
+            ]
+          },
+          {
+            "title": "베이스·치크",
+            "detail": "핑크~뉴트럴 베이스(21호 쿨)로 정돈하고 쿨 핑크를 얇게 더하세요.",
+            "colors": [
+              {
+                "hex": "#E8A0B0",
+                "name": "쿨 핑크"
+              }
+            ]
+          },
+          {
+            "title": "베이스: 얇고 보송하게",
+            "detail": "피부 톤에 맞는 베이스를 얇게 펴 바르고, 번들거리는 부위에만 파우더를 가볍게 얹으세요."
+          },
+          {
+            "title": "아이: 라이트 그레이 음영",
+            "detail": "라이트 그레이를 속눈썹 가까이에 얇게 펴 바르고 경계를 흐리세요."
+          }
+        ],
+        "summary": "가운데 가르마로 머리를 매끈하게 정리하고, 피부 표현은 얇게, 입술은 본래 색이 비치게 마무리하세요."
+      },
+      "outfit": {
+        "substitutions": [
+          {
+            "category": "top",
+            "itemName": "크루넥 스웨트셔츠",
+            "celebColor": {
+              "hex": "#CECABB",
+              "name": "오트밀 베이지"
+            },
+            "myColor": {
+              "hex": "#D9D9DC",
+              "name": "라이트 그레이"
+            },
+            "deltaE": 9.4,
+            "keepOriginal": false,
+            "reason": "얼굴 가까이 오는 아이템이라 내 팔레트에서 가장 가까운 라이트 그레이로 바꿉니다."
+          },
+          {
+            "category": "bottom",
+            "itemName": "턱 와이드 슬랙스",
+            "celebColor": {
+              "hex": "#4B494D",
+              "name": "차콜 그레이"
+            },
+            "myColor": {
+              "hex": "#4B494D",
+              "name": "차콜 그레이"
+            },
+            "deltaE": 0,
+            "keepOriginal": true,
+            "reason": "얼굴에서 먼 아이템이라 원래 색을 유지해도 인상 변화가 적습니다."
+          },
+          {
+            "category": "shoes",
+            "itemName": "러그솔 라운드토 슈즈",
+            "celebColor": {
+              "hex": "#171719",
+              "name": "블랙"
+            },
+            "myColor": {
+              "hex": "#171719",
+              "name": "블랙"
+            },
+            "deltaE": 0,
+            "keepOriginal": true,
+            "reason": "얼굴에서 먼 아이템이라 원래 색을 유지해도 인상 변화가 적습니다."
+          },
+          {
+            "category": "bag",
+            "itemName": "긴 손잡이 소프트 토트백",
+            "celebColor": {
+              "hex": "#918B85",
+              "name": "토프 그레이"
+            },
+            "myColor": {
+              "hex": "#918B85",
+              "name": "토프 그레이"
+            },
+            "deltaE": 0,
+            "keepOriginal": true,
+            "reason": "얼굴에서 먼 아이템이라 원래 색을 유지해도 인상 변화가 적습니다."
+          }
+        ],
+        "items": [
+          {
+            "title": "크루넥 스웨트셔츠: 오트밀 베이지 → 라이트 그레이",
+            "detail": "얼굴 가까이 오는 아이템이라 내 팔레트에서 가장 가까운 라이트 그레이로 바꿉니다.",
+            "colors": [
+              {
+                "hex": "#CECABB",
+                "name": "오트밀 베이지"
+              },
+              {
+                "hex": "#D9D9DC",
+                "name": "라이트 그레이"
+              }
+            ]
+          },
+          {
+            "title": "그대로 둘 아이템",
+            "detail": "턱 와이드 슬랙스(차콜 그레이), 러그솔 라운드토 슈즈(블랙), 긴 손잡이 소프트 토트백(토프 그레이): 원래 색을 유지합니다.",
+            "colors": [
+              {
+                "hex": "#4B494D",
+                "name": "차콜 그레이"
+              },
+              {
+                "hex": "#171719",
+                "name": "블랙"
+              },
+              {
+                "hex": "#918B85",
+                "name": "토프 그레이"
+              }
+            ]
+          },
+          {
+            "title": "라이트 그레이 크루넥 스웨트셔츠",
+            "detail": "두껍게 각이 잡히기보다 부드럽게 떨어지는 면 혼방 스웨트 원단을 고르세요. 어깨선이 살짝 내려오는 핏으로 입고 앞단만 허리선에 가볍게 넣으세요."
+          },
+          {
+            "title": "차콜 그레이 턱 와이드 슬랙스",
+            "detail": "울 혼방처럼 결이 은은하고 힘 있게 떨어지는 직물을 고르세요. 허리는 맞고 허벅지부터 밑단까지 여유가 있는 핏으로, 앞주름이 곧게 떨어지는지 확인하세요."
+          },
+          {
+            "title": "블랙 라운드토 러그솔 슈즈",
+            "detail": "은은한 광택의 가죽이나 합성가죽 소재를 고르세요. 둥근 앞코가 바지 밑단 아래로 살짝 보이게 맞추세요."
+          },
+          {
+            "title": "토프 그레이 소프트 토트",
+            "detail": "표면에 결이 보이고 모서리가 부드럽게 접히는 패브릭 토트를 고르세요. 손잡이가 긴 형태를 유지하고 장식은 적은 편이 좋습니다."
+          }
+        ],
+        "summary": "드롭 숄더 스웨트셔츠는 어깨에 부피가 덜 쌓이는 핏으로, 턱 와이드 슬랙스는 앞주름이 곧게 떨어지는 핏으로 고르세요."
+      },
+      "mood": {
+        "keywords": [
+          "미니멀",
+          "차분함",
+          "도회적",
+          "편안함"
+        ],
+        "items": [
+          {
+            "title": "얼굴 가까이는 밝게",
+            "detail": "라이트 그레이를 상체에 두어 인상을 부드럽게 하고, 차콜 그레이와 블랙은 하체에 남겨 전체 룩을 차분하게 잡으세요."
+          },
+          {
+            "title": "색은 줄이고 질감은 나누기",
+            "detail": "스웨트셔츠와 패브릭 토트는 보송한 질감으로 두고, 신발에만 은은한 광택을 남기세요."
+          },
+          {
+            "title": "실버 장식은 작게",
+            "detail": "액세서리를 더하고 싶다면 작은 실버 귀걸이로 마무리해 크루넥의 단정한 선을 살리세요."
+          }
+        ],
+        "summary": "라이트 그레이와 차콜 그레이의 명도 차이로 부드러움과 시크함을 함께 살리세요."
+      },
+      "paletteMapping": [
+        {
+          "celeb": {
+            "hex": "#CECABB",
+            "name": "오트밀 베이지"
+          },
+          "mine": {
+            "hex": "#D9D9DC",
+            "name": "라이트 그레이"
+          },
+          "deltaE": 9.4
+        },
+        {
+          "celeb": {
+            "hex": "#4B494D",
+            "name": "차콜 그레이"
+          },
+          "mine": {
+            "hex": "#4B494D",
+            "name": "차콜 그레이"
+          },
+          "deltaE": 0
+        },
+        {
+          "celeb": {
+            "hex": "#918B85",
+            "name": "토프 그레이"
+          },
+          "mine": {
+            "hex": "#918B85",
+            "name": "토프 그레이"
+          },
+          "deltaE": 0
+        },
+        {
+          "celeb": {
+            "hex": "#171719",
+            "name": "블랙"
+          },
+          "mine": {
+            "hex": "#171719",
+            "name": "블랙"
+          },
+          "deltaE": 0
+        }
+      ],
+      "gaps": [
+        {
+          "axis": "warmth",
+          "label": "웜/쿨",
+          "me": 0,
+          "celeb": 0,
+          "gap": 0,
+          "poles": [
+            "쿨",
+            "웜"
+          ],
+          "comment": "연예인 사진에서 얼굴 피부색을 측정하지 못해(사진 통계 추정, 신뢰도 27%) 비교하지 않았습니다.",
+          "unavailable": true
+        },
+        {
+          "axis": "value",
+          "label": "명도",
+          "me": 11,
+          "celeb": 11,
+          "gap": 0,
+          "poles": [
+            "어두움",
+            "밝음"
+          ],
+          "comment": "연예인 사진에서 얼굴 피부색을 측정하지 못해(사진 통계 추정, 신뢰도 27%) 비교하지 않았습니다.",
+          "unavailable": true
+        },
+        {
+          "axis": "chroma",
+          "label": "채도",
+          "me": 47,
+          "celeb": 47,
+          "gap": 0,
+          "poles": [
+            "부드러움",
+            "선명함"
+          ],
+          "comment": "연예인 사진에서 얼굴 피부색을 측정하지 못해(사진 통계 추정, 신뢰도 27%) 비교하지 않았습니다.",
+          "unavailable": true
+        },
+        {
+          "axis": "contrast",
+          "label": "대비",
+          "me": 27,
+          "celeb": 27,
+          "gap": 0,
+          "poles": [
+            "낮음",
+            "높음"
+          ],
+          "comment": "연예인 사진에서 얼굴 피부색을 측정하지 못해(사진 통계 추정, 신뢰도 27%) 비교하지 않았습니다.",
+          "unavailable": true
+        },
+        {
+          "axis": "clarity",
+          "label": "청탁",
+          "me": 47,
+          "celeb": 47,
+          "gap": 0,
+          "poles": [
+            "탁함",
+            "맑음"
+          ],
+          "comment": "연예인 사진에서 얼굴 피부색을 측정하지 못해(사진 통계 추정, 신뢰도 27%) 비교하지 않았습니다.",
+          "unavailable": true
+        },
+        {
+          "axis": "body-ratio",
+          "label": "체형 비율",
+          "me": 50,
+          "celeb": 50,
+          "gap": 0,
+          "poles": [
+            "짧은 비율",
+            "긴 비율"
+          ],
+          "comment": "연예인 사진에서 전신 비율을 측정하지 못했습니다.",
+          "unavailable": true
+        },
+        {
+          "axis": "style",
+          "label": "스타일",
+          "me": 0,
+          "celeb": 50,
+          "gap": 50,
+          "poles": [
+            "소프트",
+            "시크"
+          ],
+          "comment": "연예인 룩 키워드: 절제된, 미니멀, 모던. 연예인 쪽이 시크 쪽으로 50만큼 떨어져 있습니다. 직선 재단과 미니멀한 소품으로 시크한 인상을 더하세요."
+        }
+      ],
+      "actions": [
+        {
+          "priority": 1,
+          "difficulty": "easy",
+          "area": "face",
+          "title": "가르마부터 정리하기",
+          "detail": "가운데 가르마를 타고 옆머리를 귀 뒤로 넘겨 얼굴 주변을 정리하세요."
+        },
+        {
+          "priority": 2,
+          "difficulty": "easy",
+          "area": "outfit",
+          "title": "상의만 바꿔 입기",
+          "detail": "라이트 그레이 스웨트셔츠를 차콜 그레이 슬랙스와 입고 자연광에서 얼굴 가까이의 색을 확인하세요."
+        },
+        {
+          "priority": 3,
+          "difficulty": "easy",
+          "area": "mood",
+          "title": "포인트 줄이기",
+          "detail": "토프 그레이 토트와 블랙 슈즈를 매치하고, 장식이 많은 액세서리는 빼세요."
+        },
+        {
+          "priority": 4,
+          "difficulty": "medium",
+          "area": "face",
+          "title": "눈과 볼의 색 농도 맞추기",
+          "detail": "눈에는 라이트 그레이를, 볼에는 쿨 라벤더를 얇게 올리고 경계가 보이지 않게 펴 바르세요."
+        },
+        {
+          "priority": 5,
+          "difficulty": "medium",
+          "area": "outfit",
+          "title": "상의 볼륨과 바지 폭 맞추기",
+          "detail": "상의 앞단을 살짝 넣어 허리선을 드러내고, 바지의 앞주름이 벌어지지 않는 폭을 고르세요."
+        },
+        {
+          "priority": 6,
+          "difficulty": "hard",
+          "area": "outfit",
+          "title": "신발을 신고 밑단 수선하기",
+          "detail": "블랙 러그솔 슈즈를 신은 상태에서 앞코는 조금 보이고 뒤 밑단은 바닥에 닿지 않도록 길이를 맞추세요."
+        }
+      ],
+      "doNotCopy": [
+        {
+          "element": "사진의 보정 색감 그대로",
+          "reason": "연예인 사진은 스튜디오 조명, 메이크업, 보정·필터의 영향을 받아 실제 피부색과 다를 수 있습니다. 브라우저 얼굴 측정이 없어 색 추정 오차가 더 큽니다. 조명이 고르게 보이지만 화이트밸런스와 보정 여부를 알 수 없습니다. 피부·머리·눈동자 색은 사진에서 보이는 근사값이며, 제공된 피부 측정값도 얼굴 기반이 아니어서 실제 언더톤은 달라질 수 있습니다.",
+          "alternative": "자연광에서 내 팔레트 색으로 확인"
+        },
+        {
+          "element": "오트밀 베이지 상의",
+          "reason": "얼굴 가까이에서는 사용자의 여름쿨 트루 팔레트와 방향이 다릅니다.",
+          "alternative": "크루넥과 스웨트 원단은 유지하고 색만 라이트 그레이로 바꾸세요."
+        },
+        {
+          "element": "어깨선이 크게 내려오는 오버핏",
+          "reason": "역삼각형 체형에서는 두꺼운 원단과 큰 드롭 숄더가 겹치면 상체 쪽에 부피가 몰릴 수 있습니다.",
+          "alternative": "어깨선이 살짝 내려오고 소매가 부드럽게 떨어지는 핏을 고르세요."
+        },
+        {
+          "element": "신발 위에 여러 겹 쌓이는 바지 밑단",
+          "reason": "밑단이 과하게 쌓이면 바지의 앞주름이 흐려지고 걸을 때 밟힐 수 있습니다.",
+          "alternative": "와이드 폭은 유지하고 밑단이 신발 위에 가볍게 닿는 길이로 맞추세요."
+        }
+      ],
+      "saved": true,
+      "source": "hybrid",
+      "isMock": false
+    }
+  },
+  "fallback": {
+    "precheck": {
+      "analyzable": false,
+      "partial": {
+        "outfit": false,
+        "personalColor": false,
+        "mood": true
+      },
+      "personCount": 1,
+      "framing": "unknown",
+      "reasons": [
+        {
+          "code": "heavy-filter",
+          "message": "흑백 사진이라 색 분석을 할 수 없습니다.",
+          "severity": "error"
+        },
+        {
+          "code": "other",
+          "message": "브라우저 측정 없이 사진 통계만으로 판정했습니다. 얼굴을 직접 측정하지 않아 퍼스널컬러는 참고용 추정입니다.",
+          "severity": "info"
+        }
+      ]
+    },
+    "search": {
+      "candidates": 1,
+      "isMock": true,
+      "imageProvider": "mock"
+    },
+    "celeb": "데모 모델",
+    "images": [
+      {
+        "id": "cimg_mwtm5k98919baa42b8",
+        "provider": "mock",
+        "uploadId": "up_mwtiimpwe5852f5d7a"
+      },
+      {
+        "id": "cimg_mwtm5k990b761eae01",
+        "provider": "mock",
+        "uploadId": "up_mwtm5jvlad3d3bfbf2"
+      },
+      {
+        "id": "cimg_mwtm5k9910e25e4595",
+        "provider": "mock",
+        "uploadId": "up_mwtm5k8r217fd98e8a"
+      },
+      {
+        "id": "cimg_mwtm5k99468dc99d60",
+        "provider": "mock",
+        "uploadId": "up_mwtifaet5d2fac1ea1"
+      },
+      {
+        "id": "cimg_mwtm5k99b322ffc94c",
+        "provider": "mock",
+        "uploadId": "up_mwtm5k9763dc6a44ad"
+      },
+      {
+        "id": "cimg_mwtm5k9924b231cc8e",
+        "provider": "mock",
+        "uploadId": "up_mwtifaet15e5f65c2b"
+      }
+    ],
+    "picked": {
+      "analysisId": "vibe_mwtm5zct806bace19a",
+      "analyzable": true,
+      "source": "ai",
+      "isMock": false,
+      "lookName": "차콜 와이드 미니멀 룩",
+      "summary": "밝은 그레이지 스웨트셔츠에 차콜 와이드 슬랙스를 매치했습니다. 부드러운 토트백이 캐주얼한 느낌을 더하고, 블랙 구두가 룩을 단정하게 마무리합니다."
+    }
+  }
+}

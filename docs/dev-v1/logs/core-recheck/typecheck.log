@@ -1,0 +1,21 @@
+$ pnpm -r --if-present typecheck
+Scope: 9 of 10 workspace projects
+pocs/core typecheck$ tsc --noEmit -p tsconfig.json
+pocs/ui typecheck$ tsc --noEmit -p tsconfig.json
+pocs/ui typecheck: Done
+pocs/core typecheck: Done
+pocs/camera-body typecheck$ tsc --noEmit -p tsconfig.json
+pocs/celeb-vibe typecheck$ tsc --noEmit -p tsconfig.json
+pocs/hub typecheck$ tsc --noEmit -p tsconfig.json
+pocs/camera-face typecheck$ tsc --noEmit -p tsconfig.json
+pocs/hub typecheck: Done
+pocs/search-celeb typecheck$ tsc --noEmit -p tsconfig.json
+pocs/camera-body typecheck: Done
+pocs/celeb-vibe typecheck: Done
+pocs/camera-face typecheck: Done
+pocs/search-celeb typecheck: Done
+pocs/personal-color-report typecheck$ tsc --noEmit -p tsconfig.json
+pocs/personal-color-report typecheck: Done
+pocs/celeb-vibe-report typecheck$ tsc --noEmit -p tsconfig.json
+pocs/celeb-vibe-report typecheck: Done
+EXIT 0

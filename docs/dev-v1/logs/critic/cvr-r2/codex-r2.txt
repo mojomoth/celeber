@@ -1,0 +1,25 @@
+
+2. **업로드 용량 수정은 반영됐지만 해상도 오류 안내가 틀립니다.** 프록시는 36MB, 파일 사전검사는 25MB입니다. 6,500×6,500 PNG는 123,486바이트여도 4천만 픽셀 제한에 걸립니다. 실제 오류 `Input image exceeds pixel limit`은 일반 재시도 안내로 바뀌어, 필요한 조치인 해상도 축소를 알려주지 않습니다. [next.config.ts:34](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/next.config.ts:34) · [upload-check.ts:32](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/upload-check.ts:32) · [42행](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/upload-check.ts:42)
+
+3. **인물 없음 문구는 고쳤지만 코디 설명이 남습니다.** `no-person`과 `extreme-lighting`을 함께 주면 `colorCaution`은 꺼지고 치환표는 인물 없음으로 안내합니다. 그런데 원본 `silhouette`은 남아 같은 가이드에 “연예인 룩: I라인, 상체 볼륨 + 와이드 하의”가 출력됩니다. [limits.ts:42](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/limits.ts:42) · [rules.ts:160](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/rules.ts:160) · [VibeGuideView.tsx:115](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/components/VibeGuideView.tsx:115)
+
+4. **AI와 팔레트의 모순은 여전히 저장됩니다.** 제한 없는 사진에서 매핑에 없는 “초록으로 바꾸세요”를 AI 요약으로 주면 그대로 채택됩니다. 제한 사진도 전체·코디 요약만 보호하므로 AI 액션에는 잘못된 색이 남습니다. [ai.ts:159](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:159) · [163행](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:163)
+
+5. **무채색 경고와 중복 제거는 표현에 의존합니다.** 흑백 룩에서 ‘선명한 원색’은 걸러도 AI가 ‘고채도 상의’라고 쓰면 표시됩니다. 규칙의 ‘사진의 보정 색감 그대로’와 AI의 ‘사진의 색감 편집 그대로’도 함께 남습니다. [ai.ts:152](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:152) · [rules.ts:287](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/rules.ts:287)
+
+6. **PATCH는 오타를 거절하지만 재생성은 무시합니다.** PATCH `{"save":true}`는 400입니다. 재생성에 `{"skipAI":true}`를 보내면 오타를 버리고 AI 호출 경로로 진행합니다. [api.ts:34](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/api.ts:34) · [routes/index.ts:75](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/routes/index.ts:75)
+tokens used
+74,538
+다섯 수정 중 PATCH 오타는 해결됐습니다. 어두운 사진의 **새 가이드**도 색 갭 5개를 모두 ‘비교 불가’로 처리합니다. 재생성은 최초 생성과 같은 함수를 호출하고, 규칙 계산과 AI 프롬프트 양쪽에서 `guideVibe`를 적용합니다. 아래는 코드와 메모리 내 입력으로 확인한 결과입니다. 실제 HTTP 업로드는 실행하지 않았습니다. [server/index.ts:153](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/server/index.ts:153) · [rules.ts:313](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/rules.ts:313) · [ai.ts:50](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:50)
+
+1. **색 측정값이 화면에 다시 나타납니다.** 어두운 사진 회귀 입력에서 가이드 상단은 ‘톤 비교 불가’지만 팔레트에는 제외된 ‘로즈 브라운 (입술)’이 표시됩니다. 상세 분석을 펼치면 원본 톤 ‘가을웜 딥’도 보입니다. 수정 전에 저장한 가이드는 기존 갭을 그대로 그려 ‘톤 비교 불가’ 아래에 색 비교 그래프까지 남습니다. [VibeGuideView.tsx:38](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/components/VibeGuideView.tsx:38) · [132행](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/components/VibeGuideView.tsx:132) · [175행](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/components/VibeGuideView.tsx:175)
+
+2. **업로드 용량 수정은 반영됐지만 해상도 오류 안내가 틀립니다.** 프록시는 36MB, 파일 사전검사는 25MB입니다. 6,500×6,500 PNG는 123,486바이트여도 4천만 픽셀 제한에 걸립니다. 실제 오류 `Input image exceeds pixel limit`은 일반 재시도 안내로 바뀌어, 필요한 조치인 해상도 축소를 알려주지 않습니다. [next.config.ts:34](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/next.config.ts:34) · [upload-check.ts:32](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/upload-check.ts:32) · [42행](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/upload-check.ts:42)
+
+3. **인물 없음 문구는 고쳤지만 코디 설명이 남습니다.** `no-person`과 `extreme-lighting`을 함께 주면 `colorCaution`은 꺼지고 치환표는 인물 없음으로 안내합니다. 그런데 원본 `silhouette`은 남아 같은 가이드에 “연예인 룩: I라인, 상체 볼륨 + 와이드 하의”가 출력됩니다. [limits.ts:42](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/limits.ts:42) · [rules.ts:160](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/rules.ts:160) · [VibeGuideView.tsx:115](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/components/VibeGuideView.tsx:115)
+
+4. **AI와 팔레트의 모순은 여전히 저장됩니다.** 제한 없는 사진에서 매핑에 없는 “초록으로 바꾸세요”를 AI 요약으로 주면 그대로 채택됩니다. 제한 사진도 전체·코디 요약만 보호하므로 AI 액션에는 잘못된 색이 남습니다. [ai.ts:159](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:159) · [163행](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:163)
+
+5. **무채색 경고와 중복 제거는 표현에 의존합니다.** 흑백 룩에서 ‘선명한 원색’은 걸러도 AI가 ‘고채도 상의’라고 쓰면 표시됩니다. 규칙의 ‘사진의 보정 색감 그대로’와 AI의 ‘사진의 색감 편집 그대로’도 함께 남습니다. [ai.ts:152](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/ai.ts:152) · [rules.ts:287](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/rules.ts:287)
+
+6. **PATCH는 오타를 거절하지만 재생성은 무시합니다.** PATCH `{"save":true}`는 400입니다. 재생성에 `{"skipAI":true}`를 보내면 오타를 버리고 AI 호출 경로로 진행합니다. [api.ts:34](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/lib/api.ts:34) · [routes/index.ts:75](/Users/jyl/work/repo/celeber/pocs/celeb-vibe-report/src/routes/index.ts:75)

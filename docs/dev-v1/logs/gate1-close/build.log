@@ -1,0 +1,297 @@
+$ pnpm -r --workspace-concurrency=1 --filter "./pocs/*" --filter "!@celeber/core" --filter "!@celeber/ui" build
+Scope: 7 of 10 workspace projects
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 14ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "36mb"
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 751ms
+  Running TypeScript ...
+  Finished TypeScript in 1294ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 26ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/body/analyze
+├ ƒ /api/body/demo
+├ ƒ /api/body/sessions
+├ ƒ /api/body/sessions/[id]
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/uploads
+├ ƒ /api/uploads/[id]
+├ ƒ /capture
+├ ƒ /sessions
+└ ƒ /sessions/[id]
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 10ms
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 157ms
+  Running TypeScript ...
+  Finished TypeScript in 611ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 59ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/face/analyze
+├ ƒ /api/face/environment
+├ ƒ /api/face/latest
+├ ƒ /api/face/sessions
+├ ƒ /api/face/sessions/[id]
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/uploads
+├ ƒ /api/uploads/[id]
+├ ƒ /capture
+├ ƒ /sessions
+└ ƒ /sessions/[id]
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 15ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: 41943040
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 156ms
+  Running TypeScript ...
+  Finished TypeScript in 610ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 38ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /analyses
+├ ƒ /analyses/[id]
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/uploads
+├ ƒ /api/uploads/[id]
+├ ƒ /api/vibe/analyses
+├ ƒ /api/vibe/analyses/[id]
+├ ƒ /api/vibe/analyses/[id]/reanalyze
+├ ƒ /api/vibe/analyze
+├ ƒ /api/vibe/celeb-images
+├ ƒ /api/vibe/import-url
+└ ƒ /api/vibe/precheck
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 10ms
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 285ms
+  Running TypeScript ...
+  Finished TypeScript in 942ms ...
+  Collecting page data using 6 workers ...
+  Generating static pages using 6 workers (0/1) ...
+✓ Generating static pages using 6 workers (1/1) in 131ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/health
+└ ƒ /api/status
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 15ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "36mb"
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 610ms
+  Running TypeScript ...
+  Finished TypeScript in 1235ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 38ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/celeb/celebs
+├ ƒ /api/celeb/celebs/[id]
+├ ƒ /api/celeb/celebs/[id]/images
+├ ƒ /api/celeb/identify
+├ ƒ /api/celeb/images/[id]
+├ ƒ /api/celeb/search
+├ ƒ /api/celeb/suggest
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/public-image/[id]
+├ ƒ /api/uploads
+└ ƒ /api/uploads/[id]
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 15ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "40mb"
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 197ms
+  Running TypeScript ...
+  Finished TypeScript in 643ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 38ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/body/analyze
+├ ƒ /api/body/demo
+├ ƒ /api/body/sessions
+├ ƒ /api/body/sessions/[id]
+├ ƒ /api/face/analyze
+├ ƒ /api/face/environment
+├ ƒ /api/face/latest
+├ ƒ /api/face/sessions
+├ ƒ /api/face/sessions/[id]
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/report/generate
+├ ƒ /api/report/inputs
+├ ƒ /api/report/latest
+├ ƒ /api/report/reports
+├ ƒ /api/report/reports/[id]
+├ ƒ /api/uploads
+├ ƒ /api/uploads/[id]
+├ ƒ /new
+├ ƒ /reports
+└ ƒ /reports/[id]
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 15ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "36mb"
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1131ms
+  Running TypeScript ...
+  Finished TypeScript in 2.1s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 28ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/body/analyze
+├ ƒ /api/body/demo
+├ ƒ /api/body/sessions
+├ ƒ /api/body/sessions/[id]
+├ ƒ /api/celeb/celebs
+├ ƒ /api/celeb/celebs/[id]
+├ ƒ /api/celeb/celebs/[id]/images
+├ ƒ /api/celeb/identify
+├ ƒ /api/celeb/images/[id]
+├ ƒ /api/celeb/search
+├ ƒ /api/celeb/suggest
+├ ƒ /api/face/analyze
+├ ƒ /api/face/environment
+├ ƒ /api/face/latest
+├ ƒ /api/face/sessions
+├ ƒ /api/face/sessions/[id]
+├ ƒ /api/guide/generate
+├ ƒ /api/guide/guides
+├ ƒ /api/guide/guides/[id]
+├ ƒ /api/guide/guides/[id]/regenerate
+├ ƒ /api/guide/my-data
+├ ƒ /api/guide/reports
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/public-image/[id]
+├ ƒ /api/report/generate
+├ ƒ /api/report/inputs
+├ ƒ /api/report/latest
+├ ƒ /api/report/reports
+├ ƒ /api/report/reports/[id]
+├ ƒ /api/uploads
+├ ƒ /api/uploads/[id]
+├ ƒ /api/vibe/analyses
+├ ƒ /api/vibe/analyses/[id]
+├ ƒ /api/vibe/analyses/[id]/reanalyze
+├ ƒ /api/vibe/analyze
+├ ƒ /api/vibe/celeb-images
+├ ƒ /api/vibe/import-url
+├ ƒ /api/vibe/precheck
+├ ƒ /guides
+├ ƒ /guides/[id]
+├ ƒ /new
+├ ƒ /report/[id]
+└ ƒ /report/new
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+

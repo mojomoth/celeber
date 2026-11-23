@@ -1,0 +1,41 @@
+$ node ../../scripts/sync-public.mjs .
+$ next dev --port 3103
+▲ Next.js 16.4.6 (Turbopack)
+- Local:         http://localhost:3103
+- Network:       http://192.168.31.61:3103
+✓ Ready in 192ms
+✓ Running next.config.ts took 31ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "36mb"
+  · serverActions
+
+ GET / 200 in 500ms (next.js: 365ms, proxy.ts: 25ms, application-code: 110ms)
+ GET / 200 in 18ms (next.js: 1.4ms, proxy.ts: 2ms, application-code: 14ms)
+ POST /api/uploads 200 in 336ms (next.js: 58ms, proxy.ts: 8ms, application-code: 270ms)
+Request body exceeded 36MB for /api/uploads. Only the first 36MB will be available unless configured. See https://nextjs.org/docs/app/api-reference/config/next-config-js/middlewareClientMaxBodySize for more details.
+ POST /api/uploads 413 in 25ms (next.js: 2ms, proxy.ts: 21ms, application-code: 1.6ms)
+[celeber/ai] search-celeb/name-candidates anthropic(claude-opus-5-5) 실패: API 사용 한도 초과 | 400 {"type":"error","error":{"type":"invalid_request_error","message":"You have reached your specified API usage limits. You will regain access on 2026-12-01 at 00:00 UTC."},"request_id":"req_011ChLMtAyuiUucBHZ47tqbm"}
+ GET /api/celeb/search?q=%EA%B9%80%EB%AF%BC%EC%88%98 200 in 6.0s (next.js: 78ms, proxy.ts: 1.4ms, application-code: 5.9s)
+ GET / 200 in 53ms (next.js: 12ms, proxy.ts: 5ms, application-code: 35ms)
+ GET /api/celeb/celebs?saved=1&limit=30 200 in 74ms (next.js: 53ms, proxy.ts: 7ms, application-code: 14ms)
+ GET /api/celeb/celebs?saved=0&limit=8 200 in 77ms (next.js: 58ms, proxy.ts: 8ms, application-code: 12ms)
+ GET /api/celeb/celebs?saved=1&limit=30 200 in 24ms (next.js: 7ms, proxy.ts: 8ms, application-code: 9ms)
+ GET /api/celeb/celebs?saved=0&limit=8 200 in 22ms (next.js: 10ms, proxy.ts: 8ms, application-code: 5ms)
+ GET /api/uploads/up_mwt9jzl4f97decfe15 200 in 589ms (next.js: 572ms, proxy.ts: 12ms, application-code: 6ms)
+ GET /api/celeb/suggest?q=%EA%B9%80 200 in 49ms (next.js: 41ms, proxy.ts: 2.0ms, application-code: 7ms)
+ GET /api/celeb/search?q=%EA%B9%80%EB%AF%BC%EC%88%98 200 in 12ms (next.js: 3ms, proxy.ts: 2ms, application-code: 6ms)
+ GET /api/uploads/up_mwtifaesa505b3b747 200 in 34ms (next.js: 4ms, proxy.ts: 1.8ms, application-code: 28ms)
+ GET /api/celeb/suggest?q=%EA%B9%80%EB%AF%BC%EC%88%98 200 in 10ms (next.js: 3ms, proxy.ts: 3ms, application-code: 3ms)
+ POST /api/uploads 400 in 26ms (next.js: 3ms, proxy.ts: 19ms, application-code: 5ms)
+ POST /api/uploads 200 in 31ms (next.js: 15ms, proxy.ts: 3ms, application-code: 13ms)
+ POST /api/celeb/identify 200 in 2.6s (next.js: 32ms, proxy.ts: 1.7ms, application-code: 2.6s)
+ GET /api/uploads/up_mwtmeoage5c6c0b3c1 200 in 20ms (next.js: 15ms, proxy.ts: 1.3ms, application-code: 4ms)
+ GET / 200 in 79ms (next.js: 42ms, proxy.ts: 1.7ms, application-code: 35ms)
+ GET /api/celeb/celebs?saved=0&limit=8 200 in 20ms (next.js: 10ms, proxy.ts: 3ms, application-code: 6ms)
+ GET /api/celeb/celebs?saved=1&limit=30 200 in 23ms (next.js: 14ms, proxy.ts: 3ms, application-code: 6ms)
+ GET /api/celeb/celebs?saved=0&limit=8 200 in 13ms (next.js: 2ms, proxy.ts: 3ms, application-code: 7ms)
+ GET /api/celeb/celebs?saved=1&limit=30 200 in 13ms (next.js: 5ms, proxy.ts: 2ms, application-code: 5ms)
+ GET /api/uploads/up_mwt9jzl4f97decfe15 200 in 12ms (next.js: 5ms, proxy.ts: 3ms, application-code: 3ms)
+ GET /api/celeb/suggest?q=%EC%9C%A4 200 in 28ms (next.js: 23ms, proxy.ts: 2ms, application-code: 3ms)
+[?25h
+[ELIFECYCLE] Command failed with exit code 143.

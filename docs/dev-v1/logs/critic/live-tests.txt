@@ -1,0 +1,25 @@
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/judge-live.test.ts > 전신 판정 (실제 AI) > 전신 2장은 전신, 상반신으로 자른 사진은 전신 아님
+AssertionError: expected 'rules' to be 'ai' // Object.is equality
+
+Expected: "ai"
+Received: "rules"
+
+ ❯ test/judge-live.test.ts:40:22
+     38|     const r = await judgeImages(list, false);
+     39|     console.log(JSON.stringify({ ms: Date.now() - t0, origin: r.origin…
+     40|     expect(r.origin).toBe('ai');
+       |                      ^
+     41|     expect(r.items.map((x) => x.isFullBody)).toEqual([true, true, fals…
+     42|     expect(r.items[0].analyzable).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 8 passed (9)
+   Start at  03:36:05
+   Duration  7.68s (tests 99%, import 1%)
+

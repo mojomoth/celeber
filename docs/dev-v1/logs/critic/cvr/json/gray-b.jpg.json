@@ -1,0 +1,43 @@
+{
+  "file": "gray-b.jpg",
+  "upload": {
+    "status": 200,
+    "body": {
+      "id": "up_mwtm5ilx861e0738a1",
+      "w": 470,
+      "h": 1590,
+      "bytes": 62706
+    },
+    "ms": 10
+  },
+  "precheck": {
+    "status": 200,
+    "ms": 10,
+    "body": {
+      "analyzability": {
+        "analyzable": false,
+        "partial": {
+          "outfit": false,
+          "personalColor": false,
+          "mood": true
+        },
+        "personCount": 1,
+        "framing": "unknown",
+        "reasons": [
+          {
+            "code": "heavy-filter",
+            "message": "흑백 사진이라 색 분석을 할 수 없습니다.",
+            "severity": "error"
+          },
+          {
+            "code": "other",
+            "message": "브라우저 측정 없이 사진 통계만으로 판정했습니다. 얼굴을 직접 측정하지 않아 퍼스널컬러는 참고용 추정입니다.",
+            "severity": "info"
+          }
+        ]
+      },
+      "measured": false,
+      "measurementDropped": false
+    }
+  }
+}

@@ -1,0 +1,15 @@
+personal-color-report 독립 검증 라운드 2 (2026-11-24, critic)
+dev 3105 재시작(실제 키 source, FORCE_MOCK 없음, CELEBER_DATA_DIR 분리). 종료 후 3105 LISTEN 0.
+앱 test 51 pass/1 skip, typecheck·lint 오류 없음.
+경로: /pocs/personal-color-report 307 -> /, /pocs/personal-color-report/new?step=capture 307 -> /new?step=capture, /reports 307 유지.
+공급자: anthropic 400(usage limit, 12-01까지) -> openai gpt-6.2-sol. generate 5회 모두 aiSource=ai, source=hybrid, isMock=false, 21~25초.
+A(카드 얼굴): 여름쿨 뮤트 / 보조 여름쿨 라이트, 웜37/쿨63, 85 높은 신뢰도, AI 일치. 카드와 일치. A-report-full.png
+D(환경 건너뜀 + 어두운 정면 강행): L*14.3 ITA -84 -> 45 낮은 신뢰도·재촬영 권장, ② 아래 안내, ⑬ 맨 앞, 웜31/쿨69, 명확도 40. (라운드1 major 해결)
+B(붉은 혼합광 3,290K + look-a 전신): 여름쿨 트루 35 재촬영 권장, 명확도 40, ⑭ 근거 문장 정상(gray-world·엠대시 없음), 8.2등신 역삼각형.
+E(사람 없는 환경 + 어두운 정면 + 16.6MB 전신, 여성): 43 재촬영 권장, 전신 업로드·측정 성공, 여성 라벨(블라우스/스카프/메이크업).
+업로드 API: 9/11/15/20/24MB 200, 16.6MB 전신 200, 27MB 413 '이미지가 너무 큽니다.', 50MB 413 '(최대 25MB)', fake.jpg·pdf 400 한국어, 빈 본문 400 '끝까지 읽지 못했습니다'. (라운드1 major 해결)
+정면 UI: 사람 없는 사진·투명 PNG 차단(사용하기 비활성), fake.jpg '이미지를 열 수 없습니다', pdf 'JPEG, PNG, WebP 이미지 파일을 선택해 주세요', 26.6MB 통과.
+API 오류: 없는 face 404, 빈/긴 id 400, 잘못된 gender 400, JSON 아님 400, 없는 body 404, 없는 리포트 GET/PATCH/DELETE 404, 전체삭제 confirm 없음 400, 외부 Origin 403.
+변형 PATCH male->female->unspecified->male: AI 그루밍·오늘 포인트·TIP 복원. 전신 추가: 새 리포트 생성, 원 리포트 bodySessionId=null (안내 문구와 일치).
+남은 것(minor): ② 12톤 막대 85%가 재촬영 권장 45%와 나란히 표시, 버건디 브라운(core), ⑬ 마침표 누락, 27MB 413 문구에 한도 없음(core), 빈 업로드 문구, AI 독립 판정 프롬프트에 규칙 결과 포함.
+codex 2차 의견: codex-review.txt (gpt-6.2-astra). 직접 재현한 것만 채택.

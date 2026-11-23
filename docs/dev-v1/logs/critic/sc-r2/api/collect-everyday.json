@@ -1,0 +1,1 @@
+{"error": {"code": "validation_error", "message": "요청 형식이 올바르지 않습니다.", "details": [{"code": "invalid_value", "values": ["signature", "recent", "daily"], "path": ["category"], "message": "Invalid option: expected one of \"signature\"|\"recent\"|\"daily\""}]}}

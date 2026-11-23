@@ -1,0 +1,21 @@
+{
+ "tag": "over26mb-pre",
+ "console": [
+  "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+ ],
+ "api": [
+  {
+   "u": "/api/uploads",
+   "s": 400,
+   "sum": {
+    "code": "upload_failed",
+    "message": "Failed to parse body as FormData."
+   }
+  }
+ ],
+ "t": {
+  "pre": 1276
+ },
+ "url0": "http://localhost:3106/new?report=pcr_mwtm4dbxdbc20b6778",
+ "preText": "데모 데이터\n추구미 찾기\n내 리포트\n추구미 사진\n분석 확인\n가이드\n내 타입 여름쿨 트루\n리포트 바꾸기\nFailed to parse body as FormData.\n추구미 사진\n연예인을 이름으로 찾거나 사진을 올리세요.\n이름으로 찾기\n사진 올리기\n이전 분석\n인물 이름 (선택)\n\n이름을 적으면 사진을 분석할 수 없을 때 같은 인물의 대표·최근·평소 사진을 바로 찾아 드립니다. 사진으로 인물을 판별하지는 않습니다.\n\n전신 사진 올리기\n\nJPEG · PNG · WebP. 한 사람의 전신 또는 상반신이 보이는 사진이 좋습니다."
+}

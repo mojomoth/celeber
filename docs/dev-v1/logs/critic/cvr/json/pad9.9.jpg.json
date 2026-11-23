@@ -1,0 +1,38 @@
+{
+  "file": "pad9.9.jpg",
+  "upload": {
+    "status": 200,
+    "body": {
+      "id": "up_mwtih99r7d1d1436be",
+      "w": 470,
+      "h": 1590,
+      "bytes": 84340
+    },
+    "ms": 38
+  },
+  "precheck": {
+    "status": 200,
+    "ms": 11,
+    "body": {
+      "analyzability": {
+        "analyzable": true,
+        "partial": {
+          "outfit": true,
+          "personalColor": false,
+          "mood": true
+        },
+        "personCount": 1,
+        "framing": "unknown",
+        "reasons": [
+          {
+            "code": "other",
+            "message": "브라우저 측정 없이 사진 통계만으로 판정했습니다. 얼굴을 직접 측정하지 않아 퍼스널컬러는 참고용 추정입니다.",
+            "severity": "info"
+          }
+        ]
+      },
+      "measured": false,
+      "measurementDropped": false
+    }
+  }
+}

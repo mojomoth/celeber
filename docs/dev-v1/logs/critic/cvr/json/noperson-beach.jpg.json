@@ -1,0 +1,43 @@
+{
+  "file": "noperson-beach.jpg",
+  "upload": {
+    "status": 200,
+    "body": {
+      "id": "up_mwtm7fdu8ba4ce0213",
+      "w": 214,
+      "h": 130,
+      "bytes": 14505
+    },
+    "ms": 6
+  },
+  "precheck": {
+    "status": 200,
+    "ms": 11,
+    "body": {
+      "analyzability": {
+        "analyzable": true,
+        "partial": {
+          "outfit": true,
+          "personalColor": false,
+          "mood": true
+        },
+        "personCount": 1,
+        "framing": "unknown",
+        "reasons": [
+          {
+            "code": "low-resolution",
+            "message": "해상도가 낮습니다 (214×130px). 색과 소재 판별이 부정확할 수 있습니다.",
+            "severity": "warn"
+          },
+          {
+            "code": "other",
+            "message": "브라우저 측정 없이 사진 통계만으로 판정했습니다. 얼굴을 직접 측정하지 않아 퍼스널컬러는 참고용 추정입니다.",
+            "severity": "info"
+          }
+        ]
+      },
+      "measured": false,
+      "measurementDropped": false
+    }
+  }
+}

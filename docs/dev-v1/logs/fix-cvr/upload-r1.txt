@@ -1,0 +1,5 @@
+pad10.2.jpg (10695475 bytes): 200 {"width": 700, "height": 1940, "bytes": 181806, "mime": "image/jpeg"}
+pad24.4.jpg (25585254 bytes): 200 {"width": 700, "height": 1940, "bytes": 181806, "mime": "image/jpeg"}
+over27.jpg (28311552 bytes): 413 {"code": "too_large", "message": "이미지가 너무 큽니다."}
+over40.jpg (41943040 bytes): 413 {"code": "too_large", "message": "이미지가 너무 큽니다 (최대 25MB)."}
+--- dev log 'exceeded' lines: 1

@@ -1,0 +1,15 @@
+1. **측정 없는 API에서 내부 입력이 결과 문장에 노출됩니다.** `measurement`를 생략하면 사진에서 보이는 색을 설명해야 하지만, 서버 중앙색을 의상 측정색으로 프롬프트에 넣고 AI가 쓴 노트를 그대로 보존합니다. 제공한 실호출 11건 중 8건에서 “서버 중앙값은 블랙이지만” 같은 표현이 나왔습니다. [build.ts:162](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/build.ts:162) · [ai-schema.ts:103](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/ai-schema.ts:103) · [build.ts:219](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/build.ts:219)
+
+2. **어두운 사진에서 보류한 언더톤을 축 요약이 다시 단정합니다.** MediaPipe 측정 결과가 ‘가을웜 딥 / 언더톤 판정 보류’라면 축 요약도 보류 상태를 반영해야 합니다. 실제로는 저장된 웜·쿨 축을 그대로 문구로 바꿔 ‘뉴트럴 쿨 · 명도 딥’으로 표시합니다. [rules.ts:363](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/rules.ts:363) · [result-view.tsx:213](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/components/result-view.tsx:213)
+
+3. **`look-a`에서 계절 판정 불일치가 접힌 근거에만 표시됩니다.** 규칙은 ‘봄웜 브라이트’, AI는 ‘가을웜 딥’이므로 65% 신뢰도 옆에서도 불일치를 알 수 있어야 합니다. 실제로는 규칙 톤만 대표값으로 보입니다. 피부 C\* 27.8이 채도 축 88이 되는 것은 12~30 정규화 산식과 일치합니다. 이 보정이 봄 브라이트 오판을 유발했다는 해석은 **추정**입니다. [build.ts:268](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/build.ts:268) · [result-view.tsx:219](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/components/result-view.tsx:219) · [classifier.ts:36](/Users/jyl/work/repo/celeber/pocs/core/src/personal-color/classifier.ts:36)
+
+4. **측정 없는 상의에 서로 다른 색 이름과 견본이 붙습니다.** 중앙색 `#0A0E12`, AI 응답 `name="베이지"`, 빈 hex·box로 함수 재현 시, 기대는 색과 위치를 미확인으로 남기는 것입니다. 실제 출력은 ‘베이지’라는 이름의 검정 견본과 사진 중앙의 고정 상자입니다. `measured:false`는 비교 노트만 막습니다. [build.ts:189](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/build.ts:189) · [build.ts:214](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/build.ts:214)
+
+5. **주조색이 비면 유효한 포인트색도 사라집니다.** `outfit=false`, `main=[]`, `accent=[빨강]`으로 조립 함수를 실행했습니다. 기대는 빨강 포인트색 표시지만, 실제 결과는 세 배열 모두 비어 화면에 ‘분석할 색이 없습니다’가 나옵니다. [build.ts:394](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/build.ts:394) · [result-view.tsx:266](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/components/result-view.tsx:266)
+
+6. **측정 없이 강행한 단체 사진은 재분석 때 강행 선택을 잃습니다.** `measurement` 없이 `force=true`로 분석하고 AI가 두 번 모두 2명을 반환하는 경우입니다. 기대는 같은 기록에서 ‘여러 명’ 경고 유지지만, `force`를 측정값이 있을 때만 저장해 재분석에서는 오류로 바뀝니다. [server/index.ts:143](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/server/index.ts:143) · [server/index.ts:173](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/server/index.ts:173) · [analyzability.ts:217](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/src/lib/analyzability.ts:217)
+
+7. **없는 기록의 상세 화면은 영문 404입니다.** `/analyses/없는-id`의 기대 결과는 한국어로 된 기록 없음 안내입니다. 상세 페이지가 `notFound()`를 호출하고 대응하는 `not-found.tsx`가 없어 Next 기본 영문 화면이 표시됩니다. [page.tsx:13](/Users/jyl/work/repo/celeber/pocs/celeb-vibe/app/analyses/%5Bid%5D/page.tsx:13)
+
+8. **52MP 업로드 거절 사유가 영문 원문으로 반환됩니다.** 25MB 이하인 52MP 사진을 올리면 4천만 픽셀 제한과 해상도를 줄여야 한다는 한국어 안내가 필요합니다. 실제 응답은 `400 upload_failed`와 Sharp 원문 `Input image exceeds pixel limit`입니다. [uploads.ts:219](/Users/jyl/work/repo/celeber/pocs/core/src/server/uploads.ts:219) · [uploads.ts:274](/Users/jyl/work/repo/celeber/pocs/core/src/server/uploads.ts:274)

@@ -1,0 +1,15 @@
+personal-color-report 독립 검증 라운드 1 (2026-11-24, critic)
+dev: 3105, 실제 키(.env source), FORCE_MOCK 없음, CELEBER_DATA_DIR=scratchpad 분리. 종료 후 3105 LISTEN 0.
+경로: /pocs/personal-color-report -> 307 /, /pocs/personal-color-report/new?step=capture -> 307 /new?step=capture
+공급자: anthropic 400(usage limit, 12-01까지) -> openai gpt-6.2-sol. generate 응답 aiSource=ai, source=hybrid, isMock=false.
+A(카드 얼굴, 전신 없음): 여름쿨 뮤트/보조 여름쿨 라이트, 웜37/쿨63, 신뢰도 88, AI 일치. 카드와 일치. 03-A-report-full.png
+B(도지 붉은 실내광 + look-a 전신): 여름쿨 트루 41% 낮은 신뢰도·재촬영 권장, 7.9등신 역삼각형 실루엣. 05-B-body-report-full.png
+사람 없는 사진: 정면 '얼굴 미검출' 차단(06), 환경 단계는 분석 후 '그래도 정면 촬영으로' 허용.
+잘못된 형식: fake.jpg -> '이미지를 열 수 없습니다', pdf -> 'JPEG, PNG, WebP 이미지 파일을 선택해 주세요'(08,09). API 400 한국어.
+큰 파일: 정면 26.6MB는 클라이언트 축소로 통과(10). API 직접: 9MB 200, 11/15/20/24/26.6MB 400 'Failed to parse body as FormData.', 49MB 413.
+  dev 로그: 'Request body exceeded 10MB for /api/uploads. Only the first 10MB will be available' (proxy.ts). 전신 16.6MB UI 업로드 실패(11 영문 -> 다른 세션의 camera-body 수정 후 12 한국어 일반 문구).
+어두운 사진: 환경 건너뜀 + 어두운 정면(그래도 사용) -> 피부 L*14.3·ITA -85, 쿨 98%, '높은 신뢰도 77%', 재촬영 안내 없음(14). 환경=사람없는 사진이면 52% 보통(15).
+generate 오류: 없는 face 404, in-progress 409, 없는 body 404, 잘못된 gender 400, JSON 아님 400, id 5000자 400. skipped body id는 null 처리.
+reports: 없는 id GET/PATCH/DELETE 404, 전체 DELETE confirm 없으면 400, 변형 PATCH 200(17), 404 화면(18).
+vitest 35 pass/1 skip, typecheck OK.
+codex 2차 의견: codex-review.txt (gpt-6.2-astra)

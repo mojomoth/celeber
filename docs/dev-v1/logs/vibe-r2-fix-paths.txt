@@ -1,0 +1,8 @@
+# celeb-vibe Gate1 r2 fix — /pocs/celeb-vibe 경로 확인 (2026-11-24)
+/pocs/celeb-vibe -> 307 http://localhost:3104/
+/pocs/celeb-vibe/ -> 308 http://localhost:3104/pocs/celeb-vibe
+/pocs/celeb-vibe/analyses -> 307 http://localhost:3104/analyses
+/pocs/celeb-vibe?x=1 -> 307 http://localhost:3104/?x=1
+/pocs/celeb-vibe (follow) -> 200 http://localhost:3104/ redirects=1
+/pocs/celeb-vibe/ (follow) -> 200 http://localhost:3104/ redirects=2
+/pocs/celeb-vibe/analyses (follow) -> 200 http://localhost:3104/analyses redirects=1

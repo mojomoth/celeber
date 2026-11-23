@@ -1,0 +1,13 @@
+{
+  "file": "heic-tree.heic",
+  "upload": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "upload_failed",
+        "message": "source: bad seek to 19037\nsource: bad seek to 19018\nsource: bad seek to 19009\nsource: bad seek to 19006\nheif: Error while loading plugin: Support for this compression format has not been built in: HEVC (a suitable decoder plugin is libde265) (11.6003)"
+      }
+    },
+    "ms": 7
+  }
+}

@@ -1,0 +1,35 @@
+Gate 1 core 수정 독립 재검증 (2026-11-24, 읽기 전용, Mock 모드, 분리 CELEBER_DATA_DIR)
+
+전체: pnpm test exit 0 (core 117+1skip, hub 5, camera-body 89, search-celeb 52+9skip, celeb-vibe 89, camera-face 50, pcr 51+1skip, cvr 65+6skip) → test.log
+      pnpm typecheck exit 0 → typecheck.log
+환경 메모: next dev(Turbopack)가 헤드리스 브라우저에서 'HMR hash mismatch'/restart로 무한 새로고침(camera-face, celeb-vibe, pcr). curl은 영향 없음.
+      UI 확인은 next build + next start(Mock)로 했다. 빌드 3개 exit 0 (cf-build.log, cv-build.log, pcr-build.log).
+
+업로드 API (3101 camera-face, 3103 search-celeb, 3104 celeb-vibe, 3105 pcr 모두 같은 결과)
+  bigdim 7000x6272 / px45mp 9000x5000 / huge52 8000x6500 -> 422 too_many_pixels "사진 해상도가 약 4000만 화소를 넘습니다. …"
+  trunc.svg (kind 없음)        -> 422 unreadable 한국어
+  svg kind=face-front/side/environment -> 422 svg_not_allowed
+  ok.svg kind 없음            -> 200 (목업 SVG 저장 유지)
+  text.jpg                     -> 400 unsupported_type "… JPEG, PNG, WebP 사진을 올려 주세요."
+  fake.heic                    -> 422 unreadable "이 HEIC 사진은 열 수 없습니다. JPEG로 바꿔서 올려 주세요."
+  pad27.jpg 27MB               -> 413 "(최대 25MB)" (search-celeb, celeb-vibe, pcr) / camera-face만 400 '끝까지 읽지 못했습니다(25MB 이하)' (앱 next.config, 기존)
+  pad50.jpg 50MB               -> 413 "(최대 25MB)"
+camera-face environment: 정상 200, 저장 파일 손상 422, 선언 100000x100000 SVG 422, 정상 SVG(kind other) 200
+camera-face analyze: front 손상/거대 SVG 422 '정면 사진을 읽을 수 없습니다', side 손상/거대 SVG 422 '측면 사진을 읽을 수 없습니다', 정상 200
+
+ROI (camera-face 브라우저 흐름, prod 3101)
+  A 가짜 카메라: forehead 740, leftCheek 1811, chin 1291, rightCheek 없음 -> 사유 "오른쪽 볼 피부색을 읽지 못해 나머지 3곳으로…", 신뢰도 0.47, ITA 73 (전: 2963/7245/5181, 사유 없음, ITA 75)
+  S 업로드: forehead 1523, leftCheek 1952, rightCheek 605, chin 3137 -> ITA 54 (전: chin 12,545, ITA 46). 모든 ROI <= 6000.
+  A/S 차이 19°는 남음. 공통 ROI의 원본 ITA부터 다르다(이마 67 vs 51): 입력 영상 자체 차이.
+
+UI 문구: search-celeb 45MP "사진을 올리지 못했습니다. 사진 해상도가 약 4000만 화소를 넘습니다…"(sc-px45mp.png)
+         celeb-vibe 52MP "사진을 가져오지 못했습니다 / 사진 해상도가 …"(cv-huge52.png), text.jpg 'JPEG, PNG, WebP'(cv-text.png)
+pcr 여름쿨 뮤트(카드 얼굴): ⑧ 넥타이 '네이비 / 다크 브라운 / 미드나잇 블루 / 차콜', 버건디 브라운 0건 (pcr-summer-mute-male.png)
+
+회귀(minor): pcr assemble.ts:208 skinReasonTexts가 /^일부 피부 영역/만 인식한다. core 옛 문구 '일부 피부 영역(이마/볼/턱)을 측정하지 못했습니다.'가
+  새 문구 '왼쪽 볼, 오른쪽 볼 피부색을 읽지 못해 나머지 2곳으로…'로 바뀌어 ⑭ 피부 측정 품질에 누락 안내가 빠진다.
+  재현: 카드 사진 양 볼을 파랗게 칠함 -> ROI 2곳, 신뢰도 0.47, ⑭ detail에 누락 언급 없음 (pcr-two-cheeks-missing.png)
+기타(nit): dataUrl 'data:image/svg+xml,%ZZ' -> 500 upload_failed(400이 맞음). 232x229 사각 ROI에서 6006px(상한 6000 근소 초과).
+  ROI가 1000px 미만이면 균등 가중이 완전하지 않음(BALANCE_FLOOR). celeb-vibe readUploadPixels null -> 404(앱, 기존 지적).
+Codex(gpt-6.2-sol, read-only) 2차 의견: codex.txt
+dev/prod 서버 종료, 3100~3106 LISTEN 0.

@@ -1,0 +1,13 @@
+{
+  "file": "over26mb.jpg",
+  "upload": {
+    "status": 413,
+    "body": {
+      "error": {
+        "code": "too_large",
+        "message": "이미지가 너무 큽니다."
+      }
+    },
+    "ms": 31
+  }
+}

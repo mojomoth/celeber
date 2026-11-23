@@ -1,0 +1,39 @@
+$ node ../../scripts/sync-public.mjs .
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 14ms
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: 41943040
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 735ms
+  Running TypeScript ...
+  Finished TypeScript in 1364ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/1) ...
+✓ Generating static pages using 9 workers (1/1) in 38ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /analyses
+├ ƒ /analyses/[id]
+├ ƒ /api/health
+├ ƒ /api/meta
+├ ƒ /api/uploads
+├ ƒ /api/uploads/[id]
+├ ƒ /api/vibe/analyses
+├ ƒ /api/vibe/analyses/[id]
+├ ƒ /api/vibe/analyses/[id]/reanalyze
+├ ƒ /api/vibe/analyze
+├ ƒ /api/vibe/celeb-images
+├ ƒ /api/vibe/import-url
+└ ƒ /api/vibe/precheck
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+

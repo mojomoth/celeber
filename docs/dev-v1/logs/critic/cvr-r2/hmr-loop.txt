@@ -1,0 +1,4 @@
+fresh dev start -> first page reload loop (HMR hash mismatch)
+run2: /new navs 475/12s, /guides 541/12s; run3: /pocs/celeb-vibe-report/new 464/12s; run4: home 163/4s then 497/12s; later visits 2 navs
+run1 dev.log: GET /new 8385, Compiled 3445 (UI runs blocked, networkidle timeouts)
+ws frame: turbopack-message restart static/chunks/pocs_celeb-vibe-report_1anvha4rlo79g._.js (entry chunk list) -> reloadPage 'HMR hash mismatch'

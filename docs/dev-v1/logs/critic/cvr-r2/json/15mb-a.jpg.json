@@ -1,0 +1,38 @@
+{
+  "file": "15mb-a.jpg",
+  "upload": {
+    "status": 200,
+    "body": {
+      "id": "up_mwtn2oct1e0f32f5a4",
+      "w": 1280,
+      "h": 2560,
+      "bytes": 1058103
+    },
+    "ms": 192
+  },
+  "precheck": {
+    "status": 200,
+    "ms": 25,
+    "body": {
+      "analyzability": {
+        "analyzable": true,
+        "partial": {
+          "outfit": true,
+          "personalColor": false,
+          "mood": true
+        },
+        "personCount": 1,
+        "framing": "unknown",
+        "reasons": [
+          {
+            "code": "other",
+            "message": "브라우저 측정 없이 사진 통계만으로 판정했습니다. 얼굴을 직접 측정하지 않아 퍼스널컬러는 참고용 추정입니다.",
+            "severity": "info"
+          }
+        ]
+      },
+      "measured": false,
+      "measurementDropped": false
+    }
+  }
+}

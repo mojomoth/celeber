@@ -1,0 +1,9 @@
+
+ RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/search-celeb
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  03:36:19
+   Duration  3.80s (tests 99%, import 1%)
+

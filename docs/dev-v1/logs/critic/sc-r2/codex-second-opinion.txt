@@ -1,0 +1,3556 @@
+Reading additional input from stdin...
+OpenAI Codex v0.171.0
+--------
+workdir: /Users/jyl/work/repo/celeber
+model: gpt-6.2-sol
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: high
+reasoning summaries: none
+session id: 01a209c4-9073-7700-908b-313af22cf012
+--------
+user
+pocs/search-celeb PoC(Next 앱, 연예인 이름/사진 검색 → 후보 확정 → 대표/최근/평소 전신 사진 수집)의 입출력 결함을 찾아라. 코드만 읽고 수정하지 마라. 중점: src/lib/names.ts(mergeCandidates, 동명이인), src/server/celebs.ts(findCelebByName/attachCelebIds/confirmCandidate), src/server/identify.ts(얼굴로 신원 판단 금지, 안내 문구), src/server/search.ts, src/lib/upload.ts, src/flow/CelebSearchFlow.tsx, src/components/CelebSearchBox.tsx, next.config.ts. 실행 증거: 김민수 검색 시 4명(코미디언/배우/가수/농구선수) 분리됨, 19MB JPEG 업로드 200, 30MB는 클라이언트에서 차단, 37MB 413, 45MP PNG는 API가 400 'Input image exceeds pixel limit'(영어), 화면은 '사진을 올리지 못했습니다. 다시 시도하거나 다른 사진을 올려 주세요.', 자동완성에 같은 이름 김민수 두 명이 모두 '찾아본 인물'로만 표시됨. 이미지 검색 공급자는 mock. 구체적인 파일:줄과 재현 시나리오로 결함 목록만 한국어로 짧게 답하라(최대 8개).
+codex
+제공한 실행 증거를 코드의 입력 검증과 결과 표시 경로에 대조해 결함 위치를 확인하겠습니다.
+exec
+/bin/zsh -lc "rg --files -g 'AGENTS.md' -g '"'!node_modules'"' -g '"'!package-lock.json'"' pocs/search-celeb" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/search-celeb/AGENTS.md
+
+exec
+/bin/zsh -lc 'nl -ba pocs/search-celeb/next.config.ts' in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	import fs from 'node:fs';
+     2	import path from 'node:path';
+     3	import { loadEnvConfig } from '@next/env';
+     4	import type { NextConfig } from 'next';
+     5	
+     6	// 워크스페이스 루트(pnpm-workspace.yaml 위치)를 찾아 루트 .env를 로드한다.
+     7	function findWorkspaceRoot(start: string): string {
+     8	  let dir = start;
+     9	  while (dir !== path.dirname(dir)) {
+    10	    if (fs.existsSync(path.join(dir, 'pnpm-workspace.yaml'))) return dir;
+    11	    dir = path.dirname(dir);
+    12	  }
+    13	  return path.resolve(start, '../..');
+    14	}
+    15	
+    16	const workspaceRoot = findWorkspaceRoot(process.cwd());
+    17	// forceReload=true: Next가 앱 폴더 기준으로 먼저 로드한 캐시를 무시하고 루트 .env를 적용
+    18	loadEnvConfig(workspaceRoot, process.env.NODE_ENV !== 'production', { info: () => {}, error: console.error }, true);
+    19	// 데이터 디렉터리를 절대경로로 고정 (앱 cwd 기준 ../.data = pocs/.data)
+    20	process.env.CELEBER_DATA_DIR ||= path.join(workspaceRoot, 'pocs', '.data');
+    21	
+    22	const nextConfig: NextConfig = {
+    23	  // 워크스페이스 TS 소스 패키지(선행 PoC 포함)는 앱에서 직접 트랜스파일한다.
+    24	  transpilePackages: ["@celeber/core","@celeber/ui"],
+    25	  // 네이티브 바이너리는 번들하지 않는다. node:sqlite는 Node 내장이라 자동 external.
+    26	  serverExternalPackages: ['sharp'],
+    27	  turbopack: { root: workspaceRoot },
+    28	  outputFileTracingRoot: workspaceRoot,
+    29	  images: { unoptimized: true },
+    30	  // /pocs/search-celeb 경로로 들어와도 앱 루트로 보낸다(쿼리 유지). API는 루트 경로 그대로 쓴다.
+    31	  // `:path*` 하나로 쓰면 빈 경로가 Location '?q=..'(자기 자신)으로 바뀌어 무한 리다이렉트가 된다. 그래서 둘로 나눈다.
+    32	  redirects: async () => [
+    33	    { source: '/pocs/search-celeb', destination: '/', permanent: false },
+    34	    { source: '/pocs/search-celeb/:path+', destination: '/:path+', permanent: false },
+    35	  ],
+    36	  experimental: {
+    37	    serverActions: { bodySizeLimit: '25mb' },
+    38	    // proxy.ts가 있으면 Next가 요청 본문을 이 크기까지만 버퍼링한다(기본 10MB → 10MB 넘는 사진의 FormData 파싱 실패).
+    39	    // core MAX_UPLOAD_BODY_BYTES(36MB)와 같게 둔다. 그보다 큰 본문은 업로드 라우트가 413으로 거절한다.
+    40	    proxyClientMaxBodySize: '36mb',
+    41	  },
+    42	};
+    43	
+    44	export default nextConfig;
+
+exec
+/bin/zsh -lc 'rg --files pocs/search-celeb/src' in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc 'cat pocs/search-celeb/AGENTS.md' in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/search-celeb/src/flow/index.ts
+pocs/search-celeb/src/flow/CelebSearchFlow.tsx
+pocs/search-celeb/src/routes/index.ts
+pocs/search-celeb/src/lib/upload.ts
+pocs/search-celeb/src/lib/index.ts
+pocs/search-celeb/src/lib/types.ts
+pocs/search-celeb/src/lib/names.ts
+pocs/search-celeb/src/lib/api.ts
+pocs/search-celeb/src/lib/filter.ts
+pocs/search-celeb/src/lib/queries.ts
+pocs/search-celeb/src/lib/candidates.ts
+pocs/search-celeb/src/components/CandidateList.tsx
+pocs/search-celeb/src/components/index.ts
+pocs/search-celeb/src/components/CelebGallery.tsx
+pocs/search-celeb/src/components/search-celeb.module.css
+pocs/search-celeb/src/components/CelebSearchBox.tsx
+pocs/search-celeb/src/components/IdentifyPanel.tsx
+pocs/search-celeb/src/components/SavedCelebList.tsx
+pocs/search-celeb/src/components/CelebAvatar.tsx
+pocs/search-celeb/src/components/suggest-keys.ts
+pocs/search-celeb/src/components/CelebProfileHeader.tsx
+pocs/search-celeb/src/server/index.ts
+pocs/search-celeb/src/server/util.ts
+pocs/search-celeb/src/server/thumbs.ts
+pocs/search-celeb/src/server/images.ts
+pocs/search-celeb/src/server/search.ts
+pocs/search-celeb/src/server/celebs.ts
+pocs/search-celeb/src/server/identify.ts
+
+ succeeded in 0ms:
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+
+exec
+/bin/zsh -lc 'nl -ba src/server/search.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+exec
+/bin/zsh -lc 'nl -ba src/server/celebs.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+exec
+/bin/zsh -lc 'nl -ba src/lib/upload.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+exec
+/bin/zsh -lc 'nl -ba src/server/identify.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	/**
+     2	 * 이름 검색: 기존 인물(DB) + AI 후보(텍스트만, 사진 없음) + 입력한 이름 그대로.
+     3	 * 키가 없으면 데모 인물(mockNameSearch)과 입력 이름을 후보로 쓴다.
+     4	 */
+     5	import 'server-only';
+     6	import { z } from 'zod';
+     7	import type { CelebCandidate } from '@celeber/core/contracts';
+     8	import { MOCK_PEOPLE, mockNameSearch } from '@celeber/core/mock';
+     9	import { callTextStructured } from '@celeber/core/server/ai';
+    10	import { cacheGet, cacheSet } from '@celeber/core/server/db';
+    11	import { getCapabilities } from '@celeber/core/server/env';
+    12	import { mergeCandidates, nameKey, sameName } from '../lib/names';
+    13	import type { CandidateItem, SearchResponse, SuggestResponse } from '../lib/types';
+    14	import { attachCelebIds, celebToCandidate, matchCelebs } from './celebs';
+    15	import { candidateThumbnail, proxyImageUrl } from './thumbs';
+    16	import { mapLimit, shortWarning } from './util';
+    17	
+    18	export const MAX_QUERY_LENGTH = 60;
+    19	
+    20	/** AI 출력 스키마 (얕고 단순하게) */
+    21	const NameCandidatesSchema = z.object({
+    22	  candidates: z.array(
+    23	    z.object({
+    24	      name: z.string(),
+    25	      nameEn: z.string(),
+    26	      description: z.string(),
+    27	      confidence: z.number(),
+    28	    }),
+    29	  ),
+    30	});
+    31	type NameCandidates = z.infer<typeof NameCandidatesSchema>;
+    32	
+    33	const NAME_SYSTEM = [
+    34	  '이 요청에는 사진이 없습니다. 사용자가 입력한 텍스트 검색어만 보고 공인(배우, 가수, 모델, 방송인 등) 이름 후보를 제시합니다.',
+    35	  '규칙: 확실히 존재하는 공인만 제시하고, 모르면 빈 배열을 반환합니다. 존재하지 않는 인물을 만들지 않습니다.',
+    36	  '이름은 한국어 표기를 우선하고 nameEn에는 영문 표기(모르면 빈 문자열)를 넣습니다.',
+    37	  "description은 동명이인을 구분할 짧은 설명입니다 (예: '배우', '가수 · 그룹명'). 15자 이내.",
+    38	  'confidence는 검색어가 그 인물을 가리킬 가능성 0..1입니다. 최대 5명.',
+    39	].join('\n');
+    40	
+    41	/** 자동완성: DB 인물 + (AI가 없을 때) 데모 인물. 외부 호출 없음 */
+    42	export function suggestCelebs(q: string): SuggestResponse {
+    43	  const query = q.trim().slice(0, MAX_QUERY_LENGTH);
+    44	  if (!query) return { query, items: [] };
+    45	  const fromDb = matchCelebs(query, 5).map(celebToCandidate);
+    46	  const caps = getCapabilities();
+    47	  const key = nameKey(query);
+    48	  const demo: CandidateItem[] = !caps.ai ? MOCK_PEOPLE.filter((p) => nameKey(p.name).includes(key) || nameKey(p.nameEn ?? '').includes(key)) : [];
+    49	  return { query, items: attachCelebIds(mergeCandidates([fromDb, demo], 6)) };
+    50	}
+    51	
+    52	/** 이름 검색 (썸네일 포함) */
+    53	export async function searchCelebCandidates(q: string): Promise<SearchResponse> {
+    54	  const query = q.trim().replace(/\s+/g, ' ').slice(0, MAX_QUERY_LENGTH);
+    55	  const caps = getCapabilities();
+    56	  const notices: string[] = [];
+    57	
+    58	  const fromDb = matchCelebs(query, 3).map(celebToCandidate);
+    59	
+    60	  const cacheKey = `celeb-names:v1:${nameKey(query)}`;
+    61	  let aiList: CelebCandidate[];
+    62	  let origin: SearchResponse['origin'];
+    63	  let warning: string | undefined;
+    64	  const cached = caps.ai ? cacheGet<NameCandidates>(cacheKey) : null;
+    65	  if (cached) {
+    66	    aiList = toCandidates(cached, query);
+    67	    origin = 'ai';
+    68	  } else {
+    69	    const r = await callTextStructured<NameCandidates>({
+    70	      schema: NameCandidatesSchema,
+    71	      mock: () => ({ candidates: [] }),
+    72	      system: NAME_SYSTEM,
+    73	      prompt: `검색어: "${query}"`,
+    74	      maxTokens: 4000,
+    75	      effort: 'low',
+    76	      label: 'search-celeb/name-candidates',
+    77	    });
+    78	    warning = shortWarning(r.warning);
+    79	    if (r.source === 'ai') {
+    80	      cacheSet(cacheKey, 'anthropic', r.data, 24 * 3600);
+    81	      aiList = toCandidates(r.data, query);
+    82	      origin = 'ai';
+    83	    } else {
+    84	      aiList = mockNameSearch(query);
+    85	      origin = 'mock';
+    86	    }
+    87	  }
+    88	
+    89	  const typed: CelebCandidate = {
+    90	    name: query,
+    91	    description: origin === 'mock' ? '입력한 이름 (검증되지 않음)' : '입력한 이름',
+    92	    // 데모 모드에서는 입력 이름도 검증되지 않은 데모 후보로 표시
+    93	    source: origin === 'mock' ? 'mock' : 'name-search',
+    94	    score: 0.35,
+    95	    evidence: ['입력한 이름 그대로 검색'],
+    96	  };
+    97	  // 입력 이름은 같은 이름의 후보가 없을 때만 붙인다. 동명이인 중 하나에 섞이면 그 사람이 근거 없이 올라간다
+    98	  const found = mergeCandidates([fromDb, aiList], 6);
+    99	  const merged = attachCelebIds(found.some((c) => sameName(c, typed)) ? found : mergeCandidates([found, [typed]], 6));
+   100	
+   101	  // 썸네일: 인물 사진 + 이름이 함께 보이도록 (서버 캐시 경유)
+   102	  const withThumbs = await mapLimit(merged, 3, async (c) => {
+   103	    const thumb = (await proxyImageUrl(c.thumbnailUrl)) ?? (await candidateThumbnail(c.name, c.description));
+   104	    return { ...c, thumbnailUrl: thumb };
+   105	  });
+   106	
+   107	  if (origin === 'mock') {
+   108	    const now = getCapabilities();
+   109	    const why = now.forceMock ? 'CELEBER_FORCE_MOCK=1' : now.aiBlockedReason ? `AI 일시 중단: ${now.aiBlockedReason}` : 'AI 키 없음';
+   110	    notices.push(`이름 확인 AI를 쓸 수 없어(${why}) 입력한 이름과 데모 인물을 후보로 보여줍니다.`);
+   111	  }
+   112	  if (caps.imageSearch === 'mock') notices.push('이미지 검색 키가 없어 썸네일은 데모 실루엣입니다.');
+   113	
+   114	  return {
+   115	    query,
+   116	    candidates: withThumbs,
+   117	    origin,
+   118	    isMock: origin === 'mock' || caps.imageSearch === 'mock',
+   119	    imageProvider: caps.imageSearch,
+   120	    warning,
+   121	    notices,
+   122	  };
+   123	}
+   124	
+   125	function toCandidates(data: NameCandidates, query: string): CelebCandidate[] {
+   126	  return data.candidates
+   127	    .filter((c) => c.name.trim())
+   128	    .slice(0, 5)
+   129	    .map((c) => ({
+   130	      name: c.name.trim(),
+   131	      nameEn: c.nameEn.trim() || undefined,
+   132	      description: c.description.trim() || undefined,
+   133	      source: 'name-search' as const,
+   134	      score: Math.max(0, Math.min(1, Math.round(c.confidence * 100) / 100)),
+   135	      evidence: [`검색어 "${query}"에 대한 이름 후보 (텍스트 기반)`],
+   136	    }));
+   137	}
+
+ succeeded in 0ms:
+     1	/**
+     2	 * celebs / celeb_images 저장소 래퍼: 인물 확정(upsert), 상세, 저장 목록, 저장 토글, 삭제, 사진 선택.
+     3	 */
+     4	import 'server-only';
+     5	import type { CelebCandidate, CelebImage, CelebProfile, ImageRef } from '@celeber/core/contracts';
+     6	import { celebImages, celebs, newId, nowIso, type Row } from '@celeber/core/server/db';
+     7	import { getUpload, toImageRef } from '@celeber/core/server/uploads';
+     8	import { groupByCategory } from '../lib/filter';
+     9	import { descKey, nameKey } from '../lib/names';
+    10	import type { CandidateItem, CelebDetailResponse, CelebSummary } from '../lib/types';
+    11	import { proxyImageUrl } from './thumbs';
+    12	import { uploadIdFromUrl } from './util';
+    13	
+    14	/**
+    15	 * 이름(+설명)으로 기존 인물 찾기. 같은 이름의 행이 여러 개일 수 있다(동명이인).
+    16	 * - 설명이 있으면: 설명이 같은 행, 없으면 설명이 비어 있는 행(같은 사람일 수 있음)
+    17	 * - 설명이 없으면: 설명이 비어 있는 행, 없으면 같은 이름이 한 명뿐일 때만 그 행
+    18	 * 어느 쪽인지 알 수 없으면 null (다른 사람에 잘못 붙이지 않는다)
+    19	 */
+    20	export function findCelebByName(name: string, description?: string): Row<CelebProfile> | null {
+    21	  const key = nameKey(name);
+    22	  if (!key) return null;
+    23	  const rows = celebs.list({ where: { name_key: key }, order: 'created_at ASC', limit: 50 });
+    24	  if (!rows.length) return null;
+    25	  const want = descKey(description);
+    26	  const blank = rows.find((r) => !descKey(r.data.description));
+    27	  if (want) return rows.find((r) => descKey(r.data.description) === want) ?? blank ?? null;
+    28	  return blank ?? (rows.length === 1 ? rows[0] : null);
+    29	}
+    30	
+    31	/** 이름/별칭이 검색어를 포함하는 기존 인물 (자동완성) */
+    32	export function matchCelebs(q: string, limit = 5): Row<CelebProfile>[] {
+    33	  const key = nameKey(q);
+    34	  if (!key) return [];
+    35	  return celebs
+    36	    .list({ order: 'updated_at DESC', limit: 500 })
+    37	    .filter((r) => [r.data.name, r.data.nameEn ?? '', ...r.data.aliases].some((n) => nameKey(n).includes(key)))
+    38	    .sort((a, b) => Number(b.data.saved) - Number(a.data.saved))
+    39	    .slice(0, limit);
+    40	}
+    41	
+    42	export function celebToCandidate(r: Row<CelebProfile>): CandidateItem {
+    43	  const c = r.data;
+    44	  return {
+    45	    name: c.name,
+    46	    nameEn: c.nameEn,
+    47	    description: c.description,
+    48	    thumbnailUrl: c.thumbnail?.url,
+    49	    source: c.source,
+    50	    score: c.saved ? 0.95 : 0.85,
+    51	    evidence: [c.saved ? '저장한 인물' : '이전에 확정한 인물'],
+    52	    celebId: r.id,
+    53	    saved: c.saved,
+    54	  };
+    55	}
+    56	
+    57	/** 후보 목록에 DB 연결 정보(celebId, saved) 붙이기 */
+    58	export function attachCelebIds(list: CandidateItem[]): CandidateItem[] {
+    59	  const perName = new Map<string, number>();
+    60	  for (const c of list) perName.set(nameKey(c.name), (perName.get(nameKey(c.name)) ?? 0) + 1);
+    61	  return list.map((c) => {
+    62	    if (c.celebId) return c;
+    63	    const r = findCelebByName(c.name, c.description);
+    64	    if (!r) return c;
+    65	    // 목록에 같은 이름이 여럿이면(동명이인) 설명까지 같은 인물에만 붙인다
+    66	    if ((perName.get(nameKey(c.name)) ?? 0) > 1 && descKey(r.data.description) !== descKey(c.description)) return c;
+    67	    return { ...c, celebId: r.id, saved: r.data.saved };
+    68	  });
+    69	}
+    70	
+    71	async function thumbRef(url: string | undefined): Promise<ImageRef | undefined> {
+    72	  const local = await proxyImageUrl(url);
+    73	  const id = uploadIdFromUrl(local);
+    74	  const rec = id ? getUpload(id) : null;
+    75	  return rec ? toImageRef(rec) : undefined;
+    76	}
+    77	
+    78	/** 사용자가 확인한 후보 → celebs upsert (이름 + 설명 기준. 이름이 같아도 설명이 다르면 새 인물) */
+    79	export async function confirmCandidate(c: CelebCandidate): Promise<CelebProfile> {
+    80	  const name = c.name.trim();
+    81	  if (!name) throw new Error('이름이 비어 있습니다.');
+    82	  const existing = findCelebByName(name, c.description);
+    83	  const now = nowIso();
+    84	  if (existing) {
+    85	    const d = existing.data;
+    86	    const aliases = [...new Set([...d.aliases, ...(c.nameEn && c.nameEn !== d.nameEn ? [c.nameEn] : [])])];
+    87	    const thumbnail = d.thumbnail ?? (await thumbRef(c.thumbnailUrl));
+    88	    const next: CelebProfile = { ...d, nameEn: d.nameEn ?? c.nameEn, description: d.description ?? c.description, aliases, thumbnail, updatedAt: now };
+    89	    celebs.update(existing.id, { data: next, cols: { thumbnail_upload_id: thumbnail?.uploadId ?? null } });
+    90	    return next;
+    91	  }
+    92	  const id = newId('celeb');
+    93	  const thumbnail = await thumbRef(c.thumbnailUrl);
+    94	  const profile: CelebProfile = {
+    95	    id,
+    96	    createdAt: now,
+    97	    updatedAt: now,
+    98	    name,
+    99	    nameEn: c.nameEn,
+   100	    aliases: [],
+   101	    description: c.description,
+   102	    thumbnail,
+   103	    saved: false,
+   104	    source: c.source,
+   105	    isMock: c.source === 'mock',
+   106	  };
+   107	  celebs.insert({ id, data: profile, cols: { name, name_key: nameKey(name), saved: false, is_mock: profile.isMock, thumbnail_upload_id: thumbnail?.uploadId ?? null } });
+   108	  return profile;
+   109	}
+   110	
+   111	export function listCelebImages(celebId: string): CelebImage[] {
+   112	  return celebImages.list({ where: { celeb_id: celebId }, order: 'created_at ASC', limit: 500 }).map((r) => r.data);
+   113	}
+   114	
+   115	export function getCelebDetail(id: string): CelebDetailResponse | null {
+   116	  const celeb = celebs.get(id);
+   117	  if (!celeb) return null;
+   118	  return { celeb, images: groupByCategory(listCelebImages(id)) };
+   119	}
+   120	
+   121	export function listCelebSummaries(opts: { saved?: boolean; limit?: number } = {}): CelebSummary[] {
+   122	  const rows = celebs.list({ where: opts.saved === undefined ? undefined : { saved: opts.saved }, order: 'updated_at DESC', limit: opts.limit ?? 30 });
+   123	  return rows.map((r) => ({
+   124	    celeb: r.data,
+   125	    imageCount: celebImages.count({ celeb_id: r.id }),
+   126	    selectedCount: celebImages.count({ celeb_id: r.id, selected: true }),
+   127	  }));
+   128	}
+   129	
+   130	export function setCelebSaved(id: string, saved: boolean): CelebProfile | null {
+   131	  const c = celebs.get(id);
+   132	  if (!c) return null;
+   133	  const next = { ...c, saved, updatedAt: nowIso() };
+   134	  celebs.update(id, { data: next, cols: { saved } });
+   135	  return next;
+   136	}
+   137	
+   138	/** 인물 + 수집 사진 기록 삭제 (celeb_images는 FK CASCADE). 캐시 이미지 파일은 다른 앱과 공유될 수 있어 남긴다 */
+   139	export function deleteCeleb(id: string): { deleted: boolean; images: number } {
+   140	  const images = celebImages.count({ celeb_id: id });
+   141	  const deleted = celebs.delete(id);
+   142	  if (deleted) celebImages.deleteWhere({ celeb_id: id }); // foreign_keys가 꺼진 연결 대비
+   143	  return { deleted, images: deleted ? images : 0 };
+   144	}
+   145	
+   146	export function setImageSelected(imageId: string, selected: boolean): CelebImage | null {
+   147	  const im = celebImages.get(imageId);
+   148	  if (!im) return null;
+   149	  const next = { ...im, selected };
+   150	  celebImages.update(imageId, { data: next, cols: { selected } });
+   151	  return next;
+   152	}
+   153	
+   154	/** 선택된 사진 (플로우 완료 결과용) */
+   155	export function selectedImages(celebId: string): CelebImage[] {
+   156	  return celebImages.list({ where: { celeb_id: celebId, selected: true }, order: 'created_at ASC', limit: 100 }).map((r) => r.data);
+   157	}
+
+ succeeded in 0ms:
+     1	/**
+     2	 * 사진 올리기 전 확인과 실패 문구 (브라우저용, 순수 함수).
+     3	 * 한도는 core의 MAX_UPLOAD_BYTES(서버 전용 모듈)와 같은 값이다. 테스트에서 두 값이 같은지 확인한다.
+     4	 */
+     5	import { CelebApiError } from './api';
+     6	
+     7	export const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
+     8	const MAX_PHOTO_MB = MAX_PHOTO_BYTES / 1024 / 1024;
+     9	
+    10	/** 올리기 전에 막을 사유. 문제가 없으면 null */
+    11	export function photoFileProblem(file: { size: number; type: string }): string | null {
+    12	  if (file.type && !file.type.startsWith('image/')) return '사진 파일이 아닙니다. JPEG·PNG·WebP 사진을 올려 주세요.';
+    13	  if (file.size > MAX_PHOTO_BYTES) return `사진이 너무 큽니다. ${MAX_PHOTO_MB}MB 이하 사진을 올려 주세요.`;
+    14	  if (file.size === 0) return '빈 파일입니다. 다른 사진을 올려 주세요.';
+    15	  return null;
+    16	}
+    17	
+    18	const HANGUL = /[가-힣]/;
+    19	
+    20	/** 업로드/식별 실패 → 사용자 문구. 서버가 한국어로 준 사유는 그대로 쓰고, 영어 내부 오류는 감춘다 */
+    21	export function photoErrorMessage(stage: 'upload' | 'identify', e: unknown): string {
+    22	  if (e instanceof CelebApiError && e.status === 413) return `사진이 너무 큽니다. ${MAX_PHOTO_MB}MB 이하 사진을 올려 주세요.`;
+    23	  const msg = e instanceof Error ? e.message.trim() : '';
+    24	  if (stage === 'upload') return HANGUL.test(msg) ? `사진을 올리지 못했습니다. ${msg}` : '사진을 올리지 못했습니다. 다시 시도하거나 다른 사진을 올려 주세요.';
+    25	  return HANGUL.test(msg) ? `사진에서 단서를 찾지 못했습니다. ${msg}` : '사진에서 단서를 찾는 중 문제가 생겼습니다. 잠시 뒤 다시 시도해 주세요.';
+    26	}
+
+ succeeded in 0ms:
+     1	/**
+     2	 * 사진으로 인물 후보 찾기 — 얼굴 생체 인식 없음.
+     3	 *
+     4	 * 1. 역이미지 검색(SerpAPI Google Lens): 지식 패널 제목 + 비슷한 페이지 제목 텍스트 → 이름 n-gram 빈도
+     5	 *    (키 있고 AI 가능하면 제목 텍스트만 Claude에 보내 이름 표기를 정리; 사진은 보내지 않음)
+     6	 * 2. 사진 속 글자(캡션, 자막, 이름표, 워터마크, @계정): Claude 비전이 "글자로 보이는 것"만 옮겨 적음
+     7	 * 3. 후보를 합쳐 제시 → 사용자가 확인해야 확정
+     8	 * 키가 없으면 데모 후보 + "이름으로 검색해 주세요" 안내.
+     9	 */
+    10	import 'server-only';
+    11	import { z } from 'zod';
+    12	import type { CelebCandidate } from '@celeber/core/contracts';
+    13	import { MOCK_PEOPLE } from '@celeber/core/mock';
+    14	import { callTextStructured, callVisionStructured } from '@celeber/core/server/ai';
+    15	import { getCapabilities } from '@celeber/core/server/env';
+    16	import { reverseImageSearch } from '@celeber/core/server/search';
+    17	import { getUpload, toImageRef } from '@celeber/core/server/uploads';
+    18	import { extractNameCandidates, photoTextCandidates } from '../lib/candidates';
+    19	import { mergeCandidates } from '../lib/names';
+    20	import type { IdentifyResponse, PhotoFraming } from '../lib/types';
+    21	import { attachCelebIds } from './celebs';
+    22	import { candidateThumbnail, proxyImageUrl } from './thumbs';
+    23	import { mapLimit, shortWarning } from './util';
+    24	
+    25	const PhotoTextSchema = z.object({
+    26	  visibleTexts: z.array(z.string()),
+    27	  nameTexts: z.array(z.object({ text: z.string(), where: z.string() })),
+    28	  personCount: z.number().int(),
+    29	  framing: z.enum(['full-body', 'upper-body', 'face-closeup', 'no-person', 'unknown']),
+    30	  note: z.string(),
+    31	});
+    32	type PhotoText = z.infer<typeof PhotoTextSchema>;
+    33	
+    34	const PHOTO_TEXT_SYSTEM = [
+    35	  '사진 속에 글자로 쓰여 있는 정보만 옮겨 적습니다: 캡션, 자막, 방송 하단 이름 자막, 이름표, 포스터·현수막 문구, 워터마크, SNS 계정명(@...).',
+    36	  '얼굴, 체형, 헤어스타일 등 외모를 근거로 이름을 추측하거나 떠올리지 마세요. 사진에 글자로 보이지 않는 이름은 절대 쓰지 마세요.',
+    37	  'visibleTexts: 읽을 수 있는 글자를 원문 그대로 (최대 15개). nameTexts: 그중 사람 이름이나 계정명으로 쓰인 글자만, where에 위치(예: 하단 자막, 우측 하단 워터마크).',
+    38	  'personCount: 사진에 보이는 사람 수. framing: full-body(머리부터 발까지), upper-body, face-closeup, no-person, unknown.',
+    39	  'note: 추구미(코디·색) 분석에 이 사진을 쓸 수 있는지 한 문장 (역광, 가림, 여러 명 등).',
+    40	].join('\n');
+    41	
+    42	const TitleNamesSchema = z.object({
+    43	  names: z.array(z.object({ name: z.string(), nameEn: z.string(), description: z.string(), mentions: z.number().int() })),
+    44	});
+    45	type TitleNames = z.infer<typeof TitleNamesSchema>;
+    46	
+    47	const TITLE_SYSTEM = [
+    48	  '이 요청에는 사진이 없습니다. 웹 페이지 제목 목록에서 "제목에 글자로 적힌" 사람 이름만 추출합니다.',
+    49	  '제목에 없는 이름을 추가하지 마세요. 브랜드, 매체, 지명, 행사명은 제외합니다.',
+    50	  'mentions는 그 이름이 등장한 제목 수, description은 제목에서 드러나는 짧은 설명(없으면 빈 문자열). 최대 5명.',
+    51	].join('\n');
+    52	
+    53	export async function identifyFromPhoto(uploadId: string): Promise<IdentifyResponse | null> {
+    54	  const rec = getUpload(uploadId);
+    55	  if (!rec) return null;
+    56	  const caps = getCapabilities();
+    57	  const notices: string[] = [];
+    58	
+    59	  const [reverse, photo] = await Promise.all([
+    60	    reverseImageSearch({ uploadId }),
+    61	    callVisionStructured<PhotoText>({
+    62	      schema: PhotoTextSchema,
+    63	      mock: () => ({ visibleTexts: [], nameTexts: [], personCount: -1, framing: 'unknown' as const, note: '' }),
+    64	      system: PHOTO_TEXT_SYSTEM,
+    65	      prompt: '이 사진에서 글자로 보이는 정보와 구도를 정리해 주세요.',
+    66	      images: [{ uploadId, label: '사용자가 올린 연예인 사진' }],
+    67	      maxTokens: 4000,
+    68	      effort: 'low',
+    69	      label: 'search-celeb/photo-text',
+    70	    }),
+    71	  ]);
+    72	
+    73	  // 1) 역이미지 검색 텍스트
+    74	  let reverseCands: CelebCandidate[] = [];
+    75	  if (reverse.status === 'ok') {
+    76	    reverseCands = extractNameCandidates(reverse);
+    77	    const titles = reverse.visualMatches.map((m) => m.title).slice(0, 30);
+    78	    if (titles.length && caps.ai) {
+    79	      const r = await callTextStructured<TitleNames>({
+    80	        schema: TitleNamesSchema,
+    81	        mock: () => ({ names: [] }),
+    82	        system: TITLE_SYSTEM,
+    83	        prompt: `페이지 제목 ${titles.length}건:\n${titles.map((t, i) => `${i + 1}. ${t}`).join('\n')}`,
+    84	        maxTokens: 3000,
+    85	        effort: 'low',
+    86	        label: 'search-celeb/title-names',
+    87	      });
+    88	      if (r.source === 'ai') {
+    89	        const aiCands: CelebCandidate[] = r.data.names
+    90	          .filter((n) => n.name.trim() && n.mentions > 0)
+    91	          .map((n) => ({
+    92	            name: n.name.trim(),
+    93	            nameEn: n.nameEn.trim() || undefined,
+    94	            description: n.description.trim() || undefined,
+    95	            source: 'reverse-image',
+    96	            score: Math.round(Math.min(0.9, n.mentions / titles.length + 0.2) * 100) / 100,
+    97	            evidence: [`비슷한 이미지가 실린 페이지 제목 ${titles.length}건 중 ${n.mentions}건에 적힌 이름 (제목 텍스트 정리)`],
+    98	          }));
+    99	        reverseCands = mergeCandidates([aiCands, reverseCands], 8);
+   100	      }
+   101	    }
+   102	    if (!reverseCands.length) notices.push('역이미지 검색 결과 제목에서 인물 이름을 찾지 못했습니다.');
+   103	  }
+   104	
+   105	  // 2) 사진 속 글자
+   106	  const textCands = photo.source === 'ai' ? photoTextCandidates(photo.data.nameTexts) : [];
+   107	
+   108	  let candidates = mergeCandidates([reverseCands, textCands], 6);
+   109	  let isMock = reverse.provider === 'mock' && photo.source === 'mock';
+   110	  if (!candidates.length && (reverse.status !== 'ok' || reverse.provider === 'mock')) {
+   111	    // 키 없음: 데모 후보 (흐름 확인용) + 이름 검색 안내
+   112	    candidates = MOCK_PEOPLE.map((p) => ({ ...p, evidence: ['데모 후보: 사진 검색 키가 없어 가상 인물을 보여줍니다. 실제 인물은 이름으로 검색해 주세요.'] }));
+   113	    isMock = true;
+   114	  }
+   115	
+   116	  const withThumbs = await mapLimit(attachCelebIds(candidates), 3, async (c) => ({
+   117	    ...c,
+   118	    thumbnailUrl: (await proxyImageUrl(c.thumbnailUrl)) ?? (await candidateThumbnail(c.name, c.description)),
+   119	  }));
+   120	
+   121	  const realCount = withThumbs.filter((c) => c.source !== 'mock').length;
+   122	  const needsNameSearch = realCount === 0;
+   123	  if (reverse.status === 'ok') {
+   124	    if (needsNameSearch) notices.push('사진만으로는 후보를 찾지 못했습니다. 이름으로 검색해 주세요.');
+   125	  } else {
+   126	    // reverse.reason은 개발용(환경변수 이름, 영어 오류)이라 화면에 그대로 내보내지 않는다
+   127	    notices.push(reverseUnavailableNotice(reverse.status, needsNameSearch));
+   128	  }
+   129	  if (photo.warning && photo.source === 'mock') notices.push('사진 속 글자 읽기를 건너뛰었습니다 (AI 사용 불가).');
+   130	
+   131	  const framing: PhotoFraming = photo.source === 'ai' ? photo.data.framing : 'unknown';
+   132	  return {
+   133	    upload: toImageRef(rec),
+   134	    reverse: {
+   135	      provider: reverse.provider,
+   136	      status: reverse.status,
+   137	      reason: reverse.reason,
+   138	      knowledgeGraphCount: reverse.knowledgeGraph.length,
+   139	      visualMatchCount: reverse.visualMatches.length,
+   140	    },
+   141	    photoText: { texts: photo.source === 'ai' ? photo.data.visibleTexts.slice(0, 15) : [], origin: photo.source === 'ai' ? 'ai' : 'mock', warning: shortWarning(photo.warning) },
+   142	    photoCheck: {
+   143	      framing,
+   144	      personCount: photo.source === 'ai' && photo.data.personCount >= 0 ? photo.data.personCount : null,
+   145	      note: photo.source === 'ai' && photo.data.note ? photo.data.note : framingNoteByMeta(rec.width, rec.height),
+   146	      origin: photo.source === 'ai' ? 'ai' : 'rules',
+   147	    },
+   148	    candidates: withThumbs,
+   149	    needsNameSearch,
+   150	    isMock,
+   151	    notices: [...new Set(notices)],
+   152	  };
+   153	}
+   154	
+   155	/** 역이미지 검색을 못 했을 때 안내. 사진 속 글자로 후보를 찾았으면 결과와 어긋나지 않게 그 사실만 알린다 */
+   156	export function reverseUnavailableNotice(status: 'unavailable' | 'error', needsNameSearch: boolean): string {
+   157	  const why = status === 'error' ? '사진 검색이 실패해' : '사진 검색을 쓸 수 없어';
+   158	  return needsNameSearch ? `${why} 사진만으로는 인물을 찾지 못했습니다. 이름으로 검색해 주세요.` : `${why} 사진 속 글자만 확인했습니다.`;
+   159	}
+   160	
+   161	function framingNoteByMeta(w: number | null, h: number | null): string {
+   162	  if (!w || !h) return '사진 구도를 판정하지 못했습니다.';
+   163	  const a = h / w;
+   164	  return a >= 1.25
+   165	    ? `세로 사진입니다 (비율 ${a.toFixed(2)}). 전신이 보이면 이 사진으로 바로 분석할 수 있습니다.`
+   166	    : `가로 또는 정사각형 사진입니다 (비율 ${a.toFixed(2)}). 전신 분석에는 대표·최근·평소 사진에서 고르는 편이 정확합니다.`;
+   167	}
+
+exec
+/bin/zsh -lc 'nl -ba src/flow/CelebSearchFlow.tsx' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+exec
+/bin/zsh -lc 'nl -ba src/lib/names.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	/**
+     2	 * 이름 정규화와 후보 병합. 서버/클라이언트 공용.
+     3	 * normalizeNameKey는 core/server/db의 같은 이름 함수와 동일 규칙(서버 전용 모듈이라 여기 복제).
+     4	 */
+     5	import type { CelebCandidate } from '@celeber/core/contracts';
+     6	
+     7	/** 이름 조회 키: NFC, 소문자, 공백·구두점 제거 */
+     8	export function nameKey(name: string): string {
+     9	  return name.normalize('NFC').toLowerCase().replace(/[\s·.\-_()[\]]/g, '');
+    10	}
+    11	
+    12	/** 동명이인 구분 키: 설명(직업·소속)을 이름 키와 같은 규칙으로 정규화. 설명이 없으면 '' */
+    13	export function descKey(description: string | undefined): string {
+    14	  return description ? nameKey(description) : '';
+    15	}
+    16	
+    17	/** 설명이 둘 다 있고 서로 다르면 다른 사람. 한쪽이라도 없으면 같은 사람일 수 있다 */
+    18	export function sameDescription(a: string | undefined, b: string | undefined): boolean {
+    19	  const x = descKey(a);
+    20	  const y = descKey(b);
+    21	  return !x || !y || x === y;
+    22	}
+    23	
+    24	/** 이름이 같은지 (영문명이 상대 이름과 같아도 같다고 본다. 영문명끼리는 비교하지 않는다: 로마자 표기가 같은 동명이인이 많다) */
+    25	export function sameName(a: Pick<CelebCandidate, 'name' | 'nameEn'>, b: Pick<CelebCandidate, 'name' | 'nameEn'>): boolean {
+    26	  const an = nameKey(a.name);
+    27	  const bn = nameKey(b.name);
+    28	  if (!an || !bn) return false;
+    29	  return an === bn || (!!a.nameEn && nameKey(a.nameEn) === bn) || (!!b.nameEn && nameKey(b.nameEn) === an);
+    30	}
+    31	
+    32	/** 같은 인물 후보로 합쳐도 되는지: 이름이 같고 설명이 충돌하지 않을 때 */
+    33	export function sameCandidate(a: Pick<CelebCandidate, 'name' | 'nameEn' | 'description'>, b: Pick<CelebCandidate, 'name' | 'nameEn' | 'description'>): boolean {
+    34	  return sameName(a, b) && sameDescription(a.description, b.description);
+    35	}
+    36	
+    37	/** 후보 목록에서 쓰는 고유 키 (React key, 선택 중 표시) */
+    38	export function candidateKey(c: Pick<CelebCandidate, 'name' | 'description'>): string {
+    39	  return `${nameKey(c.name)}|${descKey(c.description)}`;
+    40	}
+    41	
+    42	const SOURCE_RANK: Record<CelebCandidate['source'], number> = {
+    43	  'name-search': 0,
+    44	  'reverse-image': 1,
+    45	  'photo-text': 2,
+    46	  mock: 3,
+    47	};
+    48	
+    49	/**
+    50	 * 여러 출처의 후보 목록을 같은 인물끼리 합친다(sameCandidate).
+    51	 * - 이름이 같아도 설명이 다르면 동명이인으로 보고 따로 둔다 (예: '김민수' 코미디언 / 배우 / 가수)
+    52	 * - 설명이 없는 후보(사진 속 글자 등)는 이름이 같은 첫 후보에 합친다
+    53	 * - 한쪽의 영문명(nameEn)이 다른 쪽 이름과 같아도 같은 이름으로 본다
+    54	 *   (예: 'Jennie'로 검색하면 입력 이름 'Jennie'와 AI 후보 '제니'(nameEn Jennie)를 하나로)
+    55	 * - 같은 인물이 여러 출처에서 나오면 점수에 출처당 +0.1 (최대 1)
+    56	 * - 근거(evidence)는 합치고 중복 제거
+    57	 * - 설명/영문명/썸네일/링크는 먼저 나온 값 유지
+    58	 * 점수는 텍스트 언급 빈도 기반이며 얼굴 유사도가 아니다.
+    59	 */
+    60	export function mergeCandidates(lists: CelebCandidate[][], limit = 8): CelebCandidate[] {
+    61	  const entries: { c: CelebCandidate; sources: Set<string>; order: number }[] = [];
+    62	  for (const list of lists) {
+    63	    for (const c of list) {
+    64	      if (!nameKey(c.name)) continue;
+    65	      const hit = entries.find((e) => sameCandidate(e.c, c));
+    66	      if (!hit) {
+    67	        entries.push({ c: { ...c, evidence: [...c.evidence] }, sources: new Set([c.source]), order: entries.length });
+    68	        continue;
+    69	      }
+    70	      const m = hit.c;
+    71	      hit.sources.add(c.source);
+    72	      m.nameEn ??= c.nameEn;
+    73	      m.description ??= c.description;
+    74	      m.thumbnailUrl ??= c.thumbnailUrl;
+    75	      m.externalUrl ??= c.externalUrl;
+    76	      m.score = Math.max(m.score ?? 0, c.score ?? 0);
+    77	      for (const e of c.evidence) if (!m.evidence.includes(e)) m.evidence.push(e);
+    78	      if (SOURCE_RANK[c.source] < SOURCE_RANK[m.source]) m.source = c.source;
+    79	    }
+    80	  }
+    81	  return entries
+    82	    .map(({ c, sources, order: o }) => ({ c: { ...c, score: round2(Math.min(1, (c.score ?? 0.5) + 0.1 * (sources.size - 1))) }, o }))
+    83	    .sort((a, b) => (b.c.score ?? 0) - (a.c.score ?? 0) || a.o - b.o)
+    84	    .slice(0, limit)
+    85	    .map((x) => x.c);
+    86	}
+    87	
+    88	const round2 = (v: number) => Math.round(v * 100) / 100;
+
+ succeeded in 0ms:
+     1	'use client';
+     2	/**
+     3	 * 연예인 검색 플로우 (재사용): 이름/사진으로 후보 찾기 → 사용자가 확정 → 대표·최근·평소 전신 사진 선택.
+     4	 * 완료 시 onComplete({ celeb, selectedImages, uploadedPhoto }).
+     5	 * API는 apiBase + '/api/celeb/*', '/api/uploads'로 호출한다 (호스트 앱이 같은 경로를 재노출해야 함).
+     6	 */
+     7	import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+     8	import type { CelebImage, CelebImageCategory, ImageRef } from '@celeber/core/contracts';
+     9	import { Button, ConfirmDialog, MockBadge, Notice, SectionHeader } from '@celeber/ui';
+    10	import { CelebApiError, createCelebApi } from '../lib/api';
+    11	import { candidateKey } from '../lib/names';
+    12	import { photoFileProblem, photoErrorMessage } from '../lib/upload';
+    13	import { CATEGORY_ORDER } from '../lib/queries';
+    14	import type { CandidateItem, CelebDetailResponse, CelebSearchResult, CelebSummary, CollectImagesResponse, IdentifyResponse, SearchResponse } from '../lib/types';
+    15	import { CandidateList } from '../components/CandidateList';
+    16	import { CelebGallery } from '../components/CelebGallery';
+    17	import { CelebProfileHeader } from '../components/CelebProfileHeader';
+    18	import { CelebSearchBox } from '../components/CelebSearchBox';
+    19	import { IdentifyPanel } from '../components/IdentifyPanel';
+    20	import { SavedCelebList } from '../components/SavedCelebList';
+    21	import s from '../components/search-celeb.module.css';
+    22	
+    23	export interface CelebSearchFlowProps {
+    24	  apiBase?: string;
+    25	  /** 사진 선택 방식 (기본 multiple). celeb-vibe-report처럼 한 장만 필요하면 'single' */
+    26	  selection?: 'multiple' | 'single';
+    27	  /** 처음부터 열 인물 (URL ?celeb= 등) */
+    28	  initialCelebId?: string | null;
+    29	  /** 인물 열기/닫기 (호스트가 URL 동기화에 사용) */
+    30	  onCelebChange?: (celebId: string | null) => void;
+    31	  onComplete?: (result: CelebSearchResult) => void;
+    32	  completeLabel?: string;
+    33	  /** 저장한 인물/최근 찾은 인물 목록 표시 (기본 true) */
+    34	  showLibrary?: boolean;
+    35	  /** 사진으로 찾기 표시 (기본 true) */
+    36	  allowPhoto?: boolean;
+    37	  /** 처음에 바로 검색할 이름 (URL ?q= 등) */
+    38	  initialQuery?: string | null;
+    39	}
+    40	
+    41	type Busy = { kind: 'search' } | { kind: 'identify' } | { kind: 'confirm'; key: string } | null;
+    42	
+    43	const errMsg = (e: unknown) => (e instanceof CelebApiError || e instanceof Error ? e.message : String(e));
+    44	
+    45	export function CelebSearchFlow({
+    46	  apiBase = '',
+    47	  selection = 'multiple',
+    48	  initialCelebId = null,
+    49	  onCelebChange,
+    50	  onComplete,
+    51	  completeLabel = '이 사진으로 계속',
+    52	  showLibrary = true,
+    53	  allowPhoto = true,
+    54	  initialQuery = null,
+    55	}: CelebSearchFlowProps) {
+    56	  const api = useMemo(() => createCelebApi(apiBase), [apiBase]);
+    57	
+    58	  // 검색 단계
+    59	  const [busy, setBusy] = useState<Busy>(null);
+    60	  const [error, setError] = useState<string | null>(null);
+    61	  const [search, setSearch] = useState<SearchResponse | null>(null);
+    62	  const [preview, setPreview] = useState<string | undefined>();
+    63	  const [identify, setIdentify] = useState<IdentifyResponse | null>(null);
+    64	  const [identifying, setIdentifying] = useState(false);
+    65	  const [pendingPhotoCandidate, setPendingPhotoCandidate] = useState<CandidateItem | null>(null);
+    66	  const [library, setLibrary] = useState<{ saved: CelebSummary[]; recent: CelebSummary[] }>({ saved: [], recent: [] });
+    67	
+    68	  // 인물 단계
+    69	  const [celebId, setCelebId] = useState<string | null>(initialCelebId);
+    70	  const [detail, setDetail] = useState<CelebDetailResponse | null>(null);
+    71	  const [category, setCategory] = useState<CelebImageCategory>('signature');
+    72	  const [collecting, setCollecting] = useState<Partial<Record<CelebImageCategory, boolean>>>({});
+    73	  const [notices, setNotices] = useState<Partial<Record<CelebImageCategory, string[]>>>({});
+    74	  const [saving, setSaving] = useState(false);
+    75	  const [uploadedPhoto, setUploadedPhoto] = useState<ImageRef | undefined>();
+    76	  const attempted = useRef(new Set<string>());
+    77	
+    78	  const loadLibrary = useCallback(async () => {
+    79	    if (!showLibrary) return;
+    80	    try {
+    81	      const [saved, recent] = await Promise.all([api.list({ saved: true, limit: 30 }), api.list({ saved: false, limit: 8 })]);
+    82	      setLibrary({ saved: saved.items, recent: recent.items });
+    83	    } catch {
+    84	      /* 목록 실패는 검색을 막지 않는다 */
+    85	    }
+    86	  }, [api, showLibrary]);
+    87	
+    88	  useEffect(() => {
+    89	    // 마운트 시 저장 목록을 불러온다 (외부 API와 동기화)
+    90	    void loadLibrary();
+    91	  }, [loadLibrary]);
+    92	
+    93	  useEffect(() => () => {
+    94	    if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
+    95	  }, [preview]);
+    96	
+    97	  /* ------------------------------------------------------------ 인물 열기 */
+    98	  const openCeleb = useCallback(
+    99	    (id: string | null) => {
+   100	      setCelebId(id);
+   101	      setDetail(null);
+   102	      setNotices({});
+   103	      setCategory('signature');
+   104	      setError(null);
+   105	      onCelebChange?.(id);
+   106	      if (!id) void loadLibrary();
+   107	    },
+   108	    [onCelebChange, loadLibrary],
+   109	  );
+   110	
+   111	  useEffect(() => {
+   112	    if (!celebId) return;
+   113	    let alive = true;
+   114	    api
+   115	      .get(celebId)
+   116	      .then((d) => alive && setDetail(d))
+   117	      .catch((e) => {
+   118	        if (!alive) return;
+   119	        setError(errMsg(e));
+   120	        setCelebId(null);
+   121	        onCelebChange?.(null);
+   122	      });
+   123	    return () => {
+   124	      alive = false;
+   125	    };
+   126	  }, [api, celebId, onCelebChange]);
+   127	
+   128	  const applyCollect = useCallback((r: CollectImagesResponse) => {
+   129	    setDetail((d) => (d && d.celeb.id === r.celebId ? { ...d, images: { ...d.images, [r.category]: r.images } } : d));
+   130	    setNotices((n) => ({ ...n, [r.category]: r.notices }));
+   131	  }, []);
+   132	
+   133	  const collect = useCallback(
+   134	    async (id: string, cat: CelebImageCategory, refresh = false) => {
+   135	      setCollecting((c) => ({ ...c, [cat]: true }));
+   136	      try {
+   137	        applyCollect(await api.collect(id, cat, refresh));
+   138	      } catch (e) {
+   139	        setNotices((n) => ({ ...n, [cat]: [`사진을 모으지 못했습니다: ${errMsg(e)}`] }));
+   140	      } finally {
+   141	        setCollecting((c) => ({ ...c, [cat]: false }));
+   142	      }
+   143	    },
+   144	    [api, applyCollect],
+   145	  );
+   146	
+   147	  // 비어 있는 카테고리를 현재 탭부터 차례로 수집 (검색 결과는 DB에 캐시되어 다음에는 바로 열린다)
+   148	  useEffect(() => {
+   149	    if (!detail) return;
+   150	    const id = detail.celeb.id;
+   151	    const order = [category, ...CATEGORY_ORDER.filter((c) => c !== category)];
+   152	    const todo = order.filter((c) => !detail.images[c].length && !attempted.current.has(`${id}:${c}`));
+   153	    if (!todo.length || Object.values(collecting).some(Boolean)) return;
+   154	    const next = todo[0];
+   155	    attempted.current.add(`${id}:${next}`);
+   156	    void collect(id, next);
+   157	  }, [detail, category, collecting, collect]);
+   158	
+   159	  /* ------------------------------------------------------------ 검색 */
+   160	  const runSearch = async (q: string) => {
+   161	    setBusy({ kind: 'search' });
+   162	    setError(null);
+   163	    try {
+   164	      setSearch(await api.search(q));
+   165	    } catch (e) {
+   166	      setError(errMsg(e));
+   167	    } finally {
+   168	      setBusy(null);
+   169	    }
+   170	  };
+   171	
+   172	  const closePhoto = () => {
+   173	    setIdentify(null);
+   174	    setPreview(undefined);
+   175	  };
+   176	
+   177	  const runIdentify = async (file: File) => {
+   178	    setError(null);
+   179	    setIdentify(null);
+   180	    const problem = photoFileProblem(file);
+   181	    if (problem) {
+   182	      // 서버로 보내지 않고 바로 알린다 (25MB 초과, 사진 아님)
+   183	      setPreview(undefined);
+   184	      setError(problem);
+   185	      return;
+   186	    }
+   187	    setPreview(URL.createObjectURL(file));
+   188	    setIdentifying(true);
+   189	    let stage: 'upload' | 'identify' = 'upload';
+   190	    try {
+   191	      const rec = await api.uploadPhoto(file);
+   192	      stage = 'identify';
+   193	      setIdentify(await api.identify(rec.id));
+   194	    } catch (e) {
+   195	      // 실패하면 패널을 닫는다. 미리보기와 '찾고 있습니다' 문구가 오류와 함께 남지 않게
+   196	      closePhoto();
+   197	      setError(photoErrorMessage(stage, e));
+   198	    } finally {
+   199	      setIdentifying(false);
+   200	    }
+   201	  };
+   202	
+   203	  const confirm = async (c: CandidateItem, fromPhoto: boolean) => {
+   204	    if (c.celebId) {
+   205	      setUploadedPhoto(fromPhoto ? identify?.upload : undefined);
+   206	      openCeleb(c.celebId);
+   207	      return;
+   208	    }
+   209	    setBusy({ kind: 'confirm', key: candidateKey(c) });
+   210	    setError(null);
+   211	    try {
+   212	      const { celebId: _omit, saved: _saved, ...candidate } = c;
+   213	      void _omit;
+   214	      void _saved;
+   215	      const { celeb } = await api.confirm(candidate);
+   216	      setUploadedPhoto(fromPhoto ? identify?.upload : undefined);
+   217	      openCeleb(celeb.id);
+   218	    } catch (e) {
+   219	      setError(errMsg(e));
+   220	    } finally {
+   221	      setBusy(null);
+   222	    }
+   223	  };
+   224	
+   225	  // 처음 검색어가 있으면 마운트 시 한 번 검색
+   226	  const initialRun = useRef(false);
+   227	  useEffect(() => {
+   228	    if (initialRun.current || !initialQuery?.trim() || initialCelebId) return;
+   229	    initialRun.current = true;
+   230	    void runSearch(initialQuery.trim());
+   231	    // eslint-disable-next-line react-hooks/exhaustive-deps
+   232	  }, [initialQuery, initialCelebId]);
+   233	
+   234	  /* ------------------------------------------------------------ 선택 */
+   235	  const allImages = useMemo(() => (detail ? CATEGORY_ORDER.flatMap((c) => detail.images[c]) : []), [detail]);
+   236	  const selectedIds = allImages.filter((i) => i.selected).map((i) => i.id);
+   237	
+   238	  const patchLocal = (ids: string[], selected: boolean) =>
+   239	    setDetail((d) => {
+   240	      if (!d) return d;
+   241	      const images = { ...d.images };
+   242	      for (const c of CATEGORY_ORDER) images[c] = images[c].map((im) => (ids.includes(im.id) ? { ...im, selected } : im));
+   243	      return { ...d, images };
+   244	    });
+   245	
+   246	  const toggle = async (im: CelebImage) => {
+   247	    const on = !im.selected;
+   248	    const off = on && selection === 'single' ? selectedIds.filter((x) => x !== im.id) : [];
+   249	    patchLocal([im.id], on);
+   250	    if (off.length) patchLocal(off, false);
+   251	    try {
+   252	      await Promise.all([api.select(im.id, on), ...off.map((x) => api.select(x, false))]);
+   253	    } catch (e) {
+   254	      patchLocal([im.id], !on);
+   255	      if (off.length) patchLocal(off, true);
+   256	      setError(errMsg(e));
+   257	    }
+   258	  };
+   259	
+   260	  const toggleSave = async () => {
+   261	    if (!detail) return;
+   262	    setSaving(true);
+   263	    try {
+   264	      const { celeb } = await api.setSaved(detail.celeb.id, !detail.celeb.saved);
+   265	      setDetail((d) => (d ? { ...d, celeb } : d));
+   266	    } catch (e) {
+   267	      setError(errMsg(e));
+   268	    } finally {
+   269	      setSaving(false);
+   270	    }
+   271	  };
+   272	
+   273	  /* ------------------------------------------------------------ 렌더 */
+   274	  if (celebId) {
+   275	    const selected = allImages.filter((i) => i.selected);
+   276	    return (
+   277	      <div className="cb-stack" style={{ gap: 'var(--cb-s5)' }}>
+   278	        <div>
+   279	          <button type="button" className={s.linkBtn} onClick={() => openCeleb(null)}>
+   280	            다른 인물 찾기
+   281	          </button>
+   282	        </div>
+   283	        {error ? <Notice tone="danger">{error}</Notice> : null}
+   284	        {detail ? (
+   285	          <>
+   286	            <CelebProfileHeader celeb={detail.celeb} apiBase={apiBase} onToggleSave={toggleSave} saving={saving} />
+   287	            <section>
+   288	              <SectionHeader title="전신 룩" subtitle={selection === 'single' ? '분석할 사진 한 장을 고르세요.' : '참고할 사진을 고르세요. 여러 장 선택할 수 있습니다.'} />
+   289	              <CelebGallery
+   290	                images={detail.images}
+   291	                category={category}
+   292	                onCategoryChange={setCategory}
+   293	                selectedIds={selectedIds}
+   294	                onToggle={toggle}
+   295	                apiBase={apiBase}
+   296	                loading={collecting}
+   297	                notices={notices}
+   298	                onRefresh={(c) => void collect(detail.celeb.id, c, true)}
+   299	              />
+   300	            </section>
+   301	            {selected.length ? (
+   302	              <section>
+   303	                <SectionHeader title="선택한 사진" subtitle={`${selected.length}장 · 대표/최근/평소 탭에 걸쳐 유지됩니다.`} />
+   304	                <div className={s.selectedStrip}>
+   305	                  {selected.map((im) => (
+   306	                    // eslint-disable-next-line @next/next/no-img-element
+   307	                    <img key={im.id} src={`${apiBase}${im.cached?.url ?? ''}`} alt="선택한 사진" />
+   308	                  ))}
+   309	                </div>
+   310	              </section>
+   311	            ) : null}
+   312	            {onComplete ? (
+   313	              <div className={s.footer}>
+   314	                <span className={s.count}>{selected.length}장 선택</span>
+   315	                <Button variant="primary" block disabled={!selected.length} onClick={() => onComplete({ celeb: detail.celeb, selectedImages: selected, uploadedPhoto })}>
+   316	                  {completeLabel}
+   317	                </Button>
+   318	              </div>
+   319	            ) : null}
+   320	          </>
+   321	        ) : (
+   322	          <div className={s.skeleton} aria-busy="true" aria-label="불러오는 중">
+   323	            {Array.from({ length: 6 }, (_, i) => (
+   324	              <div key={i} />
+   325	            ))}
+   326	          </div>
+   327	        )}
+   328	      </div>
+   329	    );
+   330	  }
+   331	
+   332	  return (
+   333	    <div className="cb-stack" style={{ gap: 'var(--cb-s5)' }}>
+   334	      <CelebSearchBox
+   335	        apiBase={apiBase}
+   336	        initialQuery={initialQuery ?? ''}
+   337	        busy={busy?.kind === 'search'}
+   338	        onSearch={runSearch}
+   339	        onPhoto={allowPhoto ? runIdentify : undefined}
+   340	        onPickSuggestion={(it) => (it.celebId ? openCeleb(it.celebId) : void runSearch(it.name))}
+   341	      />
+   342	      {error ? <Notice tone="danger">{error}</Notice> : null}
+   343	
+   344	      {preview || identify ? (
+   345	        <section>
+   346	          <SectionHeader title="사진으로 찾기" right={identifying ? undefined : <button type="button" className={s.linkBtn} onClick={closePhoto}>닫기</button>} />
+   347	          <IdentifyPanel previewUrl={preview} result={identify} loading={identifying} apiBase={apiBase} />
+   348	          {identify?.candidates.length ? (
+   349	            <div style={{ marginTop: 'var(--cb-s4)' }}>
+   350	              <div className="cb-row" style={{ justifyContent: 'space-between' }}>
+   351	                <span className="cb-row-title">{identify.needsNameSearch ? '데모 후보' : '사진 단서로 찾은 후보'}</span>
+   352	                {identify.isMock ? <MockBadge /> : null}
+   353	              </div>
+   354	              <CandidateList items={identify.candidates} apiBase={apiBase} busyKey={busy?.kind === 'confirm' ? busy.key : null} onSelect={(c) => setPendingPhotoCandidate(c)} selectLabel="확인" />
+   355	            </div>
+   356	          ) : null}
+   357	        </section>
+   358	      ) : null}
+   359	
+   360	      {search ? (
+   361	        <section>
+   362	          <SectionHeader
+   363	            title="검색 결과"
+   364	            subtitle={`"${search.query}" · 이름과 사진을 보고 맞는 인물을 고르세요.`}
+   365	            right={search.isMock ? <MockBadge /> : undefined}
+   366	          />
+   367	          {search.notices.map((n) => (
+   368	            <div key={n} style={{ marginBottom: 8 }}>
+   369	              <Notice>{n}</Notice>
+   370	            </div>
+   371	          ))}
+   372	          <CandidateList items={search.candidates} apiBase={apiBase} busyKey={busy?.kind === 'confirm' ? busy.key : null} onSelect={(c) => void confirm(c, false)} />
+   373	        </section>
+   374	      ) : null}
+   375	
+   376	      {showLibrary ? (
+   377	        <>
+   378	          <section>
+   379	            <SectionHeader title="저장한 인물" />
+   380	            <SavedCelebList
+   381	              items={library.saved}
+   382	              apiBase={apiBase}
+   383	              onOpen={(id) => openCeleb(id)}
+   384	              onDelete={async (id) => {
+   385	                await api.remove(id);
+   386	                await loadLibrary();
+   387	              }}
+   388	            />
+   389	          </section>
+   390	          {library.recent.length ? (
+   391	            <section>
+   392	              <SectionHeader title="최근 찾은 인물" subtitle="저장하지 않은 인물입니다." />
+   393	              <SavedCelebList
+   394	                items={library.recent}
+   395	                apiBase={apiBase}
+   396	                onOpen={(id) => openCeleb(id)}
+   397	                onDelete={async (id) => {
+   398	                  await api.remove(id);
+   399	                  await loadLibrary();
+   400	                }}
+   401	              />
+   402	            </section>
+   403	          ) : null}
+   404	        </>
+   405	      ) : null}
+   406	
+   407	      <ConfirmDialog
+   408	        open={!!pendingPhotoCandidate}
+   409	        title={`${pendingPhotoCandidate?.name ?? ''}(으)로 확정할까요?`}
+   410	        description="이 후보는 검색 결과 제목이나 사진 속 글자에서 나온 이름입니다. 사진 속 인물과 같은 사람인지는 확인하지 않았습니다."
+   411	        items={pendingPhotoCandidate?.evidence.slice(0, 3)}
+   412	        confirmLabel="이 인물로 확정"
+   413	        cancelLabel="다시 고르기"
+   414	        loading={busy?.kind === 'confirm'}
+   415	        onCancel={() => setPendingPhotoCandidate(null)}
+   416	        onConfirm={async () => {
+   417	          const c = pendingPhotoCandidate;
+   418	          if (!c) return;
+   419	          await confirm(c, true);
+   420	          setPendingPhotoCandidate(null);
+   421	        }}
+   422	      />
+   423	    </div>
+   424	  );
+   425	}
+
+exec
+/bin/zsh -lc 'nl -ba src/components/CelebSearchBox.tsx' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	'use client';
+     2	/**
+     3	 * 이름 검색 입력 + 자동완성 + 사진으로 찾기 버튼.
+     4	 * 자동완성은 /api/celeb/suggest (DB의 확정 인물, 키 없을 때 데모 인물)를 250ms 디바운스로 호출한다.
+     5	 */
+     6	import { useEffect, useId, useRef, useState } from 'react';
+     7	import { Button, FileButton, Icon } from '@celeber/ui';
+     8	import { createCelebApi, withBase } from '../lib/api';
+     9	import type { CandidateItem } from '../lib/types';
+    10	import { CelebAvatar } from './CelebAvatar';
+    11	import s from './search-celeb.module.css';
+    12	import { suggestKeyDown } from './suggest-keys';
+    13	
+    14	export interface CelebSearchBoxProps {
+    15	  apiBase?: string;
+    16	  /** 검색 실행 (Enter/검색 버튼) */
+    17	  onSearch: (query: string) => void;
+    18	  /** 자동완성 항목 선택 (celebId가 있으면 바로 열기) */
+    19	  onPickSuggestion?: (item: CandidateItem) => void;
+    20	  /** 사진으로 찾기 */
+    21	  onPhoto?: (file: File) => void;
+    22	  busy?: boolean;
+    23	  initialQuery?: string;
+    24	  placeholder?: string;
+    25	}
+    26	
+    27	export function CelebSearchBox({ apiBase = '', onSearch, onPickSuggestion, onPhoto, busy, initialQuery = '', placeholder = '연예인 이름 (예: 배우 이름, 그룹 멤버)' }: CelebSearchBoxProps) {
+    28	  const [q, setQ] = useState(initialQuery);
+    29	  const [items, setItems] = useState<CandidateItem[]>([]);
+    30	  const [open, setOpen] = useState(false);
+    31	  const [active, setActive] = useState(-1);
+    32	  const listId = useId();
+    33	  const apiRef = useRef(createCelebApi(apiBase));
+    34	  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    35	
+    36	  useEffect(() => {
+    37	    apiRef.current = createCelebApi(apiBase);
+    38	  }, [apiBase]);
+    39	
+    40	  useEffect(() => {
+    41	    const query = q.trim();
+    42	    if (!query) return;
+    43	    const ctl = new AbortController();
+    44	    const t = setTimeout(() => {
+    45	      apiRef.current
+    46	        .suggest(query, ctl.signal)
+    47	        .then((r) => {
+    48	          setItems(r.items);
+    49	          setActive(-1);
+    50	        })
+    51	        .catch(() => {
+    52	          /* 자동완성 실패는 무시 */
+    53	        });
+    54	    }, 250);
+    55	    return () => {
+    56	      clearTimeout(t);
+    57	      ctl.abort();
+    58	    };
+    59	  }, [q]);
+    60	
+    61	  const submit = (query = q) => {
+    62	    const v = query.trim();
+    63	    if (!v || busy) return;
+    64	    setOpen(false);
+    65	    onSearch(v);
+    66	  };
+    67	
+    68	  const pick = (it: CandidateItem) => {
+    69	    setOpen(false);
+    70	    setQ(it.name);
+    71	    if (onPickSuggestion) onPickSuggestion(it);
+    72	    else submit(it.name);
+    73	  };
+    74	
+    75	  const showList = open && q.trim().length > 0 && items.length > 0;
+    76	
+    77	  return (
+    78	    <div>
+    79	      <form
+    80	        role="search"
+    81	        className={s.field}
+    82	        onSubmit={(e) => {
+    83	          e.preventDefault();
+    84	          if (showList && active >= 0 && items[active]) pick(items[active]);
+    85	          else submit();
+    86	        }}
+    87	      >
+    88	        <div className={s.inputWrap}>
+    89	          <Icon name="search" size={20} />
+    90	          <input
+    91	            className={s.input}
+    92	            type="search"
+    93	            enterKeyHint="search"
+    94	            autoComplete="off"
+    95	            aria-label="연예인 이름 검색"
+    96	            aria-autocomplete="list"
+    97	            aria-controls={listId}
+    98	            aria-expanded={showList}
+    99	            role="combobox"
+   100	            placeholder={placeholder}
+   101	            value={q}
+   102	            maxLength={60}
+   103	            onChange={(e) => {
+   104	              setQ(e.target.value);
+   105	              setOpen(true);
+   106	            }}
+   107	            onFocus={() => setOpen(true)}
+   108	            onBlur={() => {
+   109	              blurTimer.current = setTimeout(() => setOpen(false), 150);
+   110	            }}
+   111	            onKeyDown={(e) => suggestKeyDown(e, showList, items.length, setActive, () => setOpen(false))}
+   112	          />
+   113	          {q ? (
+   114	            <button
+   115	              type="button"
+   116	              className={s.clear}
+   117	              aria-label="지우기"
+   118	              onClick={() => {
+   119	                setQ('');
+   120	                setItems([]);
+   121	              }}
+   122	            >
+   123	              <Icon name="close" size={16} />
+   124	            </button>
+   125	          ) : null}
+   126	        </div>
+   127	        {showList ? (
+   128	          <ul className={s.suggest} id={listId} role="listbox" aria-label="이름 자동완성">
+   129	            {items.map((it, i) => (
+   130	              <li key={`${it.name}-${i}`}>
+   131	                <button
+   132	                  type="button"
+   133	                  role="option"
+   134	                  aria-selected={i === active}
+   135	                  className={s.suggestItem}
+   136	                  onMouseDown={(e) => e.preventDefault()}
+   137	                  onClick={() => {
+   138	                    if (blurTimer.current) clearTimeout(blurTimer.current);
+   139	                    pick(it);
+   140	                  }}
+   141	                >
+   142	                  <CelebAvatar src={withBase(apiBase, it.thumbnailUrl)} name={it.name} size={36} />
+   143	                  <span className={s.rowText}>
+   144	                    <span className={s.name} style={{ display: 'block', fontSize: 14 }}>
+   145	                      {it.name}
+   146	                    </span>
+   147	                    <span className={s.sub} style={{ display: 'block', fontSize: 12 }}>
+   148	                      {it.saved ? '저장한 인물' : it.celebId ? '찾아본 인물' : it.description ?? ''}
+   149	                    </span>
+   150	                  </span>
+   151	                </button>
+   152	              </li>
+   153	            ))}
+   154	          </ul>
+   155	        ) : null}
+   156	        <div className={s.actions}>
+   157	          <Button type="submit" variant="primary" icon="search" loading={busy} disabled={!q.trim()}>
+   158	            이름으로 찾기
+   159	          </Button>
+   160	          {onPhoto ? (
+   161	            <FileButton onFile={onPhoto} accept="image/jpeg,image/png,image/webp" variant="secondary">
+   162	              사진으로 찾기
+   163	            </FileButton>
+   164	          ) : null}
+   165	        </div>
+   166	      </form>
+   167	    </div>
+   168	  );
+   169	}
+
+exec
+/bin/zsh -lc 'nl -ba src/lib/upload.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	/**
+     2	 * 사진 올리기 전 확인과 실패 문구 (브라우저용, 순수 함수).
+     3	 * 한도는 core의 MAX_UPLOAD_BYTES(서버 전용 모듈)와 같은 값이다. 테스트에서 두 값이 같은지 확인한다.
+     4	 */
+     5	import { CelebApiError } from './api';
+     6	
+     7	export const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
+     8	const MAX_PHOTO_MB = MAX_PHOTO_BYTES / 1024 / 1024;
+     9	
+    10	/** 올리기 전에 막을 사유. 문제가 없으면 null */
+    11	export function photoFileProblem(file: { size: number; type: string }): string | null {
+    12	  if (file.type && !file.type.startsWith('image/')) return '사진 파일이 아닙니다. JPEG·PNG·WebP 사진을 올려 주세요.';
+    13	  if (file.size > MAX_PHOTO_BYTES) return `사진이 너무 큽니다. ${MAX_PHOTO_MB}MB 이하 사진을 올려 주세요.`;
+    14	  if (file.size === 0) return '빈 파일입니다. 다른 사진을 올려 주세요.';
+    15	  return null;
+    16	}
+    17	
+    18	const HANGUL = /[가-힣]/;
+    19	
+    20	/** 업로드/식별 실패 → 사용자 문구. 서버가 한국어로 준 사유는 그대로 쓰고, 영어 내부 오류는 감춘다 */
+    21	export function photoErrorMessage(stage: 'upload' | 'identify', e: unknown): string {
+    22	  if (e instanceof CelebApiError && e.status === 413) return `사진이 너무 큽니다. ${MAX_PHOTO_MB}MB 이하 사진을 올려 주세요.`;
+    23	  const msg = e instanceof Error ? e.message.trim() : '';
+    24	  if (stage === 'upload') return HANGUL.test(msg) ? `사진을 올리지 못했습니다. ${msg}` : '사진을 올리지 못했습니다. 다시 시도하거나 다른 사진을 올려 주세요.';
+    25	  return HANGUL.test(msg) ? `사진에서 단서를 찾지 못했습니다. ${msg}` : '사진에서 단서를 찾는 중 문제가 생겼습니다. 잠시 뒤 다시 시도해 주세요.';
+    26	}
+
+exec
+/bin/zsh -lc 'nl -ba src/lib/api.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+exec
+/bin/zsh -lc 'nl -ba src/components/IdentifyPanel.tsx' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+exec
+/bin/zsh -lc 'nl -ba src/server/search.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	/**
+     2	 * 브라우저용 API 클라이언트. apiBase(기본 '')를 앞에 붙여 '/api/celeb/*'와 '/api/uploads'를 호출한다.
+     3	 * 호스트 앱은 같은 경로를 재노출해야 한다 (README '재사용' 참고).
+     4	 */
+     5	import type { CelebCandidate, CelebImage, CelebImageCategory, CelebProfile, UploadRecord } from '@celeber/core/contracts';
+     6	import type { CelebDetailResponse, CelebSummary, CollectImagesResponse, IdentifyResponse, SearchResponse, SuggestResponse } from './types';
+     7	
+     8	export class CelebApiError extends Error {
+     9	  constructor(
+    10	    message: string,
+    11	    readonly status: number,
+    12	    readonly code?: string,
+    13	  ) {
+    14	    super(message);
+    15	  }
+    16	}
+    17	
+    18	/** '/api/...' 상대 URL에 apiBase를 붙인다 (외부·data URL은 그대로) */
+    19	export function withBase(apiBase: string, url: string | undefined): string | undefined {
+    20	  if (!url) return url;
+    21	  return url.startsWith('/') ? `${apiBase}${url}` : url;
+    22	}
+    23	
+    24	async function call<T>(url: string, init?: RequestInit): Promise<T> {
+    25	  const res = await fetch(url, init);
+    26	  const text = await res.text();
+    27	  let body: unknown = null;
+    28	  try {
+    29	    body = text ? JSON.parse(text) : null;
+    30	  } catch {
+    31	    /* JSON 아님 */
+    32	  }
+    33	  if (!res.ok) {
+    34	    const err = (body as { error?: { message?: string; code?: string } } | null)?.error;
+    35	    throw new CelebApiError(err?.message ?? `요청 실패 (HTTP ${res.status})`, res.status, err?.code);
+    36	  }
+    37	  return body as T;
+    38	}
+    39	
+    40	const json = (method: string, body: unknown): RequestInit => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    41	
+    42	export function createCelebApi(apiBase = '') {
+    43	  const u = (p: string) => `${apiBase}${p}`;
+    44	  return {
+    45	    suggest: (q: string, signal?: AbortSignal) => call<SuggestResponse>(u(`/api/celeb/suggest?q=${encodeURIComponent(q)}`), { signal }),
+    46	    search: (q: string, signal?: AbortSignal) => call<SearchResponse>(u(`/api/celeb/search?q=${encodeURIComponent(q)}`), { signal }),
+    47	    uploadPhoto: (file: File) => {
+    48	      const fd = new FormData();
+    49	      fd.append('file', file);
+    50	      fd.append('kind', 'celeb');
+    51	      return call<UploadRecord>(u('/api/uploads'), { method: 'POST', body: fd });
+    52	    },
+    53	    identify: (uploadId: string) => call<IdentifyResponse>(u('/api/celeb/identify'), json('POST', { uploadId })),
+    54	    confirm: (candidate: CelebCandidate) => call<{ celeb: CelebProfile }>(u('/api/celeb/celebs'), json('POST', { candidate })),
+    55	    list: (opts: { saved?: boolean; limit?: number } = {}) =>
+    56	      call<{ items: CelebSummary[] }>(u(`/api/celeb/celebs?${new URLSearchParams({ ...(opts.saved !== undefined ? { saved: opts.saved ? '1' : '0' } : {}), limit: String(opts.limit ?? 30) })}`)),
+    57	    get: (id: string) => call<CelebDetailResponse>(u(`/api/celeb/celebs/${encodeURIComponent(id)}`)),
+    58	    setSaved: (id: string, saved: boolean) => call<{ celeb: CelebProfile }>(u(`/api/celeb/celebs/${encodeURIComponent(id)}`), json('PATCH', { saved })),
+    59	    remove: (id: string) => call<{ deleted: boolean; images: number }>(u(`/api/celeb/celebs/${encodeURIComponent(id)}`), { method: 'DELETE' }),
+    60	    collect: (id: string, category: CelebImageCategory, refresh = false) =>
+    61	      call<CollectImagesResponse>(u(`/api/celeb/celebs/${encodeURIComponent(id)}/images`), json('POST', { category, refresh })),
+    62	    select: (imageId: string, selected: boolean) => call<{ image: CelebImage }>(u(`/api/celeb/images/${encodeURIComponent(imageId)}`), json('PATCH', { selected })),
+    63	  };
+    64	}
+    65	
+    66	export type CelebApi = ReturnType<typeof createCelebApi>;
+
+exec
+/bin/zsh -lc 'nl -ba src/server/images.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	'use client';
+     2	/**
+     3	 * 사진으로 찾기 결과: 올린 사진 + 사진 구도 + 역이미지 검색 상태 + 사진 속 글자.
+     4	 * 후보 목록은 CandidateList로 따로 그린다.
+     5	 */
+     6	import { AnalyzingOverlay, Chip, MockBadge, Notice, PhotoFrame } from '@celeber/ui';
+     7	import { withBase } from '../lib/api';
+     8	import type { IdentifyResponse, PhotoFraming } from '../lib/types';
+     9	import s from './search-celeb.module.css';
+    10	
+    11	const FRAMING_LABEL: Record<PhotoFraming, string> = {
+    12	  'full-body': '전신 사진',
+    13	  'upper-body': '상반신 사진',
+    14	  'face-closeup': '얼굴 클로즈업',
+    15	  'no-person': '인물 없음',
+    16	  unknown: '구도 미판정',
+    17	};
+    18	
+    19	const REVERSE_LABEL: Record<IdentifyResponse['reverse']['status'], string> = {
+    20	  ok: '역이미지 검색 완료',
+    21	  unavailable: '역이미지 검색 사용 불가',
+    22	  error: '역이미지 검색 실패',
+    23	};
+    24	
+    25	export function IdentifyPanel({ previewUrl, result, loading, apiBase = '' }: { previewUrl?: string; result?: IdentifyResponse | null; loading?: boolean; apiBase?: string }) {
+    26	  const src = result ? withBase(apiBase, result.upload.url) : previewUrl;
+    27	  return (
+    28	    <div className="cb-stack">
+    29	      <div className={s.photoRow}>
+    30	        <div style={{ position: 'relative' }}>
+    31	          <PhotoFrame src={src} alt="올린 연예인 사진" label="업로드한 사진" />
+    32	          {loading ? <AnalyzingOverlay message="단서 찾는 중" /> : null}
+    33	        </div>
+    34	        <div className="cb-stack-sm">
+    35	          {result ? (
+    36	            <>
+    37	              <div className="cb-row" style={{ gap: 6, flexWrap: 'wrap' }}>
+    38	                <Chip>{FRAMING_LABEL[result.photoCheck.framing]}</Chip>
+    39	                {result.photoCheck.personCount !== null ? <Chip>{`${result.photoCheck.personCount}명`}</Chip> : null}
+    40	                {result.isMock ? <MockBadge /> : null}
+    41	              </div>
+    42	              <p className="cb-body" style={{ margin: 0 }}>
+    43	                {result.photoCheck.note}
+    44	              </p>
+    45	              <p className="cb-caption cb-muted" style={{ margin: 0 }}>
+    46	                {REVERSE_LABEL[result.reverse.status]}
+    47	                {result.reverse.status === 'ok' ? ` · 비슷한 페이지 ${result.reverse.visualMatchCount}건` : ''}
+    48	              </p>
+    49	              {result.photoText.texts.length ? (
+    50	                <div>
+    51	                  <div className="cb-caption cb-muted">사진 속 글자</div>
+    52	                  <div className={s.texts}>
+    53	                    {result.photoText.texts.map((t) => (
+    54	                      <Chip key={t}>{t}</Chip>
+    55	                    ))}
+    56	                  </div>
+    57	                </div>
+    58	              ) : null}
+    59	            </>
+    60	          ) : loading ? (
+    61	            <p className="cb-body cb-muted" style={{ margin: 0 }}>
+    62	              역이미지 검색 결과의 제목과 사진 속 글자에서 이름 후보를 찾고 있습니다.
+    63	            </p>
+    64	          ) : null}
+    65	          <p className={s.policy} style={{ margin: 0 }}>
+    66	            얼굴로 인물을 식별하지 않습니다. 검색 결과 제목과 사진 속 글자만 사용하며, 최종 확인은 직접 해 주세요.
+    67	          </p>
+    68	        </div>
+    69	      </div>
+    70	      {result?.notices.map((n) => (
+    71	        <Notice key={n} tone={result.needsNameSearch ? 'warn' : 'info'}>
+    72	          {n}
+    73	        </Notice>
+    74	      ))}
+    75	    </div>
+    76	  );
+    77	}
+
+ succeeded in 0ms:
+     1	/**
+     2	 * 이름 검색: 기존 인물(DB) + AI 후보(텍스트만, 사진 없음) + 입력한 이름 그대로.
+     3	 * 키가 없으면 데모 인물(mockNameSearch)과 입력 이름을 후보로 쓴다.
+     4	 */
+     5	import 'server-only';
+     6	import { z } from 'zod';
+     7	import type { CelebCandidate } from '@celeber/core/contracts';
+     8	import { MOCK_PEOPLE, mockNameSearch } from '@celeber/core/mock';
+     9	import { callTextStructured } from '@celeber/core/server/ai';
+    10	import { cacheGet, cacheSet } from '@celeber/core/server/db';
+    11	import { getCapabilities } from '@celeber/core/server/env';
+    12	import { mergeCandidates, nameKey, sameName } from '../lib/names';
+    13	import type { CandidateItem, SearchResponse, SuggestResponse } from '../lib/types';
+    14	import { attachCelebIds, celebToCandidate, matchCelebs } from './celebs';
+    15	import { candidateThumbnail, proxyImageUrl } from './thumbs';
+    16	import { mapLimit, shortWarning } from './util';
+    17	
+    18	export const MAX_QUERY_LENGTH = 60;
+    19	
+    20	/** AI 출력 스키마 (얕고 단순하게) */
+    21	const NameCandidatesSchema = z.object({
+    22	  candidates: z.array(
+    23	    z.object({
+    24	      name: z.string(),
+    25	      nameEn: z.string(),
+    26	      description: z.string(),
+    27	      confidence: z.number(),
+    28	    }),
+    29	  ),
+    30	});
+    31	type NameCandidates = z.infer<typeof NameCandidatesSchema>;
+    32	
+    33	const NAME_SYSTEM = [
+    34	  '이 요청에는 사진이 없습니다. 사용자가 입력한 텍스트 검색어만 보고 공인(배우, 가수, 모델, 방송인 등) 이름 후보를 제시합니다.',
+    35	  '규칙: 확실히 존재하는 공인만 제시하고, 모르면 빈 배열을 반환합니다. 존재하지 않는 인물을 만들지 않습니다.',
+    36	  '이름은 한국어 표기를 우선하고 nameEn에는 영문 표기(모르면 빈 문자열)를 넣습니다.',
+    37	  "description은 동명이인을 구분할 짧은 설명입니다 (예: '배우', '가수 · 그룹명'). 15자 이내.",
+    38	  'confidence는 검색어가 그 인물을 가리킬 가능성 0..1입니다. 최대 5명.',
+    39	].join('\n');
+    40	
+    41	/** 자동완성: DB 인물 + (AI가 없을 때) 데모 인물. 외부 호출 없음 */
+    42	export function suggestCelebs(q: string): SuggestResponse {
+    43	  const query = q.trim().slice(0, MAX_QUERY_LENGTH);
+    44	  if (!query) return { query, items: [] };
+    45	  const fromDb = matchCelebs(query, 5).map(celebToCandidate);
+    46	  const caps = getCapabilities();
+    47	  const key = nameKey(query);
+    48	  const demo: CandidateItem[] = !caps.ai ? MOCK_PEOPLE.filter((p) => nameKey(p.name).includes(key) || nameKey(p.nameEn ?? '').includes(key)) : [];
+    49	  return { query, items: attachCelebIds(mergeCandidates([fromDb, demo], 6)) };
+    50	}
+    51	
+    52	/** 이름 검색 (썸네일 포함) */
+    53	export async function searchCelebCandidates(q: string): Promise<SearchResponse> {
+    54	  const query = q.trim().replace(/\s+/g, ' ').slice(0, MAX_QUERY_LENGTH);
+    55	  const caps = getCapabilities();
+    56	  const notices: string[] = [];
+    57	
+    58	  const fromDb = matchCelebs(query, 3).map(celebToCandidate);
+    59	
+    60	  const cacheKey = `celeb-names:v1:${nameKey(query)}`;
+    61	  let aiList: CelebCandidate[];
+    62	  let origin: SearchResponse['origin'];
+    63	  let warning: string | undefined;
+    64	  const cached = caps.ai ? cacheGet<NameCandidates>(cacheKey) : null;
+    65	  if (cached) {
+    66	    aiList = toCandidates(cached, query);
+    67	    origin = 'ai';
+    68	  } else {
+    69	    const r = await callTextStructured<NameCandidates>({
+    70	      schema: NameCandidatesSchema,
+    71	      mock: () => ({ candidates: [] }),
+    72	      system: NAME_SYSTEM,
+    73	      prompt: `검색어: "${query}"`,
+    74	      maxTokens: 4000,
+    75	      effort: 'low',
+    76	      label: 'search-celeb/name-candidates',
+    77	    });
+    78	    warning = shortWarning(r.warning);
+    79	    if (r.source === 'ai') {
+    80	      cacheSet(cacheKey, 'anthropic', r.data, 24 * 3600);
+    81	      aiList = toCandidates(r.data, query);
+    82	      origin = 'ai';
+    83	    } else {
+    84	      aiList = mockNameSearch(query);
+    85	      origin = 'mock';
+    86	    }
+    87	  }
+    88	
+    89	  const typed: CelebCandidate = {
+    90	    name: query,
+    91	    description: origin === 'mock' ? '입력한 이름 (검증되지 않음)' : '입력한 이름',
+    92	    // 데모 모드에서는 입력 이름도 검증되지 않은 데모 후보로 표시
+    93	    source: origin === 'mock' ? 'mock' : 'name-search',
+    94	    score: 0.35,
+    95	    evidence: ['입력한 이름 그대로 검색'],
+    96	  };
+    97	  // 입력 이름은 같은 이름의 후보가 없을 때만 붙인다. 동명이인 중 하나에 섞이면 그 사람이 근거 없이 올라간다
+    98	  const found = mergeCandidates([fromDb, aiList], 6);
+    99	  const merged = attachCelebIds(found.some((c) => sameName(c, typed)) ? found : mergeCandidates([found, [typed]], 6));
+   100	
+   101	  // 썸네일: 인물 사진 + 이름이 함께 보이도록 (서버 캐시 경유)
+   102	  const withThumbs = await mapLimit(merged, 3, async (c) => {
+   103	    const thumb = (await proxyImageUrl(c.thumbnailUrl)) ?? (await candidateThumbnail(c.name, c.description));
+   104	    return { ...c, thumbnailUrl: thumb };
+   105	  });
+   106	
+   107	  if (origin === 'mock') {
+   108	    const now = getCapabilities();
+   109	    const why = now.forceMock ? 'CELEBER_FORCE_MOCK=1' : now.aiBlockedReason ? `AI 일시 중단: ${now.aiBlockedReason}` : 'AI 키 없음';
+   110	    notices.push(`이름 확인 AI를 쓸 수 없어(${why}) 입력한 이름과 데모 인물을 후보로 보여줍니다.`);
+   111	  }
+   112	  if (caps.imageSearch === 'mock') notices.push('이미지 검색 키가 없어 썸네일은 데모 실루엣입니다.');
+   113	
+   114	  return {
+   115	    query,
+   116	    candidates: withThumbs,
+   117	    origin,
+   118	    isMock: origin === 'mock' || caps.imageSearch === 'mock',
+   119	    imageProvider: caps.imageSearch,
+   120	    warning,
+   121	    notices,
+   122	  };
+   123	}
+   124	
+   125	function toCandidates(data: NameCandidates, query: string): CelebCandidate[] {
+   126	  return data.candidates
+   127	    .filter((c) => c.name.trim())
+   128	    .slice(0, 5)
+   129	    .map((c) => ({
+   130	      name: c.name.trim(),
+   131	      nameEn: c.nameEn.trim() || undefined,
+   132	      description: c.description.trim() || undefined,
+   133	      source: 'name-search' as const,
+   134	      score: Math.max(0, Math.min(1, Math.round(c.confidence * 100) / 100)),
+   135	      evidence: [`검색어 "${query}"에 대한 이름 후보 (텍스트 기반)`],
+   136	    }));
+   137	}
+
+exec
+/bin/zsh -lc 'nl -ba src/lib/candidates.ts' in /Users/jyl/work/repo/celeber/pocs/search-celeb
+ succeeded in 0ms:
+     1	/**
+     2	 * 카테고리별 전신 사진 수집: 이미지 검색 → 메타데이터 1차 필터 → 서버 캐시(프록시) →
+     3	 * (키 있으면) Claude 비전으로 전신/분석 가능 판정 → celeb_images 저장.
+     4	 */
+     5	import 'server-only';
+     6	import crypto from 'node:crypto';
+     7	import { z } from 'zod';
+     8	import type { CelebImage, CelebImageCategory, Issue, UploadRecord } from '@celeber/core/contracts';
+     9	import { callVisionStructured } from '@celeber/core/server/ai';
+    10	import { celebImages, celebs, newId, nowIso } from '@celeber/core/server/db';
+    11	import { getCapabilities } from '@celeber/core/server/env';
+    12	import { cacheRemoteImage } from '@celeber/core/server/fetch-image';
+    13	import { getImageSearchProviders, searchImagesCached, type ImageSearchProvider, type ImageSearchResult } from '@celeber/core/server/search';
+    14	import { toImageRef } from '@celeber/core/server/uploads';
+    15	import { judgeByMetadata, rankSearchResults } from '../lib/filter';
+    16	import { buildCategoryQueries } from '../lib/queries';
+    17	import type { CollectImagesResponse } from '../lib/types';
+    18	import { mapLimit, shortWarning } from './util';
+    19	
+    20	/** 카테고리당 저장 목표 (3열 그리드 3줄) */
+    21	export const IMAGES_PER_CATEGORY = 9;
+    22	const FETCH = { maxBytes: 10 * 1024 * 1024, timeoutMs: 10_000 };
+    23	
+    24	const ISSUE_CODES = ['not-full-body', 'multiple-people', 'backlight', 'occluded', 'low-resolution', 'blurry', 'no-person', 'not-a-photo', 'other'] as const;
+    25	const JudgeSchema = z.object({
+    26	  items: z.array(
+    27	    z.object({
+    28	      index: z.number().int(),
+    29	      isFullBody: z.boolean(),
+    30	      analyzable: z.boolean(),
+    31	      personCount: z.number().int(),
+    32	      issues: z.array(z.object({ code: z.enum(ISSUE_CODES), message: z.string() })),
+    33	    }),
+    34	  ),
+    35	});
+    36	type Judge = z.infer<typeof JudgeSchema>;
+    37	
+    38	const JUDGE_SYSTEM = [
+    39	  '연예인 코디 분석용 후보 사진을 선별합니다. 인물이 누구인지는 판단하지 않습니다.',
+    40	  '각 이미지에 대해 판정하세요:',
+    41	  '- isFullBody: 한 인물의 머리부터 발(또는 신발)까지 대부분 보이면 true.',
+    42	  '- analyzable: 상의·하의·신발 등 코디와 피부·헤어 색을 읽을 수 있으면 true. 심한 역광, 큰 가림, 저해상도, 비슷한 크기의 여러 명, 일러스트·합성·콜라주는 false.',
+    43	  '- personCount: 보이는 사람 수.',
+    44	  '- issues: 문제가 있을 때만, code와 한국어 한 줄 message (10자 내외).',
+    45	  'index는 이미지 라벨의 번호와 같아야 합니다. 모든 이미지에 대해 하나씩 답하세요.',
+    46	].join('\n');
+    47	
+    48	export interface Downloaded {
+    49	  result: ImageSearchResult & { query: string };
+    50	  record: UploadRecord;
+    51	  sourceUrl: string;
+    52	  thumbnailOnly: boolean;
+    53	}
+    54	
+    55	/**
+    56	 * 한 카테고리의 사진을 모은다. 이미 충분하면 저장된 것을 그대로 돌려준다(검색 결과 캐시).
+    57	 * refresh=true면 선택하지 않은 사진을 지우고 다시 검색한다.
+    58	 */
+    59	export async function collectCelebImages(celebId: string, category: CelebImageCategory, opts: { refresh?: boolean; target?: number; now?: Date } = {}): Promise<CollectImagesResponse | null> {
+    60	  const celeb = celebs.get(celebId);
+    61	  if (!celeb) return null;
+    62	  const target = opts.target ?? IMAGES_PER_CATEGORY;
+    63	  const notices: string[] = [];
+    64	  const queries = buildCategoryQueries(celeb.name, category, opts.now ?? new Date(), celeb.description);
+    65	
+    66	  if (opts.refresh) celebImages.deleteWhere({ celeb_id: celebId, category, selected: false });
+    67	  const existing = listCategory(celebId, category);
+    68	  const providers = getImageSearchProviders();
+    69	  const base = { celebId, category, queries, provider: providers[0].id } as const;
+    70	  if (existing.length >= target) {
+    71	    return { ...base, images: existing, added: 0, failed: 0, judge: { origin: existing.some((i) => i.reasons.some((r) => r.code.startsWith('ai-'))) ? 'ai' : 'rules' }, isMock: existing.some((i) => i.isMock), notices };
+    72	  }
+    73	
+    74	  // 1) 검색 (프로바이더 실패 시 다음 프로바이더)
+    75	  const { results, provider, errors } = await searchAll(providers, queries);
+    76	  notices.push(...errors);
+    77	  const existingUrls = new Set(listAllUrls(celebId));
+    78	  const ranked = rankSearchResults(results, existingUrls);
+    79	  const need = target - existing.length;
+    80	
+    81	  // 2) 서버 캐시 (외부 핫링크 대신 /api/uploads/<id>)
+    82	  const downloaded: Downloaded[] = [];
+    83	  let failed = 0;
+    84	  let cursor = 0;
+    85	  const maxAttempts = need + 10;
+    86	  while (downloaded.length < need && cursor < ranked.length && cursor < maxAttempts) {
+    87	    const batch = ranked.slice(cursor, cursor + Math.min(4, need - downloaded.length + 1));
+    88	    cursor += batch.length;
+    89	    const got = await mapLimit(batch, 4, (r) => download(r, provider, celeb.name, category));
+    90	    for (const g of got) {
+    91	      if (g && downloaded.length < need && !existingUrls.has(g.sourceUrl)) {
+    92	        downloaded.push(g);
+    93	        existingUrls.add(g.sourceUrl);
+    94	      } else if (!g) failed++;
+    95	    }
+    96	  }
+    97	  if (failed) notices.push(`${failed}장은 원본 서버에서 내려받지 못해 제외했습니다.`);
+    98	  if (!ranked.length) notices.push('검색 결과가 없습니다. 이름 표기를 바꿔 다시 찾아보세요.');
+    99	
+   100	  // 3) 전신/분석 가능 판정
+   101	  const judged = await judgeImages(downloaded, provider.id === 'mock');
+   102	  if (judged.warning && judged.origin !== 'ai' && provider.id !== 'mock') notices.push('AI 판정을 사용할 수 없어 사진 크기로만 전신 여부를 추정했습니다.');
+   103	
+   104	  // 4) 저장 (전신 추정 먼저)
+   105	  const now = nowIso();
+   106	  const order = downloaded.map((d, i) => ({ d, j: judged.items[i] })).sort((a, b) => rankOf(a.j) - rankOf(b.j));
+   107	  for (const { d, j } of order) {
+   108	    const image: CelebImage = {
+   109	      id: newId('cimg'),
+   110	      celebId,
+   111	      createdAt: now,
+   112	      category,
+   113	      query: d.result.query,
+   114	      provider: provider.id,
+   115	      sourceUrl: d.sourceUrl,
+   116	      pageUrl: d.result.pageUrl,
+   117	      sourceTitle: [d.result.title, d.result.source].filter(Boolean).join(' · ') || undefined,
+   118	      cached: toImageRef(d.record),
+   119	      thumbnailUrl: d.result.thumbnailUrl?.startsWith('http') ? d.result.thumbnailUrl : undefined,
+   120	      width: d.record.width ?? d.result.width,
+   121	      height: d.record.height ?? d.result.height,
+   122	      isFullBody: j.isFullBody,
+   123	      analyzable: j.analyzable,
+   124	      reasons: j.reasons,
+   125	      selected: false,
+   126	      isMock: provider.id === 'mock',
+   127	    };
+   128	    try {
+   129	      celebImages.insert({
+   130	        id: image.id,
+   131	        data: image,
+   132	        cols: {
+   133	          celeb_id: celebId,
+   134	          category,
+   135	          provider: provider.id,
+   136	          source_url: image.sourceUrl,
+   137	          upload_id: d.record.id,
+   138	          is_full_body: image.isFullBody,
+   139	          analyzable: image.analyzable,
+   140	          selected: false,
+   141	          is_mock: image.isMock,
+   142	        },
+   143	      });
+   144	    } catch (e) {
+   145	      // UNIQUE(celeb_id, source_url): 동시에 같은 카테고리를 수집한 경우
+   146	      if (!/UNIQUE/i.test((e as Error).message)) throw e;
+   147	    }
+   148	  }
+   149	
+   150	  // 인물 썸네일이 없으면 첫 전신 사진으로
+   151	  const images = listCategory(celebId, category);
+   152	  if (!celeb.thumbnail) {
+   153	    const first = images.find((i) => i.isFullBody !== false && i.cached);
+   154	    if (first?.cached) {
+   155	      celebs.update(celebId, { data: { ...celeb, thumbnail: first.cached, updatedAt: nowIso() }, cols: { thumbnail_upload_id: first.cached.uploadId } });
+   156	    }
+   157	  }
+   158	  if (provider.id === 'mock') notices.push('이미지 검색 키가 없어 데모 이미지를 보여줍니다. 실루엣은 분석할 수 없고, 데모 사진은 검색한 인물과 무관한 데모 모델입니다.');
+   159	
+   160	  return {
+   161	    ...base,
+   162	    provider: provider.id,
+   163	    images,
+   164	    added: downloaded.length,
+   165	    failed,
+   166	    judge: { origin: judged.origin, warning: shortWarning(judged.warning) },
+   167	    isMock: provider.id === 'mock',
+   168	    notices,
+   169	  };
+   170	}
+   171	
+   172	function listCategory(celebId: string, category: CelebImageCategory): CelebImage[] {
+   173	  return celebImages.list({ where: { celeb_id: celebId, category }, order: 'created_at ASC', limit: 100 }).map((r) => r.data);
+   174	}
+   175	function listAllUrls(celebId: string): string[] {
+   176	  return celebImages.list({ where: { celeb_id: celebId }, limit: 500 }).map((r) => r.data.sourceUrl);
+   177	}
+   178	
+   179	const rankOf = (j: { isFullBody: boolean | null; analyzable: boolean | null }) => (j.isFullBody === true ? (j.analyzable === false ? 1 : 0) : j.isFullBody === null ? 2 : 3);
+   180	
+   181	async function searchAll(providers: ImageSearchProvider[], queries: string[]): Promise<{ results: (ImageSearchResult & { query: string })[]; provider: ImageSearchProvider; errors: string[] }> {
+   182	  const errors: string[] = [];
+   183	  for (const provider of providers) {
+   184	    const results: (ImageSearchResult & { query: string })[] = [];
+   185	    let ok = 0;
+   186	    for (const query of queries) {
+   187	      try {
+   188	        const res = await searchImagesCached({ query, count: provider.id === 'mock' ? 6 : 20, large: true }, { provider });
+   189	        results.push(...res.map((r) => ({ ...r, query })));
+   190	        ok++;
+   191	      } catch (e) {
+   192	        errors.push(`${provider.id} 검색 실패: ${(e as Error).message}`);
+   193	      }
+   194	    }
+   195	    if (ok > 0) return { results, provider, errors };
+   196	  }
+   197	  return { results: [], provider: providers[providers.length - 1], errors };
+   198	}
+   199	
+   200	/** 원본 → 실패 시 썸네일로 캐시. 성공하면 Downloaded */
+   201	async function download(r: ImageSearchResult & { query: string }, provider: ImageSearchProvider, name: string, category: CelebImageCategory): Promise<Downloaded | null> {
+   202	  const sourceUrl = r.imageUrl.startsWith('data:') ? `mock://celeb/${encodeURIComponent(name)}/${category}/${crypto.createHash('sha1').update(r.imageUrl).digest('hex').slice(0, 16)}` : r.imageUrl;
+   203	  try {
+   204	    const record = await cacheRemoteImage(r.imageUrl, { fetch: FETCH });
+   205	    return { result: r, record, sourceUrl, thumbnailOnly: false };
+   206	  } catch (e) {
+   207	    if (r.thumbnailUrl && r.thumbnailUrl !== r.imageUrl && provider.id !== 'mock') {
+   208	      try {
+   209	        const record = await cacheRemoteImage(r.thumbnailUrl, { fetch: FETCH });
+   210	        return { result: r, record, sourceUrl, thumbnailOnly: true };
+   211	      } catch {
+   212	        /* 둘 다 실패 */
+   213	      }
+   214	    }
+   215	    console.warn('[search-celeb] 이미지 캐시 실패:', (e as Error).message);
+   216	    return null;
+   217	  }
+   218	}
+   219	
+   220	interface JudgeOut {
+   221	  items: { isFullBody: boolean | null; analyzable: boolean | null; reasons: Issue[] }[];
+   222	  origin: 'ai' | 'rules' | 'mock';
+   223	  warning?: string;
+   224	}
+   225	
+   226	function metaJudge(d: Downloaded): JudgeOut['items'][number] {
+   227	  const size = { width: d.record.width ?? d.result.width, height: d.record.height ?? d.result.height };
+   228	  const j = judgeByMetadata(size);
+   229	  const reasons = [...j.reasons];
+   230	  if (d.thumbnailOnly) reasons.push({ code: 'thumbnail-only', message: '원본을 받지 못해 작은 미리보기만 저장했습니다.', severity: 'warn' });
+   231	  // 데모 실루엣(SVG)은 사람 검출이 되지 않으므로 미리 '분석 불가'로 표시한다. 래스터 데모 사진은 분석 가능.
+   232	  const demoSilhouette = d.result.provider === 'mock' && d.result.imageUrl.startsWith('data:image/svg');
+   233	  if (demoSilhouette) reasons.push({ code: 'demo', message: '데모 실루엣 · 분석 불가 (인물 사진이 아님)', severity: 'warn' });
+   234	  else if (d.result.provider === 'mock') reasons.push({ code: 'demo', message: '데모 사진 (검색한 인물과 무관한 데모 모델)', severity: 'info' });
+   235	  return { isFullBody: j.isFullBody, analyzable: d.thumbnailOnly || demoSilhouette ? false : j.analyzable, reasons };
+   236	}
+   237	
+   238	/** 전신·분석 가능 판정 (키 있으면 AI, 없으면 메타데이터). export는 실제 AI 확인 테스트용 */
+   239	export async function judgeImages(list: Downloaded[], isMockProvider: boolean): Promise<JudgeOut> {
+   240	  const meta = list.map(metaJudge);
+   241	  if (!list.length || isMockProvider) return { items: meta, origin: isMockProvider ? 'mock' : 'rules' };
+   242	  if (!getCapabilities().ai) return { items: meta, origin: 'rules', warning: 'AI 사용 불가' };
+   243	  const r = await callVisionStructured<Judge>({
+   244	    schema: JudgeSchema,
+   245	    mock: () => ({ items: [] }),
+   246	    system: JUDGE_SYSTEM,
+   247	    prompt: `이미지 ${list.length}장을 판정해 주세요. index는 1부터 ${list.length}까지입니다.`,
+   248	    images: list.map((d, i) => ({ uploadId: d.record.id, label: `이미지 ${i + 1}` })),
+   249	    maxImageEdge: 512,
+   250	    maxTokens: 6000,
+   251	    effort: 'low',
+   252	    label: 'search-celeb/judge-full-body',
+   253	  });
+   254	  if (r.source !== 'ai') return { items: meta, origin: 'rules', warning: r.warning };
+   255	  const byIndex = new Map(r.data.items.map((it) => [it.index, it]));
+   256	  return {
+   257	    origin: 'ai',
+   258	    items: meta.map((m, i) => {
+   259	      const a = byIndex.get(i + 1);
+   260	      if (!a) return m;
+   261	      const reasons: Issue[] = [
+   262	        { code: 'ai-judged', message: `AI 판정 · 인물 ${a.personCount}명`, severity: 'info' },
+   263	        ...a.issues.map((x) => ({ code: x.code, message: x.message, severity: 'warn' as const })),
+   264	        ...m.reasons.filter((x) => x.code === 'low-resolution' || x.code === 'thumbnail-only'),
+   265	      ];
+   266	      return { isFullBody: a.isFullBody, analyzable: a.analyzable && m.analyzable !== false, reasons };
+   267	    }),
+   268	  };
+   269	}
+
+ succeeded in 0ms:
+     1	/**
+     2	 * 역이미지 검색 결과(텍스트)에서 인물 이름 후보를 뽑는다.
+     3	 *
+     4	 * 정책: 얼굴 생체 정보는 쓰지 않는다. 입력은 Google Lens가 돌려준
+     5	 * 지식 패널 제목과 "시각적으로 비슷한 페이지"의 제목 텍스트뿐이며,
+     6	 * 결과는 사용자가 확인해야 하는 후보다.
+     7	 *
+     8	 * 방법:
+     9	 * 1. 지식 패널(knowledgeGraph) 제목은 그대로 후보 (가장 강한 신호)
+    10	 * 2. 유사 페이지 제목을 구분자로 자르고 토큰 n-gram(1~3)을 만든다
+    11	 *    - 한글: 2~4음절 토큰 1개(한국 이름), 조사 제거
+    12	 *    - 라틴: 대문자로 시작하는 단어 1~3개
+    13	 * 3. 불용어(패션/공항/사이트명 등)와 출처 사이트 이름을 제외
+    14	 * 4. 몇 개의 제목에서 언급됐는지(문서 빈도)로 점수 = df / 제목 수
+    15	 * 5. 더 긴 n-gram이 같은 빈도로 나오면 짧은 것은 버린다 (예: 'Kang' < 'Kang Ian')
+    16	 */
+    17	import type { CelebCandidate } from '@celeber/core/contracts';
+    18	
+    19	export interface ReverseTextInput {
+    20	  knowledgeGraph: { title: string; subtitle?: string; link?: string; thumbnailUrl?: string }[];
+    21	  visualMatches: { title: string; link?: string; source?: string; thumbnailUrl?: string }[];
+    22	}
+    23	
+    24	const KO_STOP = new Set(
+    25	  (
+    26	    '패션 공항 공항패션 화보 사진 사진들 뉴스 기사 오늘 출국 입국 포토 포토월 스타일 코디 근황 인스타그램 인스타 영상 무대 드라마 영화 ' +
+    27	    '배우 가수 모델 아이돌 그룹 멤버 시상식 레드카펫 브랜드 행사 최근 일상 사복 데일리 데일리룩 전신 여신 남신 미모 비주얼 공개 참석 ' +
+    28	    '블랙 화이트 컬러 패션위크 컬렉션 착용 셀카 이미지 고화질 배경화면 움짤 유튜브 네이버 블로그 카페 티스토리 다음 핀터레스트 트위터 ' +
+    29	    '쇼핑 판매 가격 구매 상품 정보 기자 연합뉴스 스포츠 엔터 연예 연예인 일보 신문 헤럴드 스타 기념 촬영 현장 출연 방송 인터뷰 ' +
+    30	    '코트 자켓 재킷 셔츠 니트 원피스 드레스 슈트 수트 가방 신발 스니커즈 정장 청바지 데님 팬츠 스커트 액세서리 악세서리 ' +
+    31	    '여자 남자 여성 남성 한국 韓國 남친룩 여친룩 룩북 가을 겨울 여름 봄 코디법 추천 모음 정리 사진첩 직찍 프리뷰 리뷰 ' +
+    32	    '그리고 오늘의 이번 완벽 화제 눈길 매력 분위기 근접 공식 계정 팬들 반응 시크 러블리 우아 청순 ' +
+    33	    '부산 서울 인천 김포 파리 밀라노 뉴욕 런던 도쿄'
+    34	  ).split(/\s+/),
+    35	);
+    36	
+    37	const EN_STOP = new Set(
+    38	  (
+    39	    'instagram pinterest twitter facebook youtube tiktok threads x news photo photos picture pictures image images fashion style styles airport ' +
+    40	    'the and with for from of in on at to by a an is are this that his her their our your my new latest best top ' +
+    41	    'getty stock alamy shutterstock wallpaper wallpapers korea korean kpop k-pop allkpop soompi koreaboo naver daum vogue harper harpers bazaar elle gq ' +
+    42	    'dispatch red carpet look looks outfit outfits celebrity celebrities actor actress singer idol week paris milan york london tokyo seoul ' +
+    43	    'fashionweek collection runway street streetstyle ootd dress jacket coat shirt event events award awards ceremony show music video official ' +
+    44	    'profile wiki wikipedia namu fandom amazon ebay shop store sale buy price com net org co kr www http https'
+    45	  ).split(/\s+/),
+    46	);
+    47	
+    48	const SEP_RE = /[|｜\-–—:：·•,，()（）[\]【】「」『』<>《》"“”'‘’#/\\!?！？…~]+/;
+    49	const HANGUL_RE = /^[가-힣]+$/;
+    50	const LATIN_WORD_RE = /^[A-Z][a-zA-Z'.]+$/;
+    51	const PARTICLES = ['에서', '에게', '의', '은', '는', '을', '를', '와', '과', '도', '님', '씨'];
+    52	
+    53	function stripParticle(tok: string): string {
+    54	  for (const p of PARTICLES) {
+    55	    if (tok.endsWith(p) && tok.length - p.length >= 2) return tok.slice(0, -p.length);
+    56	  }
+    57	  return tok;
+    58	}
+    59	
+    60	/** 출처 사이트 이름(예: 'Vogue Korea', '네이버 블로그')의 토큰도 불용어로 */
+    61	function siteStopwords(matches: ReverseTextInput['visualMatches']): Set<string> {
+    62	  const s = new Set<string>();
+    63	  for (const m of matches) {
+    64	    for (const t of (m.source ?? '').split(/[\s.]+/)) if (t) s.add(t.toLowerCase());
+    65	  }
+    66	  return s;
+    67	}
+    68	
+    69	/** 제목 하나 → 이 제목에 등장한 이름 후보 n-gram 집합 */
+    70	export function titleNameGrams(title: string, extraStop: Set<string> = new Set()): Set<string> {
+    71	  const grams = new Set<string>();
+    72	  for (const seg of title.split(SEP_RE)) {
+    73	    const toks = seg
+    74	      .trim()
+    75	      .split(/\s+/)
+    76	      .filter(Boolean)
+    77	      .map((t) => t.replace(/[.'’]+$/, ''));
+    78	    // 한글 1-gram (2~4음절)
+    79	    for (const raw of toks) {
+    80	      if (!HANGUL_RE.test(raw)) continue;
+    81	      const t = stripParticle(raw);
+    82	      if (t.length < 2 || t.length > 4) continue;
+    83	      if (KO_STOP.has(t) || KO_STOP.has(raw) || extraStop.has(t)) continue;
+    84	      grams.add(t);
+    85	    }
+    86	    // 라틴: 대문자로 시작하는 연속 단어 1~3개
+    87	    for (let i = 0; i < toks.length; i++) {
+    88	      for (let n = 1; n <= 3 && i + n <= toks.length; n++) {
+    89	        const words = toks.slice(i, i + n);
+    90	        if (!words.every((w) => LATIN_WORD_RE.test(w) && w.length >= 2)) break;
+    91	        if (words.some((w) => EN_STOP.has(w.toLowerCase()) || extraStop.has(w.toLowerCase()))) break;
+    92	        const g = words.join(' ');
+    93	        if (n === 1 && g.length < 3) continue;
+    94	        grams.add(g);
+    95	      }
+    96	    }
+    97	  }
+    98	  return grams;
+    99	}
+   100	
+   101	export interface ExtractOptions {
+   102	  /** 최소 문서 빈도 (기본: 제목 3개 이상이면 2, 아니면 1) */
+   103	  minDf?: number;
+   104	  /** 최대 후보 수 (기본 5) */
+   105	  limit?: number;
+   106	}
+   107	
+   108	/** 역이미지 검색 결과 텍스트 → 이름 후보 (source: 'reverse-image') */
+   109	export function extractNameCandidates(input: ReverseTextInput, opts: ExtractOptions = {}): CelebCandidate[] {
+   110	  const limit = opts.limit ?? 5;
+   111	  const out: CelebCandidate[] = [];
+   112	
+   113	  // 1) 지식 패널
+   114	  input.knowledgeGraph.slice(0, 3).forEach((k, i) => {
+   115	    const name = k.title.trim();
+   116	    if (!name) return;
+   117	    out.push({
+   118	      name,
+   119	      description: k.subtitle,
+   120	      thumbnailUrl: k.thumbnailUrl,
+   121	      externalUrl: k.link,
+   122	      source: 'reverse-image',
+   123	      score: Math.max(0.6, 0.95 - i * 0.1),
+   124	      evidence: ['역이미지 검색의 지식 패널 항목'],
+   125	    });
+   126	  });
+   127	
+   128	  // 2) 유사 페이지 제목 n-gram 빈도
+   129	  const titles = input.visualMatches.map((m) => m.title).filter(Boolean);
+   130	  if (titles.length) {
+   131	    const stop = siteStopwords(input.visualMatches);
+   132	    const df = new Map<string, number>();
+   133	    const examples = new Map<string, string[]>();
+   134	    for (const t of titles) {
+   135	      for (const g of titleNameGrams(t, stop)) {
+   136	        df.set(g, (df.get(g) ?? 0) + 1);
+   137	        const ex = examples.get(g) ?? [];
+   138	        if (ex.length < 2) ex.push(t);
+   139	        examples.set(g, ex);
+   140	      }
+   141	    }
+   142	    const minDf = opts.minDf ?? (titles.length >= 3 ? 2 : 1);
+   143	    let grams = [...df.entries()].filter(([, n]) => n >= minDf);
+   144	    // 같은 빈도의 더 긴 n-gram에 포함된 짧은 n-gram 제거
+   145	    grams = grams.filter(([g, n]) => !grams.some(([h, m]) => h !== g && m >= n && h.split(' ').length > g.split(' ').length && h.split(' ').includes(g)));
+   146	    grams.sort((a, b) => b[1] - a[1] || b[0].length - a[0].length);
+   147	    for (const [g, n] of grams.slice(0, limit)) {
+   148	      out.push({
+   149	        name: g,
+   150	        source: 'reverse-image',
+   151	        score: Math.round(Math.min(0.9, n / titles.length) * 100) / 100,
+   152	        evidence: [`비슷한 이미지가 실린 페이지 제목 ${titles.length}건 중 ${n}건에서 언급`, ...(examples.get(g) ?? []).map((t) => `“${truncate(t, 48)}”`)],
+   153	      });
+   154	    }
+   155	  }
+   156	  return out.slice(0, limit + 3);
+   157	}
+   158	
+   159	/** 사진 속 글자(캡션, 이름표, 워터마크 등)에서 나온 이름 → 후보 (source: 'photo-text') */
+   160	export function photoTextCandidates(items: { text: string; where: string }[]): CelebCandidate[] {
+   161	  const seen = new Set<string>();
+   162	  const out: CelebCandidate[] = [];
+   163	  for (const it of items) {
+   164	    const name = it.text.replace(/^@/, '').trim();
+   165	    if (!name || name.length > 40 || seen.has(name)) continue;
+   166	    seen.add(name);
+   167	    out.push({ name, source: 'photo-text', score: 0.55, evidence: [`사진 속 글자에서 읽음 (${it.where || '위치 미상'})`] });
+   168	  }
+   169	  return out.slice(0, 5);
+   170	}
+   171	
+   172	function truncate(s: string, n: number): string {
+   173	  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+   174	}
+
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/src/flow/CelebSearchFlow.tsx | sed -n '1,160p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	'use client';
+     2	/**
+     3	 * 연예인 검색 플로우 (재사용): 이름/사진으로 후보 찾기 → 사용자가 확정 → 대표·최근·평소 전신 사진 선택.
+     4	 * 완료 시 onComplete({ celeb, selectedImages, uploadedPhoto }).
+     5	 * API는 apiBase + '/api/celeb/*', '/api/uploads'로 호출한다 (호스트 앱이 같은 경로를 재노출해야 함).
+     6	 */
+     7	import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+     8	import type { CelebImage, CelebImageCategory, ImageRef } from '@celeber/core/contracts';
+     9	import { Button, ConfirmDialog, MockBadge, Notice, SectionHeader } from '@celeber/ui';
+    10	import { CelebApiError, createCelebApi } from '../lib/api';
+    11	import { candidateKey } from '../lib/names';
+    12	import { photoFileProblem, photoErrorMessage } from '../lib/upload';
+    13	import { CATEGORY_ORDER } from '../lib/queries';
+    14	import type { CandidateItem, CelebDetailResponse, CelebSearchResult, CelebSummary, CollectImagesResponse, IdentifyResponse, SearchResponse } from '../lib/types';
+    15	import { CandidateList } from '../components/CandidateList';
+    16	import { CelebGallery } from '../components/CelebGallery';
+    17	import { CelebProfileHeader } from '../components/CelebProfileHeader';
+    18	import { CelebSearchBox } from '../components/CelebSearchBox';
+    19	import { IdentifyPanel } from '../components/IdentifyPanel';
+    20	import { SavedCelebList } from '../components/SavedCelebList';
+    21	import s from '../components/search-celeb.module.css';
+    22	
+    23	export interface CelebSearchFlowProps {
+    24	  apiBase?: string;
+    25	  /** 사진 선택 방식 (기본 multiple). celeb-vibe-report처럼 한 장만 필요하면 'single' */
+    26	  selection?: 'multiple' | 'single';
+    27	  /** 처음부터 열 인물 (URL ?celeb= 등) */
+    28	  initialCelebId?: string | null;
+    29	  /** 인물 열기/닫기 (호스트가 URL 동기화에 사용) */
+    30	  onCelebChange?: (celebId: string | null) => void;
+    31	  onComplete?: (result: CelebSearchResult) => void;
+    32	  completeLabel?: string;
+    33	  /** 저장한 인물/최근 찾은 인물 목록 표시 (기본 true) */
+    34	  showLibrary?: boolean;
+    35	  /** 사진으로 찾기 표시 (기본 true) */
+    36	  allowPhoto?: boolean;
+    37	  /** 처음에 바로 검색할 이름 (URL ?q= 등) */
+    38	  initialQuery?: string | null;
+    39	}
+    40	
+    41	type Busy = { kind: 'search' } | { kind: 'identify' } | { kind: 'confirm'; key: string } | null;
+    42	
+    43	const errMsg = (e: unknown) => (e instanceof CelebApiError || e instanceof Error ? e.message : String(e));
+    44	
+    45	export function CelebSearchFlow({
+    46	  apiBase = '',
+    47	  selection = 'multiple',
+    48	  initialCelebId = null,
+    49	  onCelebChange,
+    50	  onComplete,
+    51	  completeLabel = '이 사진으로 계속',
+    52	  showLibrary = true,
+    53	  allowPhoto = true,
+    54	  initialQuery = null,
+    55	}: CelebSearchFlowProps) {
+    56	  const api = useMemo(() => createCelebApi(apiBase), [apiBase]);
+    57	
+    58	  // 검색 단계
+    59	  const [busy, setBusy] = useState<Busy>(null);
+    60	  const [error, setError] = useState<string | null>(null);
+    61	  const [search, setSearch] = useState<SearchResponse | null>(null);
+    62	  const [preview, setPreview] = useState<string | undefined>();
+    63	  const [identify, setIdentify] = useState<IdentifyResponse | null>(null);
+    64	  const [identifying, setIdentifying] = useState(false);
+    65	  const [pendingPhotoCandidate, setPendingPhotoCandidate] = useState<CandidateItem | null>(null);
+    66	  const [library, setLibrary] = useState<{ saved: CelebSummary[]; recent: CelebSummary[] }>({ saved: [], recent: [] });
+    67	
+    68	  // 인물 단계
+    69	  const [celebId, setCelebId] = useState<string | null>(initialCelebId);
+    70	  const [detail, setDetail] = useState<CelebDetailResponse | null>(null);
+    71	  const [category, setCategory] = useState<CelebImageCategory>('signature');
+    72	  const [collecting, setCollecting] = useState<Partial<Record<CelebImageCategory, boolean>>>({});
+    73	  const [notices, setNotices] = useState<Partial<Record<CelebImageCategory, string[]>>>({});
+    74	  const [saving, setSaving] = useState(false);
+    75	  const [uploadedPhoto, setUploadedPhoto] = useState<ImageRef | undefined>();
+    76	  const attempted = useRef(new Set<string>());
+    77	
+    78	  const loadLibrary = useCallback(async () => {
+    79	    if (!showLibrary) return;
+    80	    try {
+    81	      const [saved, recent] = await Promise.all([api.list({ saved: true, limit: 30 }), api.list({ saved: false, limit: 8 })]);
+    82	      setLibrary({ saved: saved.items, recent: recent.items });
+    83	    } catch {
+    84	      /* 목록 실패는 검색을 막지 않는다 */
+    85	    }
+    86	  }, [api, showLibrary]);
+    87	
+    88	  useEffect(() => {
+    89	    // 마운트 시 저장 목록을 불러온다 (외부 API와 동기화)
+    90	    void loadLibrary();
+    91	  }, [loadLibrary]);
+    92	
+    93	  useEffect(() => () => {
+    94	    if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
+    95	  }, [preview]);
+    96	
+    97	  /* ------------------------------------------------------------ 인물 열기 */
+    98	  const openCeleb = useCallback(
+    99	    (id: string | null) => {
+   100	      setCelebId(id);
+   101	      setDetail(null);
+   102	      setNotices({});
+   103	      setCategory('signature');
+   104	      setError(null);
+   105	      onCelebChange?.(id);
+   106	      if (!id) void loadLibrary();
+   107	    },
+   108	    [onCelebChange, loadLibrary],
+   109	  );
+   110	
+   111	  useEffect(() => {
+   112	    if (!celebId) return;
+   113	    let alive = true;
+   114	    api
+   115	      .get(celebId)
+   116	      .then((d) => alive && setDetail(d))
+   117	      .catch((e) => {
+   118	        if (!alive) return;
+   119	        setError(errMsg(e));
+   120	        setCelebId(null);
+   121	        onCelebChange?.(null);
+   122	      });
+   123	    return () => {
+   124	      alive = false;
+   125	    };
+   126	  }, [api, celebId, onCelebChange]);
+   127	
+   128	  const applyCollect = useCallback((r: CollectImagesResponse) => {
+   129	    setDetail((d) => (d && d.celeb.id === r.celebId ? { ...d, images: { ...d.images, [r.category]: r.images } } : d));
+   130	    setNotices((n) => ({ ...n, [r.category]: r.notices }));
+   131	  }, []);
+   132	
+   133	  const collect = useCallback(
+   134	    async (id: string, cat: CelebImageCategory, refresh = false) => {
+   135	      setCollecting((c) => ({ ...c, [cat]: true }));
+   136	      try {
+   137	        applyCollect(await api.collect(id, cat, refresh));
+   138	      } catch (e) {
+   139	        setNotices((n) => ({ ...n, [cat]: [`사진을 모으지 못했습니다: ${errMsg(e)}`] }));
+   140	      } finally {
+   141	        setCollecting((c) => ({ ...c, [cat]: false }));
+   142	      }
+   143	    },
+   144	    [api, applyCollect],
+   145	  );
+   146	
+   147	  // 비어 있는 카테고리를 현재 탭부터 차례로 수집 (검색 결과는 DB에 캐시되어 다음에는 바로 열린다)
+   148	  useEffect(() => {
+   149	    if (!detail) return;
+   150	    const id = detail.celeb.id;
+   151	    const order = [category, ...CATEGORY_ORDER.filter((c) => c !== category)];
+   152	    const todo = order.filter((c) => !detail.images[c].length && !attempted.current.has(`${id}:${c}`));
+   153	    if (!todo.length || Object.values(collecting).some(Boolean)) return;
+   154	    const next = todo[0];
+   155	    attempted.current.add(`${id}:${next}`);
+   156	    void collect(id, next);
+   157	  }, [detail, category, collecting, collect]);
+   158	
+   159	  /* ------------------------------------------------------------ 검색 */
+   160	  const runSearch = async (q: string) => {
+
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/src/server/identify.ts | sed -n '105,180p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+   105	  // 2) 사진 속 글자
+   106	  const textCands = photo.source === 'ai' ? photoTextCandidates(photo.data.nameTexts) : [];
+   107	
+   108	  let candidates = mergeCandidates([reverseCands, textCands], 6);
+   109	  let isMock = reverse.provider === 'mock' && photo.source === 'mock';
+   110	  if (!candidates.length && (reverse.status !== 'ok' || reverse.provider === 'mock')) {
+   111	    // 키 없음: 데모 후보 (흐름 확인용) + 이름 검색 안내
+   112	    candidates = MOCK_PEOPLE.map((p) => ({ ...p, evidence: ['데모 후보: 사진 검색 키가 없어 가상 인물을 보여줍니다. 실제 인물은 이름으로 검색해 주세요.'] }));
+   113	    isMock = true;
+   114	  }
+   115	
+   116	  const withThumbs = await mapLimit(attachCelebIds(candidates), 3, async (c) => ({
+   117	    ...c,
+   118	    thumbnailUrl: (await proxyImageUrl(c.thumbnailUrl)) ?? (await candidateThumbnail(c.name, c.description)),
+   119	  }));
+   120	
+   121	  const realCount = withThumbs.filter((c) => c.source !== 'mock').length;
+   122	  const needsNameSearch = realCount === 0;
+   123	  if (reverse.status === 'ok') {
+   124	    if (needsNameSearch) notices.push('사진만으로는 후보를 찾지 못했습니다. 이름으로 검색해 주세요.');
+   125	  } else {
+   126	    // reverse.reason은 개발용(환경변수 이름, 영어 오류)이라 화면에 그대로 내보내지 않는다
+   127	    notices.push(reverseUnavailableNotice(reverse.status, needsNameSearch));
+   128	  }
+   129	  if (photo.warning && photo.source === 'mock') notices.push('사진 속 글자 읽기를 건너뛰었습니다 (AI 사용 불가).');
+   130	
+   131	  const framing: PhotoFraming = photo.source === 'ai' ? photo.data.framing : 'unknown';
+   132	  return {
+   133	    upload: toImageRef(rec),
+   134	    reverse: {
+   135	      provider: reverse.provider,
+   136	      status: reverse.status,
+   137	      reason: reverse.reason,
+   138	      knowledgeGraphCount: reverse.knowledgeGraph.length,
+   139	      visualMatchCount: reverse.visualMatches.length,
+   140	    },
+   141	    photoText: { texts: photo.source === 'ai' ? photo.data.visibleTexts.slice(0, 15) : [], origin: photo.source === 'ai' ? 'ai' : 'mock', warning: shortWarning(photo.warning) },
+   142	    photoCheck: {
+   143	      framing,
+   144	      personCount: photo.source === 'ai' && photo.data.personCount >= 0 ? photo.data.personCount : null,
+   145	      note: photo.source === 'ai' && photo.data.note ? photo.data.note : framingNoteByMeta(rec.width, rec.height),
+   146	      origin: photo.source === 'ai' ? 'ai' : 'rules',
+   147	    },
+   148	    candidates: withThumbs,
+   149	    needsNameSearch,
+   150	    isMock,
+   151	    notices: [...new Set(notices)],
+   152	  };
+   153	}
+   154	
+   155	/** 역이미지 검색을 못 했을 때 안내. 사진 속 글자로 후보를 찾았으면 결과와 어긋나지 않게 그 사실만 알린다 */
+   156	export function reverseUnavailableNotice(status: 'unavailable' | 'error', needsNameSearch: boolean): string {
+   157	  const why = status === 'error' ? '사진 검색이 실패해' : '사진 검색을 쓸 수 없어';
+   158	  return needsNameSearch ? `${why} 사진만으로는 인물을 찾지 못했습니다. 이름으로 검색해 주세요.` : `${why} 사진 속 글자만 확인했습니다.`;
+   159	}
+   160	
+   161	function framingNoteByMeta(w: number | null, h: number | null): string {
+   162	  if (!w || !h) return '사진 구도를 판정하지 못했습니다.';
+   163	  const a = h / w;
+   164	  return a >= 1.25
+   165	    ? `세로 사진입니다 (비율 ${a.toFixed(2)}). 전신이 보이면 이 사진으로 바로 분석할 수 있습니다.`
+   166	    : `가로 또는 정사각형 사진입니다 (비율 ${a.toFixed(2)}). 전신 분석에는 대표·최근·평소 사진에서 고르는 편이 정확합니다.`;
+   167	}
+
+exec
+/bin/zsh -lc "rg -n 'MAX_UPLOAD|limitInputPixels|reverseImageSearch|handleUpload|mock.*[Ii]mage|name_key' packages/core pocs/search-celeb/app pocs/search-celeb/src/routes" in /Users/jyl/work/repo/celeber
+ exited 2 in 0ms:
+rg: packages/core: No such file or directory (os error 2)
+pocs/search-celeb/app/layout.tsx:24:  const reasons = mockReasons(getCapabilities(), ["ai","imageSearch","reverseImageSearch"]);
+pocs/search-celeb/app/api/uploads/route.ts:1:import { handleUploadPost } from '@celeber/core/server/uploads';
+pocs/search-celeb/app/api/uploads/route.ts:8:  return handleUploadPost(req);
+
+exec
+/bin/zsh -lc "rg --files pocs/search-celeb -g '*test*' -g '*proxy*' -g 'README*'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/search-celeb/vitest.config.ts
+pocs/search-celeb/proxy.ts
+pocs/search-celeb/README.md
+pocs/search-celeb/test/server.test.ts
+pocs/search-celeb/test/config.test.ts
+pocs/search-celeb/test/lib.test.ts
+pocs/search-celeb/test/ai-mocked.test.ts
+pocs/search-celeb/test/live-http.test.ts
+pocs/search-celeb/test/pocs-path.test.ts
+pocs/search-celeb/test/judge-live.test.ts
+
+exec
+/bin/zsh -lc 'nl -ba pocs/search-celeb/proxy.ts' in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/src/routes/index.ts | sed -n '1,200p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	/**
+     2	 * 접근 제어: localhost만 기본 허용, 터널·다른 기기는 CELEBER_ACCESS_TOKEN 필요, 다른 사이트발 상태 변경 요청 거부.
+     3	 * 서명된 /api/public-image/<id>(Lens용)만 토큰 없이 통과. 구현은 @celeber/core/server/access.
+     4	 */
+     5	import { accessProxy } from '@celeber/core/server/access';
+     6	
+     7	export function proxy(request: Request) {
+     8	  return accessProxy(request);
+     9	}
+    10	
+    11	// 정적 문자열이어야 Next가 빌드 시 분석할 수 있다 (ACCESS_PROXY_MATCHER와 같은 값)
+    12	export const config = {
+    13	  matcher: ['/((?!_next/static|_next/image|mediapipe/|bi/|favicon.ico).*)'],
+    14	};
+
+ succeeded in 0ms:
+     1	// 호스트 앱이 재노출할 Route Handler 함수들. "@celeber/search-celeb/routes"
+     2	// 경로 네임스페이스: /api/celeb/*  (README의 재노출 표 참고)
+     3	//   app/api/celeb/suggest/route.ts           export { suggestGET as GET }
+     4	//   app/api/celeb/search/route.ts            export { searchGET as GET }
+     5	//   app/api/celeb/identify/route.ts          export { identifyPOST as POST }
+     6	//   app/api/celeb/celebs/route.ts            export { celebsGET as GET, celebsPOST as POST }
+     7	//   app/api/celeb/celebs/[id]/route.ts       export { celebGET as GET, celebPATCH as PATCH, celebDELETE as DELETE }
+     8	//   app/api/celeb/celebs/[id]/images/route.ts export { celebImagesGET as GET, celebImagesPOST as POST }
+     9	//   app/api/celeb/images/[id]/route.ts       export { imagePATCH as PATCH }
+    10	// 각 호스트 파일에 export const runtime = 'nodejs'; export const dynamic = 'force-dynamic'; 를 직접 선언한다.
+    11	import 'server-only';
+    12	import { z } from 'zod';
+    13	import { CelebCandidateSchema, CelebImageCategorySchema } from '@celeber/core/contracts';
+    14	import { jsonError, parseJsonBody, withErrors } from '@celeber/core/server/http';
+    15	import { deleteCeleb, getCelebDetail, listCelebSummaries, setCelebSaved, setImageSelected, confirmCandidate } from '../server/celebs';
+    16	import { identifyFromPhoto } from '../server/identify';
+    17	import { collectCelebImages } from '../server/images';
+    18	import { MAX_QUERY_LENGTH, searchCelebCandidates, suggestCelebs } from '../server/search';
+    19	
+    20	type IdCtx = { params: Promise<{ id: string }> };
+    21	
+    22	const qParam = (req: Request) => (new URL(req.url).searchParams.get('q') ?? '').trim();
+    23	
+    24	/** GET /api/celeb/suggest?q= — 자동완성 (DB + 데모 인물) */
+    25	export const suggestGET = withErrors(async (req: Request) => Response.json(suggestCelebs(qParam(req))));
+    26	
+    27	/** GET /api/celeb/search?q= — 이름 검색 후보 (썸네일 포함) */
+    28	export const searchGET = withErrors(async (req: Request) => {
+    29	  const q = qParam(req);
+    30	  if (!q) return jsonError(400, 'empty_query', '검색어를 입력해 주세요.');
+    31	  if (q.length > MAX_QUERY_LENGTH) return jsonError(400, 'query_too_long', `검색어는 ${MAX_QUERY_LENGTH}자 이내로 입력해 주세요.`);
+    32	  return Response.json(await searchCelebCandidates(q));
+    33	});
+    34	
+    35	/** POST /api/celeb/identify { uploadId } — 사진 단서로 후보 (얼굴 인식 없음) */
+    36	export const identifyPOST = withErrors(async (req: Request) => {
+    37	  const body = await parseJsonBody(req, z.object({ uploadId: z.string().min(1) }));
+    38	  if (!body.ok) return body.response;
+    39	  const r = await identifyFromPhoto(body.data.uploadId);
+    40	  return r ? Response.json(r) : jsonError(404, 'not_found', '업로드한 사진을 찾을 수 없습니다.');
+    41	});
+    42	
+    43	/** GET /api/celeb/celebs?saved=1&limit= — 인물 목록 (저장/최근) */
+    44	export const celebsGET = withErrors(async (req: Request) => {
+    45	  const sp = new URL(req.url).searchParams;
+    46	  const saved = sp.get('saved');
+    47	  const limit = Math.max(1, Math.min(100, Number(sp.get('limit')) || 30));
+    48	  return Response.json({ items: listCelebSummaries({ saved: saved === null ? undefined : saved === '1' || saved === 'true', limit }) });
+    49	});
+    50	
+    51	/** POST /api/celeb/celebs { candidate } — 사용자가 확인한 후보를 인물로 확정 */
+    52	export const celebsPOST = withErrors(async (req: Request) => {
+    53	  const body = await parseJsonBody(req, z.object({ candidate: CelebCandidateSchema }));
+    54	  if (!body.ok) return body.response;
+    55	  if (!body.data.candidate.name.trim()) return jsonError(400, 'empty_name', '이름이 비어 있습니다.');
+    56	  return Response.json({ celeb: await confirmCandidate(body.data.candidate) });
+    57	});
+    58	
+    59	/** GET /api/celeb/celebs/[id] — 인물 + 카테고리별 사진 */
+    60	export const celebGET = withErrors(async (_req: Request, ctx: IdCtx) => {
+    61	  const { id } = await ctx.params;
+    62	  const d = getCelebDetail(id);
+    63	  return d ? Response.json(d) : jsonError(404, 'not_found', '인물을 찾을 수 없습니다.');
+    64	});
+    65	
+    66	/** PATCH /api/celeb/celebs/[id] { saved } — 저장 토글 */
+    67	export const celebPATCH = withErrors(async (req: Request, ctx: IdCtx) => {
+    68	  const { id } = await ctx.params;
+    69	  const body = await parseJsonBody(req, z.object({ saved: z.boolean() }));
+    70	  if (!body.ok) return body.response;
+    71	  const c = setCelebSaved(id, body.data.saved);
+    72	  return c ? Response.json({ celeb: c }) : jsonError(404, 'not_found', '인물을 찾을 수 없습니다.');
+    73	});
+    74	
+    75	/** DELETE /api/celeb/celebs/[id] — 인물과 수집 사진 기록 삭제 (UI는 ConfirmDialog를 거친다) */
+    76	export const celebDELETE = withErrors(async (_req: Request, ctx: IdCtx) => {
+    77	  const { id } = await ctx.params;
+    78	  const r = deleteCeleb(id);
+    79	  return r.deleted ? Response.json(r) : jsonError(404, 'not_found', '인물을 찾을 수 없습니다.');
+    80	});
+    81	
+    82	/** GET /api/celeb/celebs/[id]/images — 저장된 사진(카테고리별) */
+    83	export const celebImagesGET = withErrors(async (_req: Request, ctx: IdCtx) => {
+    84	  const { id } = await ctx.params;
+    85	  const d = getCelebDetail(id);
+    86	  return d ? Response.json({ celebId: id, images: d.images }) : jsonError(404, 'not_found', '인물을 찾을 수 없습니다.');
+    87	});
+    88	
+    89	/** POST /api/celeb/celebs/[id]/images { category, refresh? } — 검색·캐시·판정 후 저장 */
+    90	export const celebImagesPOST = withErrors(async (req: Request, ctx: IdCtx) => {
+    91	  const { id } = await ctx.params;
+    92	  const body = await parseJsonBody(req, z.object({ category: CelebImageCategorySchema, refresh: z.boolean().optional() }));
+    93	  if (!body.ok) return body.response;
+    94	  const r = await collectCelebImages(id, body.data.category, { refresh: body.data.refresh });
+    95	  return r ? Response.json(r) : jsonError(404, 'not_found', '인물을 찾을 수 없습니다.');
+    96	});
+    97	
+    98	/** PATCH /api/celeb/images/[id] { selected } — 사진 선택 표시 */
+    99	export const imagePATCH = withErrors(async (req: Request, ctx: IdCtx) => {
+   100	  const { id } = await ctx.params;
+   101	  const body = await parseJsonBody(req, z.object({ selected: z.boolean() }));
+   102	  if (!body.ok) return body.response;
+   103	  const im = setImageSelected(id, body.data.selected);
+   104	  return im ? Response.json({ image: im }) : jsonError(404, 'not_found', '사진을 찾을 수 없습니다.');
+   105	});
+
+exec
+/bin/zsh -lc "rg -n -i '동명|김민수|pixel|25mb|36mb|mock|역이미지|자동완성' pocs/search-celeb/test pocs/search-celeb/README.md" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/search-celeb/test/server.test.ts:2: * 서버 함수 통합 테스트 (Mock 모드, 임시 DB). 외부 네트워크/AI 호출 없음.
+pocs/search-celeb/test/server.test.ts:12:process.env.CELEBER_FORCE_MOCK = '1';
+pocs/search-celeb/test/server.test.ts:20:describe('이름 검색 (Mock)', () => {
+pocs/search-celeb/test/server.test.ts:23:    expect(r.isMock).toBe(true);
+pocs/search-celeb/test/server.test.ts:24:    expect(r.origin).toBe('mock');
+pocs/search-celeb/test/server.test.ts:30:  it('자동완성: 데모 인물', () => {
+pocs/search-celeb/test/server.test.ts:47:    expect(p.isMock).toBe(true);
+pocs/search-celeb/test/server.test.ts:58:      expect(r.provider).toBe('mock');
+pocs/search-celeb/test/server.test.ts:59:      expect(r.isMock).toBe(true);
+pocs/search-celeb/test/server.test.ts:64:        expect(im.sourceUrl).toMatch(/^mock:\/\/celeb\//);
+pocs/search-celeb/test/server.test.ts:122:describe('동명이인 확정과 DB 연결', () => {
+pocs/search-celeb/test/server.test.ts:124:  const cand = (description?: string) => ({ name: '김민수', nameEn: 'Kim Min-su', description, source: 'name-search' as const, score: 0.5, evidence: ['test'] });
+pocs/search-celeb/test/server.test.ts:131:    expect(server.findCelebByName('김민수')).toBeNull();
+pocs/search-celeb/test/server.test.ts:132:    expect(server.findCelebByName('김민수', '가수 · 먼데이 키즈')?.id).toBe(ids[2]);
+pocs/search-celeb/test/server.test.ts:134:  it('후보 목록의 동명이인마다 맞는 인물을 붙인다', async () => {
+pocs/search-celeb/test/server.test.ts:151:describe('사진으로 찾기 (Mock: 얼굴 인식 없음)', () => {
+pocs/search-celeb/test/server.test.ts:152:  it('역이미지 검색 불가 → 데모 후보 + 이름 검색 안내', async () => {
+pocs/search-celeb/test/server.test.ts:158:    expect(r.isMock).toBe(true);
+pocs/search-celeb/test/server.test.ts:159:    expect(r.candidates.every((c) => c.source === 'mock')).toBe(true);
+pocs/search-celeb/test/config.test.ts:3: * 업로드 본문 상한(core MAX_UPLOAD_BODY_BYTES)보다 작으면 10~25MB 사진의 FormData 파싱이 실패한다.
+pocs/search-celeb/test/lib.test.ts:22:  it('대표·평소 검색어에는 공항/연도가 없다 (Mock 카테고리 추정과 충돌 방지)', () => {
+pocs/search-celeb/test/lib.test.ts:53:    expect(mergeCandidates([[c('A', 'mock', 0.1), c('B', 'mock', 0.2), c('C', 'mock', 0.3)]], 2)).toHaveLength(2);
+pocs/search-celeb/test/lib.test.ts:62:  // 검증 이슈: '김민수' 검색에서 AI가 4명을 줬는데 후보가 1명으로 합쳐졌다
+pocs/search-celeb/test/lib.test.ts:64:    c('김민수', 'name-search', 0.6, { nameEn: 'Kim Min-su', description: '코미디언 · 피식대학' }),
+pocs/search-celeb/test/lib.test.ts:65:    c('김민수', 'name-search', 0.5, { nameEn: 'Kim Min-su', description: '배우 · 압구정 백야' }),
+pocs/search-celeb/test/lib.test.ts:66:    c('김민수', 'name-search', 0.4, { nameEn: 'Kim Min-soo', description: '가수 · 먼데이 키즈' }),
+pocs/search-celeb/test/lib.test.ts:67:    c('김민수', 'name-search', 0.3, { nameEn: 'Kim Min-soo', description: '전 농구선수 · 서울 SK' }),
+pocs/search-celeb/test/lib.test.ts:69:  it('동명이인: 이름이 같아도 설명이 다르면 따로 둔다 (김민수 4명)', () => {
+pocs/search-celeb/test/lib.test.ts:74:  it('동명이인: 설명 없는 후보(사진 속 글자)는 첫 동명이인에 합치고, 설명이 같은 후보는 그 사람에 합친다', () => {
+pocs/search-celeb/test/lib.test.ts:75:    const r = mergeCandidates([kimminsu, [c('김민수', 'photo-text', 0.55), c('김 민수', 'reverse-image', 0.7, { description: '가수·먼데이키즈' })]]);
+pocs/search-celeb/test/lib.test.ts:80:    expect(r.find((x) => x.description === '코미디언 · 피식대학')!.evidence).toContain('photo-text:김민수');
+pocs/search-celeb/test/lib.test.ts:82:  it('영문명끼리는 비교하지 않는다 (같은 로마자 표기의 동명이인)', () => {
+pocs/search-celeb/test/lib.test.ts:83:    expect(sameName({ name: '김민수', nameEn: 'Kim Min-su' }, { name: '김민수', nameEn: 'Kim Min-su' })).toBe(true);
+pocs/search-celeb/test/lib.test.ts:84:    expect(sameName({ name: '김민수', nameEn: 'Kim Min-su' }, { name: '김민서', nameEn: 'Kim Min-su' })).toBe(false);
+pocs/search-celeb/test/lib.test.ts:90:  it('25MB 한도는 core MAX_UPLOAD_BYTES와 같다', async () => {
+pocs/search-celeb/test/lib.test.ts:94:  it('25MB 초과·사진 아님·빈 파일은 올리기 전에 막는다', () => {
+pocs/search-celeb/test/lib.test.ts:97:    expect(photoFileProblem({ size: MAX_PHOTO_BYTES + 1, type: 'image/jpeg' })).toContain('25MB 이하');
+pocs/search-celeb/test/lib.test.ts:106:    expect(photoErrorMessage('upload', new CelebApiError('이미지가 너무 큽니다 (최대 25MB).', 413))).toContain('25MB 이하');
+pocs/search-celeb/test/lib.test.ts:111:describe('자동완성 키 처리', () => {
+pocs/search-celeb/test/lib.test.ts:136:describe('extractNameCandidates (역이미지 검색 텍스트)', () => {
+pocs/search-celeb/test/lib.test.ts:221:    expect(canonicalUrl('mock://a')).toBe('mock://a');
+pocs/search-celeb/test/lib.test.ts:238:    isMock: false,
+pocs/search-celeb/test/lib.test.ts:258:    expect(sourceLabel(img('1', { provider: 'mock' }))).toBe('CELEBER 데모');
+pocs/search-celeb/test/ai-mocked.test.ts:3: * 검증 이슈 재현: '김민수' 동명이인 4명, 사진 속 글자로 후보를 찾았는데 역이미지 사유(키 이름)가 함께 나오던 문제.
+pocs/search-celeb/test/ai-mocked.test.ts:13:process.env.CELEBER_FORCE_MOCK = '1';
+pocs/search-celeb/test/ai-mocked.test.ts:15:vi.mock('@celeber/core/server/ai', async (importOriginal) => {
+pocs/search-celeb/test/ai-mocked.test.ts:25:              { name: '김민수', nameEn: 'Kim Min-su', description: '코미디언 · 피식대학', confidence: 0.5 },
+pocs/search-celeb/test/ai-mocked.test.ts:26:              { name: '김민수', nameEn: 'Kim Min-su', description: '배우 · 압구정 백야', confidence: 0.3 },
+pocs/search-celeb/test/ai-mocked.test.ts:27:              { name: '김민수', nameEn: 'Kim Min-soo', description: '가수 · 먼데이 키즈', confidence: 0.3 },
+pocs/search-celeb/test/ai-mocked.test.ts:28:              { name: '김민수', nameEn: 'Kim Min-soo', description: '전 농구선수 · 서울 SK', confidence: 0.2 },
+pocs/search-celeb/test/ai-mocked.test.ts:32:      return { source: 'mock', data: { names: [] } };
+pocs/search-celeb/test/ai-mocked.test.ts:47:  it("'김민수' 검색: 동명이인 4명이 각각 후보로 나오고, 입력 이름 후보는 따로 붙지 않는다", async () => {
+pocs/search-celeb/test/ai-mocked.test.ts:48:    const r = await server.searchCelebCandidates('김민수');
+pocs/search-celeb/test/ai-mocked.test.ts:51:  it('사진 속 글자로 후보를 찾으면 역이미지 사유 대신 "글자만 확인" 안내, 키 이름 노출 없음', async () => {
+pocs/search-celeb/test/live-http.test.ts:60:    expect(r.body.capabilities.forceMock).toBe(false);
+pocs/search-celeb/test/live-http.test.ts:71:    log.searchIu = { ms: r.ms, origin: r.body.origin, isMock: r.body.isMock, candidates: r.body.candidates.map((c) => [c.name, c.nameEn, c.description, c.score]) };
+pocs/search-celeb/test/live-http.test.ts:99:    // 역이미지 검색 키가 없으므로 실제 후보는 없어야 한다 (데모 후보만)
+pocs/search-celeb/test/live-http.test.ts:100:    expect(r.body.candidates.every((c) => c.source === 'mock')).toBe(true);
+pocs/search-celeb/test/live-http.test.ts:113:    expect(r.body.isMock).toBe(false);
+pocs/search-celeb/test/live-http.test.ts:141:    log.collect = { provider: col.body.provider, judge: col.body.judge, added: col.body.added, queries: col.body.queries, isMock: col.body.isMock };
+pocs/search-celeb/test/pocs-path.test.ts:7:vi.mock('@next/env', () => ({ loadEnvConfig: () => {} }));
+pocs/search-celeb/test/judge-live.test.ts:3: * 이미지 검색이 Mock이면 앱 흐름에서는 이 판정을 건너뛰므로 따로 부른다.
+pocs/search-celeb/test/judge-live.test.ts:22:    delete process.env.CELEBER_FORCE_MOCK;
+pocs/search-celeb/README.md:9:- 이름으로 찾기: 자동완성과 후보 목록을 보여 준다. 후보마다 인물 사진, 이름, 설명이 붙는다.
+pocs/search-celeb/README.md:10:- 사진으로 찾기: 역이미지 검색 결과의 텍스트와 사진 속 글자에서 후보 이름을 뽑는다. 누구인지는 사용자가 확인해서 정한다. **얼굴 생체 인식은 쓰지 않는다.**
+pocs/search-celeb/README.md:22:pnpm --filter @celeber/search-celeb test    # vitest (lib + 서버 Mock 통합)
+pocs/search-celeb/README.md:25:CELEBER_FORCE_MOCK=1 pnpm --filter @celeber/search-celeb dev   # 처음부터 Mock
+pocs/search-celeb/README.md:28:키는 루트 `.env`에서 읽는다. 모든 키는 선택이며, 없으면 Mock으로 끝까지 동작한다.
+pocs/search-celeb/README.md:33:| `SERPAPI_API_KEY` | 이미지 검색 2순위(Google Images), 역이미지 검색(Google Lens) |
+pocs/search-celeb/README.md:40:   - 이름을 입력하면 자동완성이 뜬다. 자동완성은 이미 확정한 인물과 데모 인물로만 만들며 외부 호출을 하지 않는다.
+pocs/search-celeb/README.md:44:   - 처리하는 동안 구도(전신/상반신/얼굴), 역이미지 검색 상태, 사진 속 글자를 보여 준다.
+pocs/search-celeb/README.md:63:   - Claude 텍스트 호출: 사진 없이 검색어만 보낸다. 공인 후보 최대 5명과 동명이인을 구분할 설명을 받는다. 결과는 `search_cache`에 1일 캐시한다.
+pocs/search-celeb/README.md:65:2. **병합:** `mergeCandidates`가 이름 키(공백, 구두점, 대소문자 무시)와 설명으로 합친다. 이름이 같아도 설명이 다르면 동명이인으로 따로 둔다. 설명이 없는 후보(사진 속 글자 등)는 이름이 같은 첫 후보에 합친다. 같은 인물이 여러 출처에서 나오면 출처 하나당 점수에 +0.1을 더한다.
+pocs/search-celeb/README.md:72:1. **역이미지 검색** (SerpAPI Google Lens)
+pocs/search-celeb/README.md:85:   - 역이미지 검색을 쓸 수 없으면(키 또는 공개 URL이 없을 때) 데모 후보와 함께 "이름으로 검색해 주세요"를 안내한다.
+pocs/search-celeb/README.md:97:2. **검색:** 프로바이더 우선순위는 네이버 > SerpAPI > Mock이다. 프로바이더가 실패하면 다음 것으로 넘어간다. 결과는 `search_cache`에 7일 캐시한다.
+pocs/search-celeb/README.md:114:6. **저장:** `celeb_images`에 넣는다. 컬럼은 `celeb_id, category, provider, source_url, upload_id, is_full_body, analyzable, selected, is_mock`이고, `UNIQUE(celeb_id, source_url)`로 중복을 막는다.
+pocs/search-celeb/README.md:120:| `GET /api/celeb/suggest?q=` | 자동완성 (DB + 데모 인물) |
+pocs/search-celeb/README.md:129:모든 응답에는 `isMock`과 `origin`(rules/ai/mock), `notices`가 들어 있다. UI는 결과마다 "데모 데이터" 배지를 붙인다.
+pocs/search-celeb/README.md:164:## Mock 동작
+pocs/search-celeb/README.md:168:| 이미지 검색 키 없음 | core Mock 프로바이더가 가상 인물의 전신 실루엣 SVG(데모)를 돌려준다. 캐시도 같은 경로(`/api/uploads`)를 거친다. `sourceUrl`은 `mock://celeb/<이름>/<카테고리>/<해시>`다. |
+pocs/search-celeb/README.md:169:| AI 키 없음 또는 사용 한도 초과 | 이름 후보는 `mockNameSearch`(데모 인물 4명과 입력 이름)를 쓴다. 전신 판정은 메타데이터 규칙으로 하고, 사진 속 글자 읽기는 건너뛴다. 응답의 `origin`이 `mock`/`rules`가 되고 `warning`은 한 줄로 정리된다. |
+pocs/search-celeb/README.md:170:| SerpAPI 키 또는 공개 URL 없음 | 역이미지 검색이 `unavailable`이 된다. 데모 후보 4명과 "이름으로 검색해 주세요"를 안내한다. |
+
+exec
+/bin/zsh -lc "rg --files -g 'uploads.ts' -g 'env.ts' -g 'db.ts' -g '*reverse*' -g 'pnpm-workspace.yaml' -g 'FileButton*'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pnpm-workspace.yaml
+pocs/core/src/server/db.ts
+pocs/core/src/server/env.ts
+pocs/core/src/server/uploads.ts
+
+exec
+/bin/zsh -lc "rg -n 'MAX_UPLOAD|limitInputPixels|sharp\\(|catch|mime|kind' pocs/core/src/server/uploads.ts" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/src/server/images.ts | sed -n '120,170p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+4: * - sha256 + kind 동일하면 기존 레코드 재사용 (중복 제거)
+16:export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+59:  kind: string;
+60:  mime: string;
+71:  kind: UploadKindSchema.catch('other').parse(r.kind),
+72:  mime: r.mime,
+82:  kind: UploadKind;
+94:  if (buf.length > MAX_UPLOAD_BYTES) throw new Error(`이미지가 너무 큽니다 (최대 ${MAX_UPLOAD_BYTES / 1024 / 1024}MB).`);
+95:  let mime = sniffImageMime(buf);
+96:  if (!mime) throw new Error('지원하지 않는 이미지 형식입니다 (JPEG/PNG/WebP/HEIC/AVIF/GIF/SVG).');
+100:  if (mime !== 'image/svg+xml') {
+102:    const img = sharp(buf, { failOn: 'none', limitInputPixels: MAX_INPUT_PIXELS });
+105:      const outPng = mime === 'image/png' || mime === 'image/gif';
+109:      mime = outPng ? 'image/png' : 'image/jpeg';
+121:  const existing = db.prepare('SELECT * FROM uploads WHERE sha256 = ? AND kind = ? LIMIT 1').get(sha256, opts.kind) as UploadRow | undefined;
+125:  const fileName = `${id}.${EXT[mime] ?? 'bin'}`;
+130:    kind: opts.kind,
+131:    mime,
+140:    'INSERT INTO uploads (id, created_at, kind, mime, bytes, width, height, sha256, source_url, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+141:  ).run(row.id, row.created_at, row.kind, row.mime, row.bytes, row.width, row.height, row.sha256, row.source_url, row.file_name);
+201:    'Content-Type': f.record.mime,
+208:  if (f.record.mime === 'image/svg+xml') headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
+213: * POST /api/uploads 구현: multipart/form-data { file: File, kind?: UploadKind }
+214: * 또는 JSON { dataUrl: string, kind?: UploadKind } → UploadRecord JSON
+217:export const MAX_UPLOAD_BODY_BYTES = Math.ceil(MAX_UPLOAD_BYTES * 1.4) + 1024 * 1024;
+224:export async function readBodyCapped(req: Request, max = MAX_UPLOAD_BODY_BYTES): Promise<Uint8Array> {
+236:      await reader.cancel().catch(() => {});
+256:    } catch (e) {
+261:      const body = JSON.parse(new TextDecoder().decode(bytes)) as { dataUrl?: string; kind?: string };
+263:      const kind = UploadKindSchema.catch(defaultKind).parse(body.kind ?? defaultKind);
+264:      return Response.json(await saveUploadFromDataUrl(body.dataUrl, { kind }));
+269:    if (file.size > MAX_UPLOAD_BYTES) return jsonError(413, 'too_large', '이미지가 너무 큽니다.');
+270:    const kind = UploadKindSchema.catch(defaultKind).parse(String(form.get('kind') ?? defaultKind));
+271:    const rec = await saveUpload(Buffer.from(await file.arrayBuffer()), { kind });
+273:  } catch (e) {
+285:  const { data, info } = await sharp(f.buffer, { limitInputPixels: MAX_INPUT_PIXELS })
+
+ succeeded in 0ms:
+   120	      width: d.record.width ?? d.result.width,
+   121	      height: d.record.height ?? d.result.height,
+   122	      isFullBody: j.isFullBody,
+   123	      analyzable: j.analyzable,
+   124	      reasons: j.reasons,
+   125	      selected: false,
+   126	      isMock: provider.id === 'mock',
+   127	    };
+   128	    try {
+   129	      celebImages.insert({
+   130	        id: image.id,
+   131	        data: image,
+   132	        cols: {
+   133	          celeb_id: celebId,
+   134	          category,
+   135	          provider: provider.id,
+   136	          source_url: image.sourceUrl,
+   137	          upload_id: d.record.id,
+   138	          is_full_body: image.isFullBody,
+   139	          analyzable: image.analyzable,
+   140	          selected: false,
+   141	          is_mock: image.isMock,
+   142	        },
+   143	      });
+   144	    } catch (e) {
+   145	      // UNIQUE(celeb_id, source_url): 동시에 같은 카테고리를 수집한 경우
+   146	      if (!/UNIQUE/i.test((e as Error).message)) throw e;
+   147	    }
+   148	  }
+   149	
+   150	  // 인물 썸네일이 없으면 첫 전신 사진으로
+   151	  const images = listCategory(celebId, category);
+   152	  if (!celeb.thumbnail) {
+   153	    const first = images.find((i) => i.isFullBody !== false && i.cached);
+   154	    if (first?.cached) {
+   155	      celebs.update(celebId, { data: { ...celeb, thumbnail: first.cached, updatedAt: nowIso() }, cols: { thumbnail_upload_id: first.cached.uploadId } });
+   156	    }
+   157	  }
+   158	  if (provider.id === 'mock') notices.push('이미지 검색 키가 없어 데모 이미지를 보여줍니다. 실루엣은 분석할 수 없고, 데모 사진은 검색한 인물과 무관한 데모 모델입니다.');
+   159	
+   160	  return {
+   161	    ...base,
+   162	    provider: provider.id,
+   163	    images,
+   164	    added: downloaded.length,
+   165	    failed,
+   166	    judge: { origin: judged.origin, warning: shortWarning(judged.warning) },
+   167	    isMock: provider.id === 'mock',
+   168	    notices,
+   169	  };
+   170	}
+
+exec
+/bin/zsh -lc 'nl -ba pocs/search-celeb/src/server/thumbs.ts' in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/src/components/CelebGallery.tsx | sed -n '1,185p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	/**
+     2	 * 후보 인물 썸네일: 이미지 검색 1건을 서버에 캐시하고 '/api/uploads/<id>'를 돌려준다 (외부 핫링크 금지).
+     3	 */
+     4	import 'server-only';
+     5	import { cacheGet, cacheSet } from '@celeber/core/server/db';
+     6	import { cacheRemoteImage } from '@celeber/core/server/fetch-image';
+     7	import { getImageSearchProvider, searchImagesCached } from '@celeber/core/server/search';
+     8	import { getUpload, uploadUrl } from '@celeber/core/server/uploads';
+     9	import { nameKey } from '../lib/names';
+    10	import { uploadIdFromUrl } from './util';
+    11	
+    12	const FETCH = { maxBytes: 6 * 1024 * 1024, timeoutMs: 8000 };
+    13	
+    14	/** 외부 URL 또는 data URL을 캐시해 앱 내부 URL로 바꾼다. 실패 시 undefined */
+    15	export async function proxyImageUrl(url: string | undefined): Promise<string | undefined> {
+    16	  if (!url) return undefined;
+    17	  const local = uploadIdFromUrl(url);
+    18	  if (local) return getUpload(local) ? url : undefined;
+    19	  if (!/^(https?:|data:image\/)/.test(url)) return undefined;
+    20	  try {
+    21	    const rec = await cacheRemoteImage(url, { fetch: FETCH });
+    22	    return uploadUrl(rec.id);
+    23	  } catch {
+    24	    return undefined;
+    25	  }
+    26	}
+    27	
+    28	/** 이름(+설명)으로 대표 썸네일 1장 */
+    29	export async function candidateThumbnail(name: string, description?: string): Promise<string | undefined> {
+    30	  const provider = getImageSearchProvider();
+    31	  const key = `celeb-thumb:${provider.id}:${nameKey(name)}:${nameKey(description ?? '')}`;
+    32	  const hit = cacheGet<string>(key);
+    33	  if (hit && uploadIdFromUrl(hit) && getUpload(uploadIdFromUrl(hit) as string)) return hit;
+    34	  const role = description?.split(/[(·,/|]/)[0]?.trim();
+    35	  const query = provider.id === 'mock' ? name : [name, role && role.length <= 6 ? role : ''].filter(Boolean).join(' ');
+    36	  try {
+    37	    const results = await searchImagesCached({ query, count: 5, large: false });
+    38	    for (const r of results.slice(0, 3)) {
+    39	      const url = (await proxyImageUrl(r.thumbnailUrl)) ?? (await proxyImageUrl(r.imageUrl));
+    40	      if (url) {
+    41	        cacheSet(key, provider.id, url, 30 * 24 * 3600);
+    42	        return url;
+    43	      }
+    44	    }
+    45	  } catch (e) {
+    46	    console.warn('[search-celeb] 썸네일 검색 실패:', (e as Error).message);
+    47	  }
+    48	  return undefined;
+    49	}
+
+ succeeded in 0ms:
+     1	'use client';
+     2	/**
+     3	 * 대표·최근·평소 3개 탭 전신 사진 그리드.
+     4	 * 같은 비율(3:4) 썸네일, 출처 링크, 선택 표시(테두리+체크), 분석 불가 사유 표시.
+     5	 * 이미지는 모두 서버 캐시(/api/uploads/<id>)로 표시한다 (외부 핫링크 없음).
+     6	 */
+     7	import { useState } from 'react';
+     8	import type { CelebImage, CelebImageCategory } from '@celeber/core/contracts';
+     9	import { AnalyzingOverlay, EmptyState, Icon, ImagePickerGrid, MockBadge, Notice, Tabs, type PickerItem } from '@celeber/ui';
+    10	import { withBase } from '../lib/api';
+    11	import { shortReason, sourceLabel, visibleImages } from '../lib/filter';
+    12	import { CATEGORY_HINT, CATEGORY_LABEL, CATEGORY_ORDER } from '../lib/queries';
+    13	import s from './search-celeb.module.css';
+    14	
+    15	export interface CelebGalleryProps {
+    16	  images: Record<CelebImageCategory, CelebImage[]>;
+    17	  category: CelebImageCategory;
+    18	  onCategoryChange: (c: CelebImageCategory) => void;
+    19	  selectedIds: string[];
+    20	  onToggle: (image: CelebImage) => void;
+    21	  apiBase?: string;
+    22	  /** 카테고리별 수집 중 */
+    23	  loading?: Partial<Record<CelebImageCategory, boolean>>;
+    24	  /** 다시 검색 (선택하지 않은 사진 교체) */
+    25	  onRefresh?: (c: CelebImageCategory) => void;
+    26	  /** 카테고리별 안내 (수집 결과 notices) */
+    27	  notices?: Partial<Record<CelebImageCategory, string[]>>;
+    28	  columns?: number;
+    29	}
+    30	
+    31	export function CelebGallery({ images, category, onCategoryChange, selectedIds, onToggle, apiBase = '', loading = {}, onRefresh, notices = {}, columns = 3 }: CelebGalleryProps) {
+    32	  const [fullBodyOnly, setFullBodyOnly] = useState(true);
+    33	  const all = images[category] ?? [];
+    34	  const list = visibleImages(all, fullBodyOnly);
+    35	  const hidden = all.length - list.length;
+    36	  const busy = !!loading[category];
+    37	  const isMock = all.some((i) => i.isMock);
+    38	
+    39	  const items: PickerItem[] = list
+    40	    .filter((im) => im.cached)
+    41	    .map((im) => {
+    42	      const label = sourceLabel(im);
+    43	      const href = im.provider === 'mock' ? undefined : (im.pageUrl ?? im.sourceUrl);
+    44	      return {
+    45	        id: im.id,
+    46	        src: withBase(apiBase, im.cached?.url) as string,
+    47	        alt: im.sourceTitle ?? `${CATEGORY_LABEL[im.category]} 사진`,
+    48	        reason: shortReason(im),
+    49	        disabled: im.analyzable === false && !selectedIds.includes(im.id),
+    50	        caption: href ? (
+    51	          <a className={s.source} href={href} target="_blank" rel="noopener noreferrer nofollow" title={im.sourceTitle}>
+    52	            {label}
+    53	          </a>
+    54	        ) : (
+    55	          <span className={s.source}>{label}</span>
+    56	        ),
+    57	      };
+    58	    });
+    59	  const byId = new Map(all.map((im) => [im.id, im]));
+    60	
+    61	  return (
+    62	    <div>
+    63	      <Tabs
+    64	        label="룩 종류"
+    65	        value={category}
+    66	        onChange={onCategoryChange}
+    67	        items={CATEGORY_ORDER.map((c) => ({ value: c, label: `${CATEGORY_LABEL[c]}${images[c]?.length ? ` ${visibleImages(images[c], fullBodyOnly).length}` : ''}` }))}
+    68	      />
+    69	      <div className={s.toolbar}>
+    70	        <span className="cb-caption cb-muted">{CATEGORY_HINT[category]}</span>
+    71	        {isMock ? <MockBadge /> : null}
+    72	      </div>
+    73	      <div className={s.toolbar} style={{ marginTop: 0 }}>
+    74	        <label className={s.toggle}>
+    75	          <input type="checkbox" checked={fullBodyOnly} onChange={(e) => setFullBodyOnly(e.target.checked)} />
+    76	          전신만 보기{hidden > 0 ? ` (${hidden}장 숨김)` : ''}
+    77	        </label>
+    78	        {onRefresh ? (
+    79	          <button type="button" className={s.linkBtn} onClick={() => onRefresh(category)} disabled={busy}>
+    80	            <Icon name="refresh" size={16} />
+    81	            다시 검색
+    82	          </button>
+    83	        ) : null}
+    84	      </div>
+    85	      {(notices[category] ?? []).map((n) => (
+    86	        <div key={n} style={{ marginBottom: 8 }}>
+    87	          <Notice>{n}</Notice>
+    88	        </div>
+    89	      ))}
+    90	      <div className={s.galleryArea}>
+    91	        {items.length ? (
+    92	          <ImagePickerGrid
+    93	            label={`${CATEGORY_LABEL[category]} 사진`}
+    94	            items={items}
+    95	            selectedIds={selectedIds}
+    96	            columns={columns}
+    97	            aspect="3 / 4"
+    98	            onToggle={(id) => {
+    99	              const im = byId.get(id);
+   100	              if (im) onToggle(im);
+   101	            }}
+   102	          />
+   103	        ) : busy ? (
+   104	          <div className={s.skeleton} aria-hidden="true">
+   105	            {Array.from({ length: 9 }, (_, i) => (
+   106	              <div key={i} />
+   107	            ))}
+   108	          </div>
+   109	        ) : (
+   110	          <EmptyState title="표시할 사진이 없습니다" description={hidden ? '전신만 보기를 끄면 다른 사진도 볼 수 있습니다.' : '다시 검색하거나 다른 탭을 확인해 주세요.'} />
+   111	        )}
+   112	        {busy ? <AnalyzingOverlay message="전신 사진을 모으는 중" sub="검색 → 서버 저장 → 전신 여부 확인" /> : null}
+   113	      </div>
+   114	    </div>
+   115	  );
+   116	}
+
+exec
+/bin/zsh -lc "rg -n 'reverseImageSearch|reverse.*mock|google_lens|mock.*[Ii]mage|function makeMock' pocs/core/src/server/search.ts pocs/core/src/server/env.ts" in /Users/jyl/work/repo/celeber
+ exited 2 in 0ms:
+rg: pocs/core/src/server/search.ts: No such file or directory (os error 2)
+pocs/core/src/server/env.ts:66:  reverseImageSearch: boolean;
+pocs/core/src/server/env.ts:68:  reverseImageSearchUploads: boolean;
+pocs/core/src/server/env.ts:120:    reverseImageSearch: serp,
+pocs/core/src/server/env.ts:121:    reverseImageSearchUploads: serp && !!env.publicBaseUrl,
+pocs/core/src/server/env.ts:129:export function isMock(feature: 'ai' | 'imageSearch' | 'reverseImageSearch'): boolean {
+pocs/core/src/server/env.ts:133:  return !c.reverseImageSearch;
+pocs/core/src/server/env.ts:137:export function mockReasons(c: Capabilities, features: ('ai' | 'imageSearch' | 'reverseImageSearch')[]): string[] {
+pocs/core/src/server/env.ts:141:  if (features.includes('reverseImageSearch') && !c.reverseImageSearch) r.push('역이미지 검색: SERPAPI_API_KEY 없음 → 이름 검색 안내');
+
+exec
+/bin/zsh -lc "rg -n 'function FileButton|const FileButton' pocs" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/ui/src/components/interactive.tsx:153:export function FileButton({
+
+exec
+/bin/zsh -lc 'nl -ba pocs/search-celeb/test/config.test.ts' in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/ui/src/components/interactive.tsx | sed -n '145,207p'" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/core/src/server/uploads.ts | sed -n '12,23p;90,117p;213,280p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	/**
+     2	 * proxy.ts가 있으면 Next는 요청 본문을 proxyClientMaxBodySize까지만 버퍼링한다(기본 10MB).
+     3	 * 업로드 본문 상한(core MAX_UPLOAD_BODY_BYTES)보다 작으면 10~25MB 사진의 FormData 파싱이 실패한다.
+     4	 */
+     5	import { describe, expect, it } from 'vitest';
+     6	
+     7	const toBytes = (v: string | number): number => {
+     8	  if (typeof v === 'number') return v;
+     9	  const m = /^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)$/i.exec(v.trim());
+    10	  if (!m) throw new Error(`size? ${v}`);
+    11	  return Number(m[1]) * { b: 1, kb: 1024, mb: 1024 ** 2, gb: 1024 ** 3 }[m[2].toLowerCase() as 'b']!;
+    12	};
+    13	
+    14	describe('next.config', () => {
+    15	  it('proxyClientMaxBodySize ≥ 업로드 본문 상한', async () => {
+    16	    const { default: config } = await import('../next.config');
+    17	    const { MAX_UPLOAD_BODY_BYTES } = await import('@celeber/core/server/uploads');
+    18	    const v = config.experimental?.proxyClientMaxBodySize;
+    19	    expect(v).toBeDefined();
+    20	    expect(toBytes(v!)).toBeGreaterThanOrEqual(MAX_UPLOAD_BODY_BYTES);
+    21	  });
+    22	});
+
+ succeeded in 0ms:
+   145	      ))}
+   146	    </div>
+   147	  );
+   148	}
+   149	
+   150	/* ------------------------------------------------------------------ FileButton */
+   151	
+   152	/** 파일 선택 버튼 (사진 업로드) */
+   153	export function FileButton({
+   154	  onFile,
+   155	  children = '사진 업로드',
+   156	  variant = 'secondary',
+   157	  accept = 'image/*',
+   158	  block,
+   159	  capture,
+   160	}: {
+   161	  onFile: (file: File) => void;
+   162	  children?: ReactNode;
+   163	  variant?: ButtonVariant;
+   164	  accept?: string;
+   165	  block?: boolean;
+   166	  /** 모바일에서 카메라 바로 열기 ('user' | 'environment') */
+   167	  capture?: 'user' | 'environment';
+   168	}) {
+   169	  const ref = useRef<HTMLInputElement>(null);
+   170	  return (
+   171	    <>
+   172	      <Button variant={variant} icon="upload" block={block} onClick={() => ref.current?.click()}>
+   173	        {children}
+   174	      </Button>
+   175	      <input
+   176	        ref={ref}
+   177	        type="file"
+   178	        accept={accept}
+   179	        capture={capture}
+   180	        className="cb-visually-hidden"
+   181	        onChange={(e) => {
+   182	          const f = e.target.files?.[0];
+   183	          if (f) onFile(f);
+   184	          e.target.value = '';
+   185	        }}
+   186	      />
+   187	    </>
+   188	  );
+   189	}
+
+ succeeded in 0ms:
+    12	import { UploadKindSchema } from '../contracts';
+    13	import { dataDir, getDb, newId, nowIso } from './db';
+    14	import { jsonError } from './http';
+    15	
+    16	export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+    17	/** 저장 시 최대 변 길이(px). 분석 정밀도와 용량의 절충 */
+    18	export const MAX_STORED_EDGE = 2560;
+    19	
+    20	const ID_RE = /^up_[a-z0-9]+$/;
+    21	const EXT: Record<string, string> = {
+    22	  'image/jpeg': 'jpg',
+    23	  'image/png': 'png',
+    90	
+    91	/** 이미지 버퍼 저장 → UploadRecord. 이미지가 아니면 예외. */
+    92	export async function saveUpload(input: Buffer | Uint8Array | ArrayBuffer, opts: SaveUploadOptions): Promise<UploadRecord> {
+    93	  let buf: Buffer = Buffer.isBuffer(input) ? input : Buffer.from(input instanceof ArrayBuffer ? new Uint8Array(input) : input);
+    94	  if (buf.length > MAX_UPLOAD_BYTES) throw new Error(`이미지가 너무 큽니다 (최대 ${MAX_UPLOAD_BYTES / 1024 / 1024}MB).`);
+    95	  let mime = sniffImageMime(buf);
+    96	  if (!mime) throw new Error('지원하지 않는 이미지 형식입니다 (JPEG/PNG/WebP/HEIC/AVIF/GIF/SVG).');
+    97	  let width: number | null = null;
+    98	  let height: number | null = null;
+    99	
+   100	  if (mime !== 'image/svg+xml') {
+   101	    const normalize = opts.normalize ?? true;
+   102	    const img = sharp(buf, { failOn: 'none', limitInputPixels: MAX_INPUT_PIXELS });
+   103	    if (normalize) {
+   104	      const maxEdge = opts.maxEdge ?? MAX_STORED_EDGE;
+   105	      const outPng = mime === 'image/png' || mime === 'image/gif';
+   106	      const pipeline = img.rotate().resize({ width: maxEdge, height: maxEdge, fit: 'inside', withoutEnlargement: true }).toColorspace('srgb');
+   107	      const { data, info } = await (outPng ? pipeline.png() : pipeline.jpeg({ quality: 92, chromaSubsampling: '4:4:4' })).toBuffer({ resolveWithObject: true });
+   108	      buf = data;
+   109	      mime = outPng ? 'image/png' : 'image/jpeg';
+   110	      width = info.width;
+   111	      height = info.height;
+   112	    } else {
+   113	      const meta = await img.metadata();
+   114	      width = meta.width ?? null;
+   115	      height = meta.height ?? null;
+   116	    }
+   117	  }
+   213	 * POST /api/uploads 구현: multipart/form-data { file: File, kind?: UploadKind }
+   214	 * 또는 JSON { dataUrl: string, kind?: UploadKind } → UploadRecord JSON
+   215	 */
+   216	/** 업로드 요청 본문 상한: 25MB 이미지의 base64(×4/3) + 여유 */
+   217	export const MAX_UPLOAD_BODY_BYTES = Math.ceil(MAX_UPLOAD_BYTES * 1.4) + 1024 * 1024;
+   218	/** sharp 디코드 픽셀 상한 (약 40MP). 작은 PNG가 16000×16000을 선언해 1GB를 디코드하는 것을 막는다 */
+   219	export const MAX_INPUT_PIXELS = 40_000_000;
+   220	
+   221	class BodyTooLargeError extends Error {}
+   222	
+   223	/** 본문을 상한까지만 읽는다. Content-Length가 크면 읽기 전에, 스트림이 상한을 넘으면 그 즉시 중단 */
+   224	export async function readBodyCapped(req: Request, max = MAX_UPLOAD_BODY_BYTES): Promise<Uint8Array> {
+   225	  const declared = Number(req.headers.get('content-length') ?? '');
+   226	  if (Number.isFinite(declared) && declared > max) throw new BodyTooLargeError();
+   227	  if (!req.body) return new Uint8Array(0);
+   228	  const reader = req.body.getReader();
+   229	  const chunks: Uint8Array[] = [];
+   230	  let total = 0;
+   231	  for (;;) {
+   232	    const { done, value } = await reader.read();
+   233	    if (done) break;
+   234	    total += value.byteLength;
+   235	    if (total > max) {
+   236	      await reader.cancel().catch(() => {});
+   237	      throw new BodyTooLargeError();
+   238	    }
+   239	    chunks.push(value);
+   240	  }
+   241	  const out = new Uint8Array(total);
+   242	  let o = 0;
+   243	  for (const c of chunks) {
+   244	    out.set(c, o);
+   245	    o += c.byteLength;
+   246	  }
+   247	  return out;
+   248	}
+   249	
+   250	export async function handleUploadPost(req: Request, defaultKind: UploadKind = 'other'): Promise<Response> {
+   251	  try {
+   252	    const ct = req.headers.get('content-type') ?? '';
+   253	    let bytes: Uint8Array;
+   254	    try {
+   255	      bytes = await readBodyCapped(req);
+   256	    } catch (e) {
+   257	      if (e instanceof BodyTooLargeError) return jsonError(413, 'too_large', '이미지가 너무 큽니다 (최대 25MB).');
+   258	      throw e;
+   259	    }
+   260	    if (ct.includes('application/json')) {
+   261	      const body = JSON.parse(new TextDecoder().decode(bytes)) as { dataUrl?: string; kind?: string };
+   262	      if (!body.dataUrl) return jsonError(400, 'bad_request', 'dataUrl이 필요합니다.');
+   263	      const kind = UploadKindSchema.catch(defaultKind).parse(body.kind ?? defaultKind);
+   264	      return Response.json(await saveUploadFromDataUrl(body.dataUrl, { kind }));
+   265	    }
+   266	    const form = await new Response(bytes as BodyInit, { headers: { 'content-type': ct } }).formData();
+   267	    const file = form.get('file');
+   268	    if (!(file instanceof Blob)) return jsonError(400, 'bad_request', "'file' 필드가 필요합니다.");
+   269	    if (file.size > MAX_UPLOAD_BYTES) return jsonError(413, 'too_large', '이미지가 너무 큽니다.');
+   270	    const kind = UploadKindSchema.catch(defaultKind).parse(String(form.get('kind') ?? defaultKind));
+   271	    const rec = await saveUpload(Buffer.from(await file.arrayBuffer()), { kind });
+   272	    return Response.json(rec);
+   273	  } catch (e) {
+   274	    return jsonError(400, 'upload_failed', (e as Error).message);
+   275	  }
+   276	}
+   277	
+   278	/**
+   279	 * 분석용 픽셀 읽기 (서버): RGBA raw + 크기. maxEdge로 다운스케일.
+   280	 * core/face sampleFaceColors 등 ImageDataLike 입력으로 바로 사용 가능.
+
+exec
+/bin/zsh -lc "rg -n 'function reverseImageSearch|google_lens|visual_matches|knowledge_graph' pocs/core/src/server/search" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "rg -n 'CREATE.*celeb|celeb.*name_key|celeb_images' pocs/core/src/server/db.ts" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/core/src/server/search/serpapi.ts:68:        const json = await serp({ engine: 'google_lens', url: imageUrl, hl: 'ko', country: 'kr', api_key: apiKey });
+pocs/core/src/server/search/serpapi.ts:69:        const kg = (Array.isArray(json.knowledge_graph) ? (json.knowledge_graph as LensKg[]) : json.knowledge_graph ? [json.knowledge_graph as LensKg] : []).filter((k) => k.title);
+pocs/core/src/server/search/serpapi.ts:70:        const vm = ((json.visual_matches as LensMatch[] | undefined) ?? []).filter((m) => m.title);
+pocs/core/src/server/search/index.ts:56:export async function reverseImageSearch(input: { imageUrl?: string; uploadId?: string }): Promise<ReverseImageSearchResult> {
+
+ succeeded in 0ms:
+31:  celebs: ['name', 'name_key', 'saved', 'is_mock', 'thumbnail_upload_id'],
+32:  celeb_images: ['celeb_id', 'category', 'provider', 'source_url', 'upload_id', 'is_full_body', 'analyzable', 'selected', 'is_mock'],
+44:  celeb_images: 'cimg',
+93:  CREATE TABLE IF NOT EXISTS celebs (
+104:  CREATE INDEX IF NOT EXISTS idx_celebs_key ON celebs(name_key);
+106:  CREATE TABLE IF NOT EXISTS celeb_images (
+122:  CREATE INDEX IF NOT EXISTS idx_celeb_images_celeb ON celeb_images(celeb_id, category);
+393:/** celebs: data=CelebProfile. cols: name, name_key, saved, is_mock, thumbnail_upload_id */
+395:/** celeb_images: data=CelebImage. cols: celeb_id, category, provider, source_url, upload_id, is_full_body, analyzable, selected, is_mock */
+396:export const celebImages = createJsonRepo('celeb_images', CelebImageSchema);
+
+exec
+/bin/zsh -lc 'rg --files pocs/search-celeb/app' in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/search-celeb/app/page.tsx
+pocs/search-celeb/app/api/public-image/[id]/route.ts
+pocs/search-celeb/app/api/celeb/celebs/[id]/route.ts
+pocs/search-celeb/app/api/celeb/celebs/[id]/images/route.ts
+pocs/search-celeb/app/api/celeb/celebs/route.ts
+pocs/search-celeb/app/api/celeb/search/route.ts
+pocs/search-celeb/app/api/celeb/images/[id]/route.ts
+pocs/search-celeb/app/api/celeb/identify/route.ts
+pocs/search-celeb/app/api/celeb/suggest/route.ts
+pocs/search-celeb/app/api/uploads/[id]/route.ts
+pocs/search-celeb/app/api/uploads/route.ts
+pocs/search-celeb/app/api/meta/route.ts
+pocs/search-celeb/app/api/health/route.ts
+pocs/search-celeb/app/layout.tsx
+pocs/search-celeb/app/home-client.tsx
+
+exec
+/bin/zsh -lc 'nl -ba pocs/search-celeb/app/home-client.tsx' in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	'use client';
+     2	/** 독립 실행용 래퍼: 플로우의 인물 열기를 URL(?celeb=)과 동기화하고, 완료 시 선택 결과를 보여준다 */
+     3	import { useCallback, useEffect, useState } from 'react';
+     4	import { Notice } from '@celeber/ui';
+     5	import { CelebSearchFlow, type CelebSearchResult } from '../src/flow';
+     6	
+     7	export function HomeClient({ initialCelebId, initialQuery }: { initialCelebId: string | null; initialQuery?: string | null }) {
+     8	  const [celebId, setCelebId] = useState(initialCelebId);
+     9	  const [done, setDone] = useState<CelebSearchResult | null>(null);
+    10	  // 뒤로/앞으로 이동 시 플로우를 URL 상태로 다시 마운트
+    11	  const [nav, setNav] = useState(0);
+    12	
+    13	  useEffect(() => {
+    14	    const onPop = () => {
+    15	      const id = new URL(window.location.href).searchParams.get('celeb');
+    16	      setCelebId(id);
+    17	      setNav((n) => n + 1);
+    18	      setDone(null);
+    19	    };
+    20	    window.addEventListener('popstate', onPop);
+    21	    return () => window.removeEventListener('popstate', onPop);
+    22	  }, []);
+    23	
+    24	  const onCelebChange = useCallback((id: string | null) => {
+    25	    const url = new URL(window.location.href);
+    26	    if (id) url.searchParams.set('celeb', id);
+    27	    else url.searchParams.delete('celeb');
+    28	    if (url.href !== window.location.href) window.history.pushState(null, '', url);
+    29	    setDone(null);
+    30	  }, []);
+    31	
+    32	  return (
+    33	    <div className="cb-stack" style={{ gap: 'var(--cb-s4)' }}>
+    34	      {done ? (
+    35	        <Notice tone="ok" title="선택을 저장했습니다">
+    36	          {done.celeb.name} · 사진 {done.selectedImages.length}장. 추구미 분석(celeb-vibe-report)에서 이 선택을 그대로 사용합니다.
+    37	        </Notice>
+    38	      ) : null}
+    39	      <CelebSearchFlow
+    40	        key={`${celebId ?? 'search'}:${nav}`}
+    41	        initialCelebId={celebId}
+    42	        initialQuery={nav === 0 ? initialQuery : null}
+    43	        onCelebChange={onCelebChange}
+    44	        onComplete={(r) => {
+    45	          setDone(r);
+    46	          window.scrollTo({ top: 0, behavior: 'smooth' });
+    47	        }}
+    48	        completeLabel="선택 완료"
+    49	      />
+    50	    </div>
+    51	  );
+    52	}
+
+exec
+/bin/zsh -lc 'nl -ba pocs/search-celeb/src/components/CandidateList.tsx' in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/core/src/server/search/serpapi.ts | sed -n '45,95p'" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/core/src/server/search/index.ts | sed -n '1,120p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	'use client';
+     2	/**
+     3	 * 인물 후보 목록 (사진 + 이름 + 설명 + 근거 + 선택 버튼).
+     4	 * 후보는 이름 검색/역이미지 검색 텍스트/사진 속 글자에서 온 것이며, 얼굴 유사도가 아니다.
+     5	 */
+     6	import clsx from 'clsx';
+     7	import { Button } from '@celeber/ui';
+     8	import { withBase } from '../lib/api';
+     9	import { candidateKey } from '../lib/names';
+    10	import type { CandidateItem } from '../lib/types';
+    11	import { CelebAvatar } from './CelebAvatar';
+    12	import s from './search-celeb.module.css';
+    13	
+    14	const SOURCE_LABEL: Record<CandidateItem['source'], string> = {
+    15	  'name-search': '이름 검색',
+    16	  'reverse-image': '역이미지 검색',
+    17	  'photo-text': '사진 속 글자',
+    18	  mock: '데모',
+    19	};
+    20	
+    21	export interface CandidateListProps {
+    22	  items: CandidateItem[];
+    23	  apiBase?: string;
+    24	  onSelect: (item: CandidateItem) => void;
+    25	  /** 선택 중인 후보 키 (candidateKey: 이름+설명. 동명이인을 구분해 버튼 로딩) */
+    26	  busyKey?: string | null;
+    27	  /** 근거(evidence) 표시 */
+    28	  showEvidence?: boolean;
+    29	  selectLabel?: string;
+    30	}
+    31	
+    32	export function CandidateList({ items, apiBase = '', onSelect, busyKey, showEvidence = true, selectLabel = '선택' }: CandidateListProps) {
+    33	  return (
+    34	    <ul className={s.rows}>
+    35	      {items.map((c) => {
+    36	        const key = candidateKey(c);
+    37	        const label = c.description ? `${c.name}(${c.description})` : c.name;
+    38	        return (
+    39	        <li key={key} className={s.row}>
+    40	          <button type="button" className={s.rowMain} onClick={() => onSelect(c)} disabled={!!busyKey}>
+    41	            <CelebAvatar src={withBase(apiBase, c.thumbnailUrl)} name={c.name} />
+    42	            <span className={s.rowText}>
+    43	              <span className={s.name} style={{ display: 'block' }}>
+    44	                {c.name}
+    45	                {c.nameEn && c.nameEn !== c.name ? <span style={{ fontWeight: 500, color: 'var(--cb-text-2)' }}> {c.nameEn}</span> : null}
+    46	              </span>
+    47	              <span className={s.sub} style={{ display: 'block' }}>
+    48	                <span className={clsx(s.tag, c.saved && s.tagIris)}>{c.saved ? '저장됨' : SOURCE_LABEL[c.source]}</span>
+    49	                {c.description ?? ''}
+    50	              </span>
+    51	              {showEvidence && c.evidence.length ? <span className={s.evidence} style={{ display: 'block' }}>{c.evidence.slice(0, 2).join(' · ')}</span> : null}
+    52	            </span>
+    53	          </button>
+    54	          <Button size="sm" variant={c.celebId ? 'secondary' : 'primary'} onClick={() => onSelect(c)} loading={busyKey === key} disabled={!!busyKey && busyKey !== key} aria-label={`${label} ${selectLabel}`}>
+    55	            {c.celebId ? '열기' : selectLabel}
+    56	          </Button>
+    57	        </li>
+    58	        );
+    59	      })}
+    60	    </ul>
+    61	  );
+    62	}
+
+ succeeded in 0ms:
+    45	        }));
+    46	    },
+    47	  };
+    48	}
+    49	
+    50	interface LensMatch {
+    51	  title?: string;
+    52	  link?: string;
+    53	  source?: string;
+    54	  thumbnail?: string;
+    55	}
+    56	interface LensKg {
+    57	  title?: string;
+    58	  subtitle?: string;
+    59	  link?: string;
+    60	  thumbnail?: string;
+    61	}
+    62	
+    63	export function createSerpApiLensProvider(apiKey: string): ReverseImageSearchProvider {
+    64	  return {
+    65	    id: 'serpapi-lens',
+    66	    async reverseSearch({ imageUrl }): Promise<ReverseImageSearchResult> {
+    67	      try {
+    68	        const json = await serp({ engine: 'google_lens', url: imageUrl, hl: 'ko', country: 'kr', api_key: apiKey });
+    69	        const kg = (Array.isArray(json.knowledge_graph) ? (json.knowledge_graph as LensKg[]) : json.knowledge_graph ? [json.knowledge_graph as LensKg] : []).filter((k) => k.title);
+    70	        const vm = ((json.visual_matches as LensMatch[] | undefined) ?? []).filter((m) => m.title);
+    71	        return {
+    72	          provider: 'serpapi-lens',
+    73	          status: 'ok',
+    74	          knowledgeGraph: kg.map((k) => ({ title: k.title as string, subtitle: k.subtitle, link: k.link, thumbnailUrl: k.thumbnail })),
+    75	          visualMatches: vm.slice(0, 40).map((m) => ({ title: m.title as string, link: m.link, source: m.source, thumbnailUrl: m.thumbnail })),
+    76	        };
+    77	      } catch (e) {
+    78	        return { provider: 'serpapi-lens', status: 'error', reason: (e as Error).message, knowledgeGraph: [], visualMatches: [] };
+    79	      }
+    80	    },
+    81	  };
+    82	}
+
+ succeeded in 0ms:
+     1	/**
+     2	 * @celeber/core/server/search — 이미지 검색(네이버 > SerpAPI > Mock) / 역이미지 검색(SerpAPI Lens > Mock).
+     3	 * 정책: 역이미지 검색 결과의 텍스트(제목/지식그래프)는 "후보"일 뿐이며 사용자가 확정해야 한다.
+     4	 */
+     5	import 'server-only';
+     6	import crypto from 'node:crypto';
+     7	import { signedPublicImagePath } from '../access';
+     8	import { cacheGet, cacheSet } from '../db';
+     9	import { getEnv } from '../env';
+    10	import { createNaverImageProvider } from './naver';
+    11	import { mockImageProvider, mockReverseProvider } from './mock';
+    12	import { createSerpApiImageProvider, createSerpApiLensProvider } from './serpapi';
+    13	import type { ImageSearchProvider, ImageSearchQuery, ImageSearchResult, ReverseImageSearchProvider, ReverseImageSearchResult } from './types';
+    14	
+    15	export * from './types';
+    16	export { createNaverImageProvider } from './naver';
+    17	export { createSerpApiImageProvider, createSerpApiLensProvider } from './serpapi';
+    18	export { mockImageProvider, mockNameFromQuery, mockReverseProvider } from './mock';
+    19	
+    20	/** 사용 가능한 이미지 검색 프로바이더 (네이버 우선, 한국 연예인에 유리) */
+    21	export function getImageSearchProvider(prefer?: 'naver' | 'serpapi'): ImageSearchProvider {
+    22	  const env = getEnv();
+    23	  if (env.forceMock) return mockImageProvider;
+    24	  const naver = env.naverClientId && env.naverClientSecret ? createNaverImageProvider(env.naverClientId, env.naverClientSecret) : null;
+    25	  const serp = env.serpApiKey ? createSerpApiImageProvider(env.serpApiKey) : null;
+    26	  if (prefer === 'serpapi' && serp) return serp;
+    27	  return naver ?? serp ?? mockImageProvider;
+    28	}
+    29	
+    30	/** 사용 가능한 모든 실제 프로바이더 (네이버 실패 시 SerpAPI로 재시도 등) */
+    31	export function getImageSearchProviders(): ImageSearchProvider[] {
+    32	  const env = getEnv();
+    33	  if (env.forceMock) return [mockImageProvider];
+    34	  const list: ImageSearchProvider[] = [];
+    35	  if (env.naverClientId && env.naverClientSecret) list.push(createNaverImageProvider(env.naverClientId, env.naverClientSecret));
+    36	  if (env.serpApiKey) list.push(createSerpApiImageProvider(env.serpApiKey));
+    37	  return list.length ? list : [mockImageProvider];
+    38	}
+    39	
+    40	export function getReverseImageSearchProvider(): ReverseImageSearchProvider {
+    41	  const env = getEnv();
+    42	  if (env.forceMock || !env.serpApiKey) return mockReverseProvider;
+    43	  return createSerpApiLensProvider(env.serpApiKey);
+    44	}
+    45	
+    46	/**
+    47	 * 업로드 이미지를 외부(Lens)가 가져갈 수 있는 공개 URL. CELEBER_PUBLIC_BASE_URL 없으면 null.
+    48	 * 앱 전체가 아니라 서명·만료(10분)가 붙은 이미지 한 장 경로만 내보낸다(/api/public-image/<id>?exp&sig).
+    49	 */
+    50	export function publicUrlForUpload(uploadId: string): string | null {
+    51	  const base = getEnv().publicBaseUrl;
+    52	  return base ? `${base.replace(/\/$/, '')}${signedPublicImagePath(uploadId)}` : null;
+    53	}
+    54	
+    55	/** 역이미지 검색: 공개 URL이 없으면 unavailable */
+    56	export async function reverseImageSearch(input: { imageUrl?: string; uploadId?: string }): Promise<ReverseImageSearchResult> {
+    57	  const provider = getReverseImageSearchProvider();
+    58	  const url = input.imageUrl ?? (input.uploadId ? publicUrlForUpload(input.uploadId) : null);
+    59	  if (provider.id === 'mock') return provider.reverseSearch({ imageUrl: url ?? '' });
+    60	  if (!url)
+    61	    return {
+    62	      provider: 'serpapi-lens',
+    63	      status: 'unavailable',
+    64	      reason: '업로드한 사진은 외부에서 접근할 수 없어 역이미지 검색을 할 수 없습니다(CELEBER_PUBLIC_BASE_URL 필요). 이름으로 검색해 주세요.',
+    65	      knowledgeGraph: [],
+    66	      visualMatches: [],
+    67	    };
+    68	  return provider.reverseSearch({ imageUrl: url });
+    69	}
+    70	
+    71	/** 검색 + SQLite 캐시 (기본 7일) */
+    72	export async function searchImagesCached(q: ImageSearchQuery, opts: { provider?: ImageSearchProvider; ttlSec?: number } = {}): Promise<ImageSearchResult[]> {
+    73	  const provider = opts.provider ?? getImageSearchProvider();
+    74	  const key = `img:${provider.id}:${crypto.createHash('sha1').update(JSON.stringify([q.query, q.count ?? 20, q.large ?? true])).digest('hex')}`;
+    75	  if (provider.id !== 'mock') {
+    76	    const hit = cacheGet<ImageSearchResult[]>(key);
+    77	    if (hit) return hit;
+    78	  }
+    79	  const res = await provider.searchImages(q);
+    80	  if (provider.id !== 'mock') cacheSet(key, provider.id, res, opts.ttlSec);
+    81	  return res;
+    82	}
+    83	
+    84	/**
+    85	 * 전신 사진 1차 필터 (메타데이터 기반): 세로형(h/w ≥ minAspect) + 최소 높이.
+    86	 * 정확한 판정은 AI 비전(키 있을 때)으로 보완할 것.
+    87	 */
+    88	export function isLikelyFullBody(r: Pick<ImageSearchResult, 'width' | 'height'>, opts: { minAspect?: number; minHeight?: number } = {}): boolean {
+    89	  const { minAspect = 1.25, minHeight = 500 } = opts;
+    90	  if (!r.width || !r.height) return true; // 크기 정보 없으면 보류(통과)
+    91	  return r.height / r.width >= minAspect && r.height >= minHeight;
+    92	}
+
+exec
+/bin/zsh -lc "rg -n 'function mockNameSearch|MOCK_PEOPLE|MockBadge|function Button' pocs/core/src/mock pocs/ui/src" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/core/src/mock/index.ts:33:export const MOCK_PEOPLE: CelebCandidate[] = [
+pocs/core/src/mock/index.ts:41:export function mockNameSearch(query: string): CelebCandidate[] {
+pocs/core/src/mock/index.ts:43:  if (!q) return MOCK_PEOPLE;
+pocs/core/src/mock/index.ts:44:  const hits = MOCK_PEOPLE.filter((p) => p.name.includes(q) || p.nameEn?.toLowerCase().includes(q.toLowerCase()));
+pocs/ui/src/styles.css:475:   - 화면에 결과별 배지(인라인 MockBadge)가 이미 있으면 중복이므로 숨긴다.
+pocs/ui/src/components/basic.tsx:26:export function Button(props: ButtonProps) {
+pocs/ui/src/components/basic.tsx:172:export function MockBadge({ floating, title, label = '데모 데이터' }: { floating?: boolean; title?: string; label?: string }) {
+
+exec
+/bin/zsh -lc "nl -ba pocs/core/src/server/search/mock.ts | sed -n '1,180p'" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "rg -n 'function .*Vision|images:|imageParts' pocs/core/src/server/ai" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/src/lib/queries.ts | sed -n '1,150p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+     1	/**
+     2	 * 키 없는 데모 모드용 결정적 Mock 프로바이더.
+     3	 */
+     4	import { mockCelebImages } from '../../mock';
+     5	import type { CelebImageCategory } from '../../contracts';
+     6	import type { ImageSearchProvider, ImageSearchResult, ReverseImageSearchProvider } from './types';
+     7	import { demoPhoto } from './demo-photos';
+     8	
+     9	/** 쿼리 문자열에서 카테고리 추정 (대표/최근/평소 키워드) */
+    10	function guessCategory(q: string): CelebImageCategory {
+    11	  if (/(공항|최근|20\d\d|행사|이벤트)/.test(q)) return 'recent';
+    12	  if (/(사복|일상|데일리|평소)/.test(q)) return 'daily';
+    13	  return 'signature';
+    14	}
+    15	
+    16	/** 검색어 키워드(직업·카테고리·연도)로 쓰이는 토큰. 이름 뒤에 붙으므로 처음 나오는 키워드 앞까지를 이름으로 본다. */
+    17	const QUERY_KEYWORD = /^(배우|가수|모델|아이돌|방송인|화보|전신|레드카펫|시상식|공항패션|공항|행사|이벤트|사복|일상|패션|데일리룩|데일리|평소|최근|코디|룩|\d{4})$/;
+    18	
+    19	/** '강 이안 배우 화보 전신' → '강 이안' (공백이 든 이름도 유지) */
+    20	export function mockNameFromQuery(query: string): string {
+    21	  const tokens = query.trim().split(/\s+/).filter(Boolean);
+    22	  const idx = tokens.findIndex((t) => QUERY_KEYWORD.test(t));
+    23	  const nameTokens = idx === -1 ? tokens.slice(0, 1) : tokens.slice(0, Math.max(idx, 1));
+    24	  return nameTokens.join(' ') || '데모';
+    25	}
+    26	
+    27	export const mockImageProvider: ImageSearchProvider = {
+    28	  id: 'mock',
+    29	  async searchImages(q): Promise<ImageSearchResult[]> {
+    30	    const name = mockNameFromQuery(q.query);
+    31	    const category = guessCategory(q.query);
+    32	    const imgs = mockCelebImages(name, category, Math.min(q.count ?? 6, 9));
+    33	    const out: ImageSearchResult[] = imgs.map((m) => ({ provider: 'mock' as const, imageUrl: m.dataUrl, thumbnailUrl: m.dataUrl, title: m.title, source: 'CELEBER 데모', width: m.width, height: m.height }));
+    34	    // 두 번째 자리에 실제 래스터 전신 사진 1장: 첫 실루엣이 '분석 불가'여도 같은 갤러리에서 분석 가능한 사진을 고를 수 있다.
+    35	    const photo = demoPhoto(category);
+    36	    if (photo) {
+    37	      const item: ImageSearchResult = { provider: 'mock', imageUrl: photo.dataUrl, thumbnailUrl: photo.dataUrl, title: `${name} · ${photo.title}`, source: 'CELEBER 데모', width: photo.width, height: photo.height };
+    38	      out.splice(Math.min(1, out.length), 0, item);
+    39	      if (out.length > imgs.length && imgs.length > 1) out.pop();
+    40	    }
+    41	    return out;
+    42	  },
+    43	};
+    44	
+    45	export const mockReverseProvider: ReverseImageSearchProvider = {
+    46	  id: 'mock',
+    47	  async reverseSearch() {
+    48	    return {
+    49	      provider: 'mock',
+    50	      status: 'unavailable',
+    51	      reason: 'SERPAPI_API_KEY가 없어 사진으로 인물을 찾을 수 없습니다. 이름으로 검색해 주세요.',
+    52	      knowledgeGraph: [],
+    53	      visualMatches: [],
+    54	    };
+    55	  },
+    56	};
+
+ exited 2 in 0ms:
+rg: pocs/core/src/server/ai: IO error for operation on pocs/core/src/server/ai: No such file or directory (os error 2)
+
+ succeeded in 0ms:
+     1	/**
+     2	 * 카테고리별 이미지 검색어 생성 (대표 · 최근 · 평소).
+     3	 * Mock 프로바이더는 검색어 키워드로 카테고리를 추정하므로(공항/최근/연도/행사 → 최근, 사복/일상/데일리 → 평소),
+     4	 * 대표·평소 검색어에는 '공항'과 연도를 넣지 않는다.
+     5	 */
+     6	import type { CelebImageCategory } from '@celeber/core/contracts';
+     7	
+     8	export const CATEGORY_ORDER: readonly CelebImageCategory[] = ['signature', 'recent', 'daily'];
+     9	
+    10	export const CATEGORY_LABEL: Record<CelebImageCategory, string> = {
+    11	  signature: '대표',
+    12	  recent: '최근',
+    13	  daily: '평소',
+    14	};
+    15	
+    16	/** 탭 아래 한 줄 설명 */
+    17	export const CATEGORY_HINT: Record<CelebImageCategory, string> = {
+    18	  signature: '화보·레드카펫·시상식처럼 널리 알려진 룩',
+    19	  recent: '최근 1~2년 공항·행사 룩',
+    20	  daily: '사복·일상처럼 평소에 입는 룩',
+    21	};
+    22	
+    23	/**
+    24	 * 인물 이름 + 카테고리 → 검색어 목록 (앞쪽이 우선).
+    25	 * @param description '배우', '가수 · 그룹명' 등. 동명이인 구분용으로 대표 검색어에만 덧붙인다.
+    26	 */
+    27	export function buildCategoryQueries(name: string, category: CelebImageCategory, now: Date = new Date(), description?: string): string[] {
+    28	  const n = name.trim().replace(/\s+/g, ' ');
+    29	  if (!n) return [];
+    30	  const year = now.getFullYear();
+    31	  // 1~2월에는 올해 사진이 적으므로 작년을 먼저 쓴다
+    32	  const recentYear = now.getMonth() < 2 ? year - 1 : year;
+    33	  const role = cleanRole(description);
+    34	  switch (category) {
+    35	    case 'signature':
+    36	      return dedupe([role ? `${n} ${role} 화보 전신` : `${n} 화보 전신`, `${n} 레드카펫`, `${n} 시상식 전신`]);
+    37	    case 'recent':
+    38	      return dedupe([`${n} ${recentYear} 공항패션`, `${n} ${recentYear} 행사 전신`, `${n} ${recentYear - 1} 공항패션`]);
+    39	    case 'daily':
+    40	      return dedupe([`${n} 사복 전신`, `${n} 일상 패션`, `${n} 데일리룩`]);
+    41	  }
+    42	}
+    43	
+    44	/** '배우 (데모 인물)' → '배우'. 괄호·구분자 뒤는 버리고 짧은 직업명만 남긴다 */
+    45	function cleanRole(description?: string): string | null {
+    46	  if (!description) return null;
+    47	  const head = description.split(/[(·,/|]/)[0]?.trim() ?? '';
+    48	  return /^(배우|가수|모델|방송인|아이돌|래퍼|코미디언|MC)$/.test(head) ? head : null;
+    49	}
+    50	
+    51	function dedupe(list: string[]): string[] {
+    52	  return [...new Set(list)];
+    53	}
+
+exec
+/bin/zsh -lc "nl -ba pocs/core/src/mock/index.ts | sed -n '28,62p'" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "nl -ba pocs/search-celeb/test/ai-mocked.test.ts | sed -n '33,95p'" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+    28	export function pickOne<T>(rng: () => number, arr: readonly T[]): T {
+    29	  return arr[Math.floor(rng() * arr.length) % arr.length];
+    30	}
+    31	
+    32	/** 데모용 가상 인물 (실존 인물 아님) */
+    33	export const MOCK_PEOPLE: CelebCandidate[] = [
+    34	  { name: '윤하람', nameEn: 'Yoon Haram', description: '배우 (데모 인물)', source: 'mock', score: 0.9, evidence: ['데모 데이터: 키가 없어 가상 인물을 표시합니다.'] },
+    35	  { name: '서지온', nameEn: 'Seo Jion', description: '가수 (데모 인물)', source: 'mock', score: 0.7, evidence: ['데모 데이터: 키가 없어 가상 인물을 표시합니다.'] },
+    36	  { name: '강이안', nameEn: 'Kang Ian', description: '모델 (데모 인물)', source: 'mock', score: 0.6, evidence: ['데모 데이터: 키가 없어 가상 인물을 표시합니다.'] },
+    37	  { name: '민채율', nameEn: 'Min Chaeyul', description: '배우 (데모 인물)', source: 'mock', score: 0.5, evidence: ['데모 데이터: 키가 없어 가상 인물을 표시합니다.'] },
+    38	];
+    39	
+    40	/** 이름 검색 Mock: 질의와 부분 일치하는 가상 인물 + 질의 자체를 이름으로 한 후보 */
+    41	export function mockNameSearch(query: string): CelebCandidate[] {
+    42	  const q = query.trim();
+    43	  if (!q) return MOCK_PEOPLE;
+    44	  const hits = MOCK_PEOPLE.filter((p) => p.name.includes(q) || p.nameEn?.toLowerCase().includes(q.toLowerCase()));
+    45	  const self: CelebCandidate = {
+    46	    name: q,
+    47	    description: '입력한 이름 (데모 모드: 검증되지 않음)',
+    48	    source: 'mock',
+    49	    score: 0.5,
+    50	    evidence: ['키가 없어 이름 검증 없이 입력값을 후보로 사용합니다.'],
+    51	  };
+    52	  return hits.length ? hits : [self];
+    53	}
+    54	
+    55	const OUTFIT_SETS: Record<CelebImageCategory, { outer?: string; top: string; bottom: string; shoes: string; bg: string }[]> = {
+    56	  signature: [
+    57	    { outer: '#1F2A44', top: '#F8F6F0', bottom: '#1F2A44', shoes: '#111111', bg: '#E9E4EE' },
+    58	    { top: '#6D1F2F', bottom: '#6D1F2F', shoes: '#2B2B2E', bg: '#EFE7E2' },
+    59	    { outer: '#111111', top: '#111111', bottom: '#111111', shoes: '#111111', bg: '#E7E1E6' },
+    60	  ],
+    61	  recent: [
+    62	    { outer: '#C19A6B', top: '#EEE8DA', bottom: '#5C4033', shoes: '#3E2C23', bg: '#EFEAE0' },
+
+ succeeded in 0ms:
+    33	    }),
+    34	    callVisionStructured: vi.fn(async () => ({
+    35	      source: 'ai',
+    36	      data: { visibleTexts: ['아이유'], nameTexts: [{ text: '아이유', where: '하단 자막' }], personCount: 1, framing: 'upper-body', note: '상반신 사진입니다.' },
+    37	    })),
+    38	  };
+    39	});
+    40	
+    41	const server = await import('../src/server');
+    42	const uploads = await import('@celeber/core/server/uploads');
+    43	
+    44	afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+    45	
+    46	describe('AI 응답 고정', () => {
+    47	  it("'김민수' 검색: 동명이인 4명이 각각 후보로 나오고, 입력 이름 후보는 따로 붙지 않는다", async () => {
+    48	    const r = await server.searchCelebCandidates('김민수');
+    49	    expect(r.candidates.map((c) => c.description)).toEqual(['코미디언 · 피식대학', '배우 · 압구정 백야', '가수 · 먼데이 키즈', '전 농구선수 · 서울 SK']);
+    50	  });
+    51	  it('사진 속 글자로 후보를 찾으면 역이미지 사유 대신 "글자만 확인" 안내, 키 이름 노출 없음', async () => {
+    52	    const png = await sharp({ create: { width: 300, height: 400, channels: 3, background: '#a0a0a0' } }).png().toBuffer();
+    53	    const rec = await uploads.saveUpload(png, { kind: 'celeb' });
+    54	    const r = (await server.identifyFromPhoto(rec.id))!;
+    55	    expect(r.reverse.status).toBe('unavailable');
+    56	    expect(r.needsNameSearch).toBe(false);
+    57	    expect(r.candidates[0]).toMatchObject({ name: '아이유', source: 'photo-text' });
+    58	    expect(r.notices).toEqual(['사진 검색을 쓸 수 없어 사진 속 글자만 확인했습니다.']);
+    59	  });
+    60	});
+
+codex
+1. **자동완성에서 동명이인을 구분할 수 없음.** 배우·코미디언 김민수를 각각 확정한 뒤 `김민수`를 입력하면, 두 항목 모두 직업 설명 없이 `찾아본 인물`로 표시된다. [CelebSearchBox.tsx:148](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/components/CelebSearchBox.tsx:148)
+2. **픽셀 한도 초과 사유가 화면에서 사라짐.** 25MB 이하의 45MP PNG는 40MP 한도에 걸려 API가 영어 오류를 담은 400을 반환한다. 화면은 일반 업로드 실패만 표시해 해상도를 줄여야 한다는 사실을 알 수 없다. [uploads.ts:219](/Users/jyl/work/repo/celeber/pocs/core/src/server/uploads.ts:219) · [upload.ts:24](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/upload.ts:24)
+3. **이름만 있는 사진 단서가 첫 동명이인에게 붙음.** 배우·코미디언 김민수 후보가 있고 사진 자막에 `김민수`만 나오면, 첫 후보에 자막 근거가 합쳐지고 점수도 최대 0.1 오른다. [names.ts:18](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/names.ts:18) · [names.ts:65](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/names.ts:65)
+4. **이름만으로 기존 인물에 잘못 연결됨.** DB에 배우 김민수만 있는 상태에서 다른 김민수의 사진에서 이름만 읽히면 배우의 ID가 붙는다. 후보를 확정하면 배우 상세가 열리며, 확정 API에 이름만 보내도 같은 기존 행을 재사용한다. [celebs.ts:28](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/celebs.ts:28) · [celebs.ts:63](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/celebs.ts:63) · [celebs.ts:82](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/celebs.ts:82)
+5. **이름 검색에서 이미 확정한 동명이인이 누락됨.** 김민수 4명을 모두 확정한 뒤 이름 검색 AI를 사용할 수 없는 상태에서 재검색하면, DB 후보를 3명만 가져와 네 번째 프로필이 빠진다. [search.ts:58](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/search.ts:58)
+6. **사진 수집에서 동명이인 구분이 사라짐.** 배우·코미디언 김민수를 각각 열어 수집하면 최근·평소 탭은 두 사람에게 동일한 검색어를 보낸다. 대표 탭도 세 검색어 중 하나에만 직업을 넣는다. [queries.ts:33](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/queries.ts:33)
+7. **연속 업로드에서 이전 사진 결과가 최신 결과를 덮음.** 사진 A와 B를 연달아 선택하고 A의 식별 응답이 마지막에 도착하면, B를 선택한 화면에 A의 사진과 후보가 표시된다. [CelebSearchFlow.tsx:177](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/flow/CelebSearchFlow.tsx:177) · [IdentifyPanel.tsx:26](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/components/IdentifyPanel.tsx:26)
+8. **데모 후보의 확정 안내가 출처를 잘못 설명함.** 역이미지 검색을 쓸 수 없고 사진에서 글자 단서도 얻지 못한 상태에서 데모 후보를 누르면, 확정창은 그 가상 이름이 검색 결과 제목이나 사진 속 글자에서 나왔다고 안내한다. [identify.ts:110](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/identify.ts:110) · [CelebSearchFlow.tsx:410](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/flow/CelebSearchFlow.tsx:410)
+tokens used
+69,818
+1. **자동완성에서 동명이인을 구분할 수 없음.** 배우·코미디언 김민수를 각각 확정한 뒤 `김민수`를 입력하면, 두 항목 모두 직업 설명 없이 `찾아본 인물`로 표시된다. [CelebSearchBox.tsx:148](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/components/CelebSearchBox.tsx:148)
+2. **픽셀 한도 초과 사유가 화면에서 사라짐.** 25MB 이하의 45MP PNG는 40MP 한도에 걸려 API가 영어 오류를 담은 400을 반환한다. 화면은 일반 업로드 실패만 표시해 해상도를 줄여야 한다는 사실을 알 수 없다. [uploads.ts:219](/Users/jyl/work/repo/celeber/pocs/core/src/server/uploads.ts:219) · [upload.ts:24](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/upload.ts:24)
+3. **이름만 있는 사진 단서가 첫 동명이인에게 붙음.** 배우·코미디언 김민수 후보가 있고 사진 자막에 `김민수`만 나오면, 첫 후보에 자막 근거가 합쳐지고 점수도 최대 0.1 오른다. [names.ts:18](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/names.ts:18) · [names.ts:65](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/names.ts:65)
+4. **이름만으로 기존 인물에 잘못 연결됨.** DB에 배우 김민수만 있는 상태에서 다른 김민수의 사진에서 이름만 읽히면 배우의 ID가 붙는다. 후보를 확정하면 배우 상세가 열리며, 확정 API에 이름만 보내도 같은 기존 행을 재사용한다. [celebs.ts:28](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/celebs.ts:28) · [celebs.ts:63](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/celebs.ts:63) · [celebs.ts:82](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/celebs.ts:82)
+5. **이름 검색에서 이미 확정한 동명이인이 누락됨.** 김민수 4명을 모두 확정한 뒤 이름 검색 AI를 사용할 수 없는 상태에서 재검색하면, DB 후보를 3명만 가져와 네 번째 프로필이 빠진다. [search.ts:58](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/search.ts:58)
+6. **사진 수집에서 동명이인 구분이 사라짐.** 배우·코미디언 김민수를 각각 열어 수집하면 최근·평소 탭은 두 사람에게 동일한 검색어를 보낸다. 대표 탭도 세 검색어 중 하나에만 직업을 넣는다. [queries.ts:33](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/lib/queries.ts:33)
+7. **연속 업로드에서 이전 사진 결과가 최신 결과를 덮음.** 사진 A와 B를 연달아 선택하고 A의 식별 응답이 마지막에 도착하면, B를 선택한 화면에 A의 사진과 후보가 표시된다. [CelebSearchFlow.tsx:177](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/flow/CelebSearchFlow.tsx:177) · [IdentifyPanel.tsx:26](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/components/IdentifyPanel.tsx:26)
+8. **데모 후보의 확정 안내가 출처를 잘못 설명함.** 역이미지 검색을 쓸 수 없고 사진에서 글자 단서도 얻지 못한 상태에서 데모 후보를 누르면, 확정창은 그 가상 이름이 검색 결과 제목이나 사진 속 글자에서 나왔다고 안내한다. [identify.ts:110](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/server/identify.ts:110) · [CelebSearchFlow.tsx:410](/Users/jyl/work/repo/celeber/pocs/search-celeb/src/flow/CelebSearchFlow.tsx:410)
