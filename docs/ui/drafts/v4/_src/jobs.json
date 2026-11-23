@@ -1,0 +1,168 @@
+[
+ {
+  "id": "u-selfie",
+  "size": "1024x1024",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Smartphone front-camera selfie of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), looking straight into the lens, neutral relaxed expression, wearing an off-white linen shirt with open collar. Indoors next to a window, soft natural daylight from the side, plain off-white wall behind, a little out of focus. Face centered, head and upper chest in frame, eye-level. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "g-pose",
+  "size": "1024x1024",
+  "prompt": "Pose example photo: a young Korean man with short neat black hair, front-facing, shoulders square, neutral expression, black crew-neck t-shirt, plain beige studio backdrop, soft light, centered head and shoulders, ID-photo composition. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-front",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Front-facing head-and-shoulders studio portrait of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), neutral calm expression, wearing a charcoal wool collared zip jacket over a gray crew-neck t-shirt. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Face in the upper half of the frame. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-side",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-side.png"
+  ],
+  "prompt": "Strict 90-degree side profile portrait facing right, like the second reference image: only one eye visible, nose silhouette against the backdrop, ear and jawline fully visible, of the exact same young Korean man as in the first reference image (same mid-length dark hair, small silver stud earring). Head-and-shoulders, wearing a charcoal wool collared zip jacket over a gray t-shirt. Plain warm light-gray seamless studio backdrop, soft even diffused daylight. Head in the upper half. Realistic photo, natural skin texture. No text, no watermark."
+ },
+ {
+  "id": "u-full",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Full-body head-to-toe standing studio photo of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), front facing, arms relaxed at sides, wearing a cropped charcoal wool collared zip jacket, gray t-shirt, dark indigo straight-leg denim, black leather loafers. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Whole body from top of head to shoes visible with margin, centered. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-drape-hero",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Head-and-shoulders portrait of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), facing camera straight on, calm neutral expression, bare shoulders and neck wrapped by a large soft matte warm tangerine orange silk-organza fabric drape like a personal color analysis draping test, the fabric fills the lower third of the frame. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Identical framing, lighting and expression across a series; only the fabric color changes. Slightly wider vertical framing with space above the head and the drape flowing into the bottom of the frame. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-drape-coral",
+  "size": "1024x1024",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Head-and-shoulders portrait of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), facing camera straight on, calm neutral expression, bare shoulders and neck wrapped by a large soft matte warm coral fabric drape like a personal color analysis draping test, the fabric fills the lower third of the frame. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Identical framing, lighting and expression across a series; only the fabric color changes.  Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-drape-peach",
+  "size": "1024x1024",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Head-and-shoulders portrait of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), facing camera straight on, calm neutral expression, bare shoulders and neck wrapped by a large soft matte light warm peach fabric drape like a personal color analysis draping test, the fabric fills the lower third of the frame. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Identical framing, lighting and expression across a series; only the fabric color changes.  Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-drape-lavender",
+  "size": "1024x1024",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Head-and-shoulders portrait of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), facing camera straight on, calm neutral expression, bare shoulders and neck wrapped by a large soft matte cool lavender gray fabric drape like a personal color analysis draping test, the fabric fills the lower third of the frame. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Identical framing, lighting and expression across a series; only the fabric color changes. The cool color makes the complexion look slightly pale and sallow. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-drape-ashblue",
+  "size": "1024x1024",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Head-and-shoulders portrait of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), facing camera straight on, calm neutral expression, bare shoulders and neck wrapped by a large soft matte cool ash blue-gray fabric drape like a personal color analysis draping test, the fabric fills the lower third of the frame. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Identical framing, lighting and expression across a series; only the fabric color changes. The cool color makes the complexion look slightly dull and gray. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "m-hero",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Upper-body studio portrait of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features), looking at the camera with a soft confident expression, wearing a chunky ivory cable-knit crew-neck sweater. plain warm light-gray seamless studio backdrop, soft even diffused daylight. Head in the upper third, framed from the top of the head to the waist. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "m-look-ivory",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Full-body head-to-toe studio photo of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features), standing relaxed, wearing an ivory crew-neck knit sweater, charcoal pleated wide-leg trousers and black leather loafers. Very light off-white studio backdrop, soft even light. Whole body visible with margin, centered. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "m-look-blue",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Full-body head-to-toe studio photo of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features), standing, wearing an open slate-blue cotton shirt over a white t-shirt, black straight slacks and black derby shoes. Very light off-white studio backdrop, soft even light. Whole body visible with margin, centered. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "m-look-sit",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Full-body studio photo of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features), sitting casually on a simple wooden stool, wearing a taupe knit polo and matching taupe wide trousers, white sneakers. Very light off-white studio backdrop, soft light. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "m-look-coat",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Full-body head-to-toe studio photo of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features), walking pose, wearing a long camel wool coat over a black turtleneck, black trousers, black boots. Very light off-white studio backdrop, soft even light. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "m-backlit",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Candid phone photo of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features) standing in front of a bright window with strong backlight, the face is in deep shadow and hard to read, overexposed window highlights, wearing a navy shirt. Slightly hazy, casual snapshot. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "lib-yuna",
+  "size": "1024x1536",
+  "prompt": "Editorial fashion photo of a young Korean woman with a short tousled black bob, wearing a sheer lavender silk blouse with a soft bow and long silver drop earrings, framed from mid-thigh up, looking slightly off camera. Pale cool-gray seamless studio backdrop, soft daylight. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "lib-seodo",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/muse-face.png"
+  ],
+  "prompt": "Editorial fashion photo of the exact same young Korean man as in the reference image (same face, same wavy mid-length dark hair, same features), wearing a chunky ivory cable-knit sweater and charcoal trousers, framed from mid-thigh up, hand in pocket, looking at camera. Light warm-gray seamless studio backdrop, soft daylight. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "lib-doyoung",
+  "size": "1024x1536",
+  "prompt": "Editorial fashion photo of a young Korean woman with sleek low bun, wearing a sharp navy double-breasted tailored jacket and ivory wide shorts, framed from the knees up, hands in pockets, confident gaze. Pale blue-gray seamless studio backdrop, soft daylight. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "lib-ian",
+  "size": "1024x1536",
+  "prompt": "Editorial fashion photo of a young Korean woman with long straight dark hair tucked behind ears, wearing a dusty blue fine-knit long-sleeve top and slate gray tailored trousers, framed from mid-thigh up, mid-stride, soft expression. Warm light-gray seamless studio backdrop, soft daylight. Realistic photo, natural skin texture with visible pores, no beauty-filter gloss. Editorial fashion catalogue photography. No text, no logos, no watermark, no borders."
+ },
+ {
+  "id": "u-applied",
+  "size": "1024x1536",
+  "refs": [
+   "refcrops/user-anchor.png",
+   "refcrops/user-front.png"
+  ],
+  "prompt": "Full-body head-to-toe studio photo of the exact same young Korean man as in the reference images (same face, same mid-length dark hair with soft center part, small silver stud earring), standing relaxed, wearing a soft ivory crew-neck knit sweater with a light warm coral silk scarf loosely knotted at the neck, light beige wide trousers and white leather sneakers, a thin gold ring. Very light off-white studio backdrop, soft even daylight. Whole body visible with margin, centered. Realistic photo, natural skin texture. Editorial fashion catalogue photography. No text, no watermark."
+ }
+]

@@ -1,0 +1,65 @@
+/*
+ * CELEBER 디자인 토큰 (docs/ui/design/DESIGN.md)
+ * 모바일 기준 너비 390pt, 좌우 여백 24pt. 1pt = 1px(CSS)로 사용.
+ */
+:root {
+  /* 기본 */
+  --cb-ink: #25222b; /* 본문, 주 버튼 바탕 */
+  --cb-ivory: #fffdf8; /* 리포트 바탕, 주 버튼 텍스트, 역상 로고 */
+  --cb-paper: #f7f5f0; /* 보조 패널, 사진 캡션 바탕 */
+  --cb-card: #fffdf8; /* 기본 카드 */
+  --cb-text-2: #625c6a; /* 보조 텍스트 */
+  --cb-line: #e7e1e6; /* 구분선 */
+
+  /* BI 강조 */
+  --cb-iris: #7274e9;
+  --cb-iris-deep: #4c45ad; /* 밝은 바탕 활성 텍스트, 선택 테두리 */
+  --cb-iris-soft: #eeecfa; /* 선택 배경 */
+  --cb-mint: #50c89d;
+  --cb-lime: #d6f36c;
+  --cb-pink: #ff91bb;
+  --cb-coral: #fb603c;
+
+  /* 카메라 */
+  --cb-camera-bg: #1d1b23;
+  --cb-camera-text: #c9c4d0;
+
+  /* 상태 텍스트 */
+  --cb-ok: #216652; /* 촬영 조건 확인 */
+  --cb-warn: #865018; /* 재촬영 안내 */
+  --cb-danger: #a13942; /* 데이터 초기화 */
+  --cb-ok-bg: #e6f4ee;
+  --cb-warn-bg: #f8eedf;
+  --cb-danger-bg: #f8e6e8;
+
+  /* 서체 */
+  --cb-font: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+  --cb-fs-screen: 32px; /* 화면 제목 32/39, 700–800 */
+  --cb-lh-screen: 39px;
+  --cb-fs-section: 21px; /* 섹션 제목 21–22/28, 700–750 */
+  --cb-lh-section: 28px;
+  --cb-fs-row: 15px; /* 행 제목/버튼 15–16/22, 600–700 */
+  --cb-lh-row: 22px;
+  --cb-fs-body: 14px; /* 본문 14/21 */
+  --cb-lh-body: 21px;
+  --cb-fs-caption: 12px; /* 캡션 12/17 */
+  --cb-lh-caption: 17px;
+
+  /* 간격 4·8·12·16·24·32 */
+  --cb-s1: 4px;
+  --cb-s2: 8px;
+  --cb-s3: 12px;
+  --cb-s4: 16px;
+  --cb-s5: 24px;
+  --cb-s6: 32px;
+
+  /* 형태 */
+  --cb-radius-card: 16px;
+  --cb-radius-photo: 14px;
+  --cb-radius-pill: 999px;
+  --cb-button-h: 52px;
+  --cb-touch: 44px;
+  --cb-page-max: 390px;
+  --cb-gutter: 24px;
+  --cb-shadow: 0 1px 2px rgba(37, 34, 43, 0.06), 0 4px 16px rgba(37, 34, 43, 0.06);
+}

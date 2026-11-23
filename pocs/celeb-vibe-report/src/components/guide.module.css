@@ -1,0 +1,601 @@
+/* celeb-vibe-report 전용 스타일. 색·간격은 @celeber/ui 토큰(--cb-*)만 사용 */
+
+.section {
+  margin-top: var(--cb-s6);
+}
+.eyebrow {
+  margin: 0 0 var(--cb-s1);
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--cb-text-2);
+  font-weight: 600;
+}
+.title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 28px;
+  line-height: 35px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lead {
+  margin: var(--cb-s2) 0 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--cb-text-2);
+}
+.hero {
+  position: relative;
+  margin: 0 calc(var(--cb-gutter) * -1);
+}
+.hero :global(.cb-photo) {
+  border-radius: 0;
+  /* 첫 화면에 제목·요약(결론)이 보이도록 사진 높이를 제한한다 (DESIGN: 사진과 주요 결론을 먼저) */
+  max-height: 52vh;
+  width: 100%;
+}
+/* 높이를 줄여 잘릴 때 얼굴·상체가 남도록 위쪽 기준으로 자른다 */
+.hero :global(.cb-photo img) {
+  object-position: 50% 12%;
+}
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cb-s2);
+  margin-top: var(--cb-s3);
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--cb-s2);
+  border-radius: 999px;
+  background: var(--cb-paper);
+  font-size: 12px;
+  color: var(--cb-text-2);
+  font-weight: 600;
+}
+
+/* 팔레트 비교 패널 (연예인 / 나) */
+.palettePanel {
+  background: var(--cb-paper);
+  border-radius: var(--cb-radius-card);
+  padding: var(--cb-s4);
+  display: grid;
+  gap: var(--cb-s4);
+}
+.paletteHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cb-s2);
+  margin-bottom: var(--cb-s2);
+  font-size: 14px;
+  font-weight: 700;
+}
+.paletteHead span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cb-text-2);
+}
+
+/* 팔레트 매핑 행: 연예인 색 → 내 색 */
+.mapList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.mapRow {
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr;
+  align-items: center;
+  gap: var(--cb-s2);
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+}
+.mapRow:last-child {
+  border-bottom: 0;
+}
+.mapCell {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s2);
+  min-width: 0;
+}
+.dot {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(37, 34, 43, 0.12);
+}
+.dotSm {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(37, 34, 43, 0.12);
+}
+.mapName {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mapSub {
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--cb-text-2);
+}
+.arrow {
+  color: var(--cb-text-2);
+  display: inline-flex;
+  justify-content: center;
+}
+
+/* 원본 룩 vs 내 팔레트 적용 */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cb-s2);
+}
+.compareCol {
+  min-width: 0;
+}
+.compareFrame {
+  position: relative;
+  border-radius: var(--cb-radius-photo);
+  overflow: hidden;
+  background: var(--cb-paper);
+}
+.compareFrame img,
+.compareFrame canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.compareLabel {
+  position: absolute;
+  max-width: calc(100% - var(--cb-s2) * 2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  left: var(--cb-s2);
+  top: var(--cb-s2);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--cb-ink);
+  background: rgba(255, 253, 248, 0.82);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.compareCap {
+  margin-top: var(--cb-s2);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+}
+.compareCap span {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cb-text-2);
+}
+
+/* 치환 표 */
+.subRow {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: var(--cb-s3);
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+}
+.subRow:last-child {
+  border-bottom: 0;
+}
+.subLabel {
+  font-size: 13px;
+  color: var(--cb-text-2);
+  font-weight: 600;
+  padding-top: 4px;
+}
+.subColors {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s2);
+  flex-wrap: wrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+.subReason {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--cb-text-2);
+}
+.keep {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--cb-ok-bg);
+  color: var(--cb-ok);
+  font-size: 11px;
+  font-weight: 700;
+}
+.swap {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--cb-iris-soft);
+  color: var(--cb-iris-deep);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* 가이드 행: 관찰 항목 + 한 줄 결론 (레퍼런스 '스타일링 포인트') */
+.pointRow {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: var(--cb-s3);
+  padding: var(--cb-s4) 0;
+  border-top: 1px solid var(--cb-line);
+}
+.pointRow:last-child {
+  border-bottom: 1px solid var(--cb-line);
+}
+.pointKey {
+  font-size: 13px;
+  color: var(--cb-text-2);
+  padding-top: 2px;
+}
+.pointVal {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.item {
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+}
+.item:last-child {
+  border-bottom: 0;
+}
+.itemTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s2);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 700;
+}
+.itemDetail {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--cb-text-2);
+}
+.itemDots {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+/* 액션 리스트 */
+.actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--cb-s2);
+}
+.action {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--cb-s3);
+  padding: var(--cb-s3);
+  border-radius: 12px;
+  background: var(--cb-paper);
+}
+.actionNo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cb-ink);
+  color: var(--cb-ivory);
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.actionMeta {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.diff {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+.diffEasy {
+  background: var(--cb-ok-bg);
+  color: var(--cb-ok);
+}
+.diffMedium {
+  background: var(--cb-warn-bg);
+  color: var(--cb-warn);
+}
+.diffHard {
+  background: var(--cb-danger-bg);
+  color: var(--cb-danger);
+}
+.area {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cb-text-2);
+  padding: 1px 0;
+}
+
+/* 따라 하면 안 되는 요소 */
+.dont {
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+}
+.dont:last-child {
+  border-bottom: 0;
+}
+.dontEl {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cb-danger);
+}
+.dontAlt {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dontAlt b {
+  color: var(--cb-ok);
+  margin-right: 6px;
+}
+
+/* 갭 */
+.gapNote {
+  margin-top: var(--cb-s3);
+  display: grid;
+  gap: var(--cb-s2);
+}
+.gapUnavailable {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cb-s3);
+  padding: var(--cb-s3);
+  border-radius: 12px;
+  background: var(--cb-paper);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+/* 저장 목록 그리드 (레퍼런스 06) */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cb-s4) var(--cb-s2);
+  margin: 0 calc(var(--cb-gutter) * -1 + 4px);
+}
+.card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+.cardImg {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--cb-paper);
+}
+.cardImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cardName {
+  position: absolute;
+  left: var(--cb-s3);
+  right: var(--cb-s3);
+  bottom: var(--cb-s3);
+  color: var(--cb-ivory);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 800;
+  text-shadow: 0 1px 8px rgba(29, 27, 35, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cardShade {
+  position: absolute;
+  inset: 55% 0 0 0;
+  background: linear-gradient(180deg, rgba(29, 27, 35, 0), rgba(29, 27, 35, 0.55));
+}
+.cardBadge {
+  position: absolute;
+  top: var(--cb-s2);
+  left: var(--cb-s2);
+}
+.cardLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--cb-s2);
+  font-size: 15px;
+  font-weight: 700;
+}
+.cardLook {
+  font-size: 13px;
+  color: var(--cb-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cardDots {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+/* 내 퍼스널컬러 카드 */
+.me {
+  display: grid;
+  grid-template-columns: 64px 1fr 20px;
+  align-items: center;
+  gap: var(--cb-s3);
+  padding: var(--cb-s4);
+  border-radius: var(--cb-radius-card);
+  background: var(--cb-paper);
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+  border: 2px solid transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.me[aria-pressed='true'] {
+  border-color: var(--cb-iris-deep);
+  background: var(--cb-iris-soft);
+}
+.meImg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--cb-line);
+}
+.meSub > span:not([role]) {
+  white-space: nowrap;
+}
+.meName {
+  font-size: 17px;
+  font-weight: 800;
+}
+.meSub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--cb-text-2);
+}
+
+.linkRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--cb-s3);
+  min-height: 56px;
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.linkRowTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+.linkRowSub {
+  font-size: 13px;
+  color: var(--cb-text-2);
+}
+.danger {
+  color: var(--cb-danger);
+}
+
+.footerBar {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cb-s2);
+  padding: var(--cb-s3) 0 calc(var(--cb-s3) + env(safe-area-inset-bottom));
+  background: var(--cb-ivory);
+  border-top: 1px solid var(--cb-line);
+  margin-top: var(--cb-s6);
+  z-index: 5;
+}
+.inputRow {
+  display: grid;
+  gap: var(--cb-s2);
+}
+.input {
+  height: 48px;
+  padding: 0 var(--cb-s3);
+  border-radius: 12px;
+  border: 1px solid var(--cb-line);
+  background: var(--cb-card);
+  font: inherit;
+  font-size: 16px;
+  color: var(--cb-ink);
+}
+.input:focus {
+  outline: 2px solid var(--cb-iris-deep);
+  outline-offset: 0;
+}
+.details summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  list-style: none;
+  border-top: 1px solid var(--cb-line);
+  border-bottom: 1px solid var(--cb-line);
+}
+.details summary::-webkit-details-marker {
+  display: none;
+}
+.details[open] summary svg {
+  transform: rotate(90deg);
+}
+.disclaimer {
+  margin-top: var(--cb-s6);
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--cb-text-2);
+  text-align: center;
+}
+
+/* 공백 없는 긴 이름(최대 40~60자)이 390px에서 가로 넘침을 만들지 않게 가이드 본문 전체에서 줄바꿈을 허용한다 */
+.article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.hero :global(.cb-photo__label) {
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

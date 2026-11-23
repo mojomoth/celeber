@@ -1,0 +1,32 @@
+{
+  "name": "@celeber/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CELEBER 디자인 토큰(CSS 변수)과 공용 React 컴포넌트, BI 에셋",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css",
+    "./tokens.css": "./src/tokens.css",
+    "./tokens": "./src/tokens.ts",
+    "./bi": "./src/bi.ts",
+    "./mediapipe": "./src/mediapipe.ts"
+  },
+  "scripts": {
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "@mediapipe/tasks-vision": "1.2.3"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}

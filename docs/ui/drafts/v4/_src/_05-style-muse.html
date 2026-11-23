@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .top { position: relative; height: 300px; background: #C9C7C6; overflow: hidden; }
+  .top img { position: absolute; left: 0; top: -6px; width: 390px; height: 585px; object-fit: cover; object-position: 50% 0; }
+
+  .sheet { position: relative; margin-top: -24px; background: #fff; border-radius: 24px 24px 0 0; z-index: 2; }
+  .s-head { height: 60px; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 4px 10px 0; border-bottom: 1px solid var(--line); }
+  .s-head .t { text-align: center; font-size: 17px; font-weight: 600; letter-spacing: -0.025em; }
+  .s-head .t small { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px; }
+  .notice { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; padding: 14px var(--gutter); background: #FBF6EE; }
+  .notice img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; object-position: 50% 20%; }
+  .notice p { font-size: 13px; line-height: 1.5; color: var(--warn); }
+  .notice p b { font-weight: 600; display: block; color: #6E4012; }
+  .cards { column-gap: 2px; }
+  .card { position: relative; padding-bottom: 22px; }
+  .card .ph { height: 244px; position: relative; overflow: hidden; background: #F3F2EF; }
+  .card .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+  .card .mark { position: absolute; top: 12px; right: 12px; z-index: 2; }
+  .card .cap { padding: 16px var(--gutter) 0; }
+  .card .cap b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+  .card .cap span { display: block; font-size: 14px; color: var(--ink-2); margin-top: 3px; letter-spacing: -0.02em; }
+  .card .cap em { display: block; font-style: normal; font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .strip { display: flex; gap: 10px; padding: 14px 0 14px var(--gutter); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .strip .th { flex: 0 0 48px; height: 66px; border-radius: 6px; overflow: hidden; position: relative; background: #F3F2EF; }
+  .strip .th img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+  .strip .th.on { box-shadow: 0 0 0 1.5px #000; }
+  .strip .th.no span { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 0; background: rgba(20,18,24,.6); color: #fff; font-size: 10px; font-weight: 600; text-align: center; }
+  .strip .gap { flex: 0 0 1px; background: var(--line); margin: 6px 0; }
+
+  .band { height: 8px; background: var(--paper); }
+  .guide { padding: 36px var(--gutter) 0; }
+  .guide .body { margin-top: 10px; }
+  .pal { margin: 22px var(--gutter) 0; background: var(--paper); border-radius: 16px; padding: 4px 18px; }
+  .pal .pr { padding: 16px 0 14px; }
+  .pal .pr + .pr { border-top: 1px solid #E8E4DE; }
+  .pal .pr b { font-size: 14.5px; font-weight: 600; letter-spacing: -0.02em; }
+  .pal .pr b small { font-size: 12.5px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+  .pal .sws { margin-top: 12px; display: flex; justify-content: space-between; }
+  .pal .swl { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 54px; font-size: 11px; color: var(--ink-2); font-style: normal; }
+  .pal .sw { width: 36px; height: 36px; }
+  .look { margin-top: 28px; }
+  .look .tile { height: 330px; }
+  .look .tile img { top: 40px; height: 290px; object-position: 50% 0; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px); mask-image: linear-gradient(to bottom, transparent 0, #000 12px); }
+  .lbl.ink { color: var(--ink); top: 16px; bottom: auto; }
+  .rows-wrap { padding: 12px var(--gutter) 0; }
+  .rows-wrap .h2 { margin-bottom: 12px; }
+  .rows-wrap .row { align-items: start; }
+  .rows-wrap .row .k { line-height: 22.5px; }
+  .actions { padding-top: 32px; }
+  .pad-nav { height: 132px; }
+</style></head>
+<body><div class="screen">
+  <div class="status"><span>9:41</span><span class="sys">
+<svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1"/><rect x="10" y="3" width="3.2" height="9" rx="1"/><rect x="15" y="0" width="3.2" height="12" rx="1"/></svg>
+<svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.3c2.4 0 4.6.9 6.2 2.5l1.2-1.2A10.4 10.4 0 008.5.6 10.4 10.4 0 001.1 3.6l1.2 1.2A8.7 8.7 0 018.5 2.3zm0 3.4c1.5 0 2.8.6 3.8 1.5l1.2-1.2A7 7 0 008.5 4a7 7 0 00-5 2l1.2 1.2c1-.9 2.3-1.5 3.8-1.5zm0 3.4c.6 0 1.1.2 1.5.6L8.5 11.2 7 9.7c.4-.4.9-.6 1.5-.6z"/></svg>
+<svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" opacity=".45"/></svg>
+</span></div>
+  <div class="header">
+    <span></span>
+    <div class="t">추구미</div>
+    <div class="icon-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></div>
+  </div>
+
+  <div class="top"><img src="photos/m-hero.png" alt=""></div>
+
+  <div class="sheet">
+    <div class="s-head">
+      <span></span>
+      <div class="t">한서도<small>사진 6장</small></div>
+      <div class="icon-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="13" height="13" rx="2"/><path d="M3.5 15l3.5-3.5 3 3 2-2 4.5 4.5"/><circle cx="8.3" cy="9.3" r="1.2"/><path d="M19.5 3v6M16.5 6h6"/></svg></div>
+    </div>
+    <div class="notice">
+      <img src="photos/m-backlit.png" alt="">
+      <p><b>올린 사진은 역광이 강해 분석하기 어려워요</b>한서도의 다른 사진을 골라 주세요</p>
+    </div>
+    <div class="grid2 cards">
+      <div class="card">
+        <div class="mark"><div class="chk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div></div>
+        <div class="ph"><img src="photos/m-look-ivory.png" alt=""></div>
+        <div class="cap"><b>대표 룩</b><span>아이보리 니트 · 차콜 팬츠</span><em>화보 · 10월</em></div>
+      </div>
+      <div class="card">
+        <div class="mark"><div class="radio"></div></div>
+        <div class="ph"><img src="photos/m-look-blue.png" alt=""></div>
+        <div class="cap"><b>최근 룩</b><span>오픈 셔츠 · 블랙 슬랙스</span><em>공항 · 11월</em></div>
+      </div>
+    </div>
+    <div class="strip">
+      <div class="th no"><img src="photos/m-backlit.png" alt=""><span>역광</span></div>
+      <div class="gap"></div>
+      <div class="th on"><img src="photos/m-look-ivory.png" alt=""></div>
+      <div class="th"><img src="photos/m-look-blue.png" alt=""></div>
+      <div class="th"><img src="photos/m-look-sit.png" alt=""></div>
+      <div class="th"><img src="photos/m-look-coat.png" alt=""></div>
+      <div class="th"><img src="photos/lib-seodo.png" alt=""></div>
+      <div class="th"><img src="photos/m-hero.png" alt=""></div>
+    </div>
+  </div>
+
+  <div class="band"></div>
+
+  <div class="guide">
+    <div class="eyebrow">대표 룩으로 분석했어요</div>
+    <div class="h1" style="margin-top:8px">한서도의 추구미 가이드</div>
+    <p class="body">니트의 부드러운 무드는 살리고,<br>하의를 라이트 베이지로 바꾸고 코럴 스카프를 더했어요.</p>
+  </div>
+
+  <div class="pal">
+    <div class="pr"><b>한서도<small>가을 소프트</small></b>
+      <div class="sws">
+        <span class="swl"><i class="sw" style="background:#EDE6D6"></i>오트밀</span>
+        <span class="swl"><i class="sw" style="background:#A79C8C"></i>토프</span>
+        <span class="swl"><i class="sw" style="background:#8E7A62"></i>모카</span>
+        <span class="swl"><i class="sw" style="background:#5C5752"></i>차콜 그레이</span>
+        <span class="swl"><i class="sw" style="background:#3E3C3A"></i>차콜</span>
+      </div></div>
+    <div class="pr"><b>나<small>봄 웜 브라이트</small></b>
+      <div class="sws">
+        <span class="swl"><i class="sw" style="background:#F1E4C8"></i>크림</span>
+        <span class="swl"><i class="sw" style="background:#F6C39C"></i>피치</span>
+        <span class="swl"><i class="sw" style="background:#E2836F"></i>코럴</span>
+        <span class="swl"><i class="sw" style="background:#DD7330"></i>탠저린</span>
+        <span class="swl"><i class="sw" style="background:#1F8A8A"></i>웜 틸</span>
+      </div></div>
+  </div>
+
+  <div class="grid2 look">
+    <div>
+      <div class="tile" style="background:#EBE7E2"><img src="photos/m-look-ivory.png" alt=""><div class="lbl ink">한서도</div></div>
+      <div class="cta">원본 룩<span class="m">아이보리 니트 · 차콜 팬츠</span></div>
+    </div>
+    <div>
+      <div class="tile" style="background:#F2EEEA"><img src="photos/u-applied.png" alt=""><div class="lbl ink">나</div></div>
+      <div class="cta">내 팔레트 적용<span class="m">코럴 스카프 · 라이트 베이지</span></div>
+    </div>
+  </div>
+
+  <div class="rows-wrap">
+    <div class="h2">스타일링 포인트</div>
+    <div class="rows">
+      <div class="row"><span class="k">얼굴</span><span class="v">앞머리 결을 살리고<br>코럴 립밤으로 혈색을 더해요</span><span></span></div>
+      <div class="row"><span class="k">코디</span><span class="v">하의는 라이트 베이지로 바꾸고<br>목에 코럴 스카프를 둘러요</span><span></span></div>
+      <div class="row"><span class="k">분위기</span><span class="v">밝은 톤을 위아래로 이어<br>가볍고 생기 있게 연출해요</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="actions btn-row">
+    <div class="btn fill">가이드 저장</div>
+    <div class="btn line">다른 룩 보기</div>
+  </div>
+  <div class="pad-nav"></div>
+  <div class="nav-wrap"><div class="nav"><div class="tab" aria-label="내 분석"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5V6a2 2 0 012-2h2.5M15.5 4H18a2 2 0 012 2v2.5M20 15.5V18a2 2 0 01-2 2h-2.5M8.5 20H6a2 2 0 01-2-2v-2.5"/><circle cx="12" cy="11" r="2.6"/><path d="M8 17c.8-1.7 2.3-2.6 4-2.6s3.2.9 4 2.6"/></svg><span>내 분석</span></div><div class="tab" aria-label="퍼스널컬러"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="12" r="5.2"/><circle cx="15" cy="12" r="5.2"/></svg><span>퍼스널컬러</span></div><div class="tab on" aria-label="추구미"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span>추구미</span></div><div class="tab" aria-label="내 기록"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M10 9.5V20"/></svg><span>내 기록</span></div></div></div><div class="home-ind"></div>
+</div><script>window.addEventListener("load",()=>document.fonts.ready.then(()=>{document.title="H"+Math.ceil(document.querySelector(".screen").getBoundingClientRect().height)}))</script></body></html>

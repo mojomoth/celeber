@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .hero { grid-template-columns: 1fr 1fr; column-gap: 2px; height: 452px; }
+  .hero .stack { display: grid; grid-template-rows: 1fr 1fr; row-gap: 2px; }
+  .t-full { background: #D6D5D5; }
+  .t-full img { height: 418px; object-position: 50% 0; }
+  .t-front img { object-position: 50% 14%; }
+  .t-side img { object-position: 40% 18%; }
+  .summary { padding: 28px var(--gutter) 0; }
+  .summary .h1 { margin-top: 10px; }
+  .summary .body { margin-top: 12px; }
+  .skin { margin: 28px var(--gutter) 0; padding: 18px 18px 16px; background: var(--paper); border-radius: 16px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 18px; }
+  .skin .k { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .skin .k small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+  .skin .samples { display: flex; justify-content: flex-end; gap: 14px; }
+  .skin .s { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .rows-wrap { padding: 26px var(--gutter) 0; }
+  .rows-wrap .h2 { margin-bottom: 12px; }
+  .actions { padding-top: 32px; }
+  .pad-nav { height: 132px; }
+</style></head>
+<body><div class="screen">
+  <div class="status"><span>9:41</span><span class="sys">
+<svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.2" height="4" rx="1"/><rect x="5" y="5.5" width="3.2" height="6.5" rx="1"/><rect x="10" y="3" width="3.2" height="9" rx="1"/><rect x="15" y="0" width="3.2" height="12" rx="1"/></svg>
+<svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.3c2.4 0 4.6.9 6.2 2.5l1.2-1.2A10.4 10.4 0 008.5.6 10.4 10.4 0 001.1 3.6l1.2 1.2A8.7 8.7 0 018.5 2.3zm0 3.4c1.5 0 2.8.6 3.8 1.5l1.2-1.2A7 7 0 008.5 4a7 7 0 00-5 2l1.2 1.2c1-.9 2.3-1.5 3.8-1.5zm0 3.4c.6 0 1.1.2 1.5.6L8.5 11.2 7 9.7c.4-.4.9-.6 1.5-.6z"/></svg>
+<svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" opacity=".45"/></svg>
+</span></div>
+  <div class="header">
+    <span></span>
+    <div class="t">내 분석</div>
+    <div class="icon-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 12v6.5A1.5 1.5 0 006.5 20h11a1.5 1.5 0 001.5-1.5V12"/></svg></div>
+  </div>
+
+  <div class="grid2 hero">
+    <div class="tile t-full"><img src="photos/u-full.png" alt=""><div class="scrim"></div><div class="lbl">전신</div></div>
+    <div class="stack">
+      <div class="tile t-front"><img src="photos/u-front.png" alt=""><div class="scrim"></div><div class="lbl">정면</div></div>
+      <div class="tile t-side"><img src="photos/u-side.png" alt=""><div class="scrim"></div><div class="lbl">측면</div></div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="eyebrow">11월 23일 촬영 · 자연광 · 밝기 적정</div>
+    <div class="h1">밝은 웜 베이지 피부와<br>긴 타원형 얼굴이에요</div>
+    <p class="body">노란기가 살짝 도는 밝고 맑은 피부예요.<br>상체가 짧고 다리가 긴&nbsp;편이라 짧은 상의가 잘 어울려요.</p>
+  </div>
+
+  <div class="skin">
+    <div class="k">피부색<small>얼굴 세 곳에서 추출</small></div>
+    <div class="samples">
+      <div class="s"><i class="sw" style="background:#EBCFB9"></i>이마</div>
+      <div class="s"><i class="sw" style="background:#E6C1A8"></i>볼</div>
+      <div class="s"><i class="sw" style="background:#D8B399"></i>턱선</div>
+    </div>
+  </div>
+
+  <div class="rows-wrap">
+    <div class="h2">관찰한 특징</div>
+    <div class="rows">
+      <div class="row"><span class="k">피부 톤</span><span class="v">노란기 우세 · 맑은 결</span><span></span></div>
+      <div class="row"><span class="k">얼굴형</span><span class="v">긴 타원형 · 곧은 턱선</span><span></span></div>
+      <div class="row"><span class="k">이목구비</span><span class="v">곧은 눈썹 · 또렷한 눈매</span><span></span></div>
+      <div class="row"><span class="k">헤어</span><span class="v">가르마를 살린 미디엄 레이어</span><span></span></div>
+      <div class="row"><span class="k">전신 비율</span><span class="v">상체가 짧고 다리가 긴 편</span><span></span></div>
+      <div class="row"><span class="k">코디</span><span class="v">차콜 재킷 · 스트레이트 데님</span><span></span></div>
+      <div class="row"><span class="k">액세서리</span><span class="v">작은 실버 이어링</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="actions btn-row">
+    <div class="btn fill">퍼스널컬러 보기</div>
+    <div class="btn line">추구미 찾기</div>
+  </div>
+  <div class="pad-nav"></div>
+  <div class="nav-wrap"><div class="nav"><div class="tab on" aria-label="내 분석"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5V6a2 2 0 012-2h2.5M15.5 4H18a2 2 0 012 2v2.5M20 15.5V18a2 2 0 01-2 2h-2.5M8.5 20H6a2 2 0 01-2-2v-2.5"/><circle cx="12" cy="11" r="2.6"/><path d="M8 17c.8-1.7 2.3-2.6 4-2.6s3.2.9 4 2.6"/></svg><span>내 분석</span></div><div class="tab" aria-label="퍼스널컬러"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="12" r="5.2"/><circle cx="15" cy="12" r="5.2"/></svg><span>퍼스널컬러</span></div><div class="tab" aria-label="추구미"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span>추구미</span></div><div class="tab" aria-label="내 기록"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M10 9.5V20"/></svg><span>내 기록</span></div></div></div><div class="home-ind"></div>
+</div><script>window.addEventListener("load",()=>document.fonts.ready.then(()=>{document.title="H"+Math.ceil(document.querySelector(".screen").getBoundingClientRect().height)}))</script></body></html>

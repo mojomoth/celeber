@@ -1,0 +1,323 @@
+/* 허브 전용 스타일. 값은 @celeber/ui 토큰(--cb-*)만 쓴다. */
+
+/* ---------------------------------------------------------------- 01 랜딩 */
+.hub-landing {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--cb-camera-bg);
+  color: var(--cb-ivory);
+}
+.hub-landing__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hub-landing__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(29, 27, 35, 0.62) 0%, rgba(29, 27, 35, 0.18) 38%, rgba(29, 27, 35, 0.12) 62%, rgba(29, 27, 35, 0.66) 100%);
+}
+.hub-landing__drape {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 62%;
+  opacity: 0.9;
+}
+.hub-landing__inner {
+  position: relative;
+  z-index: 1;
+  max-width: var(--cb-page-max);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: calc(96px + env(safe-area-inset-top)) var(--cb-gutter) calc(var(--cb-s6) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hub-landing__logo {
+  width: 184px;
+  height: auto;
+}
+.hub-landing__tagline {
+  margin: var(--cb-s4) 0 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--cb-ivory);
+  opacity: 0.88;
+}
+.hub-landing__spacer {
+  flex: 1;
+}
+.hub-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: var(--cb-button-h);
+  border-radius: var(--cb-radius-card);
+  background: var(--cb-ivory);
+  color: var(--cb-ink);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.hub-start svg {
+  position: absolute;
+  right: var(--cb-s4);
+}
+.hub-start:focus-visible {
+  outline: 2px solid var(--cb-iris);
+  outline-offset: 3px;
+}
+.hub-landing__note {
+  margin: var(--cb-s3) 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--cb-camera-text);
+}
+
+/* ---------------------------------------------------------------- 허브 본문 */
+.hub-page {
+  padding-top: var(--cb-s6);
+  padding-bottom: calc(var(--cb-s6) * 2);
+}
+.hub-anchor {
+  position: relative;
+  top: calc(-1 * var(--cb-s4));
+}
+.hub-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-all;
+}
+.hub-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--cb-paper);
+}
+.hub-foot {
+  margin-top: var(--cb-s6);
+}
+
+.hub-modes {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--cb-line);
+  margin: var(--cb-s3) 0 var(--cb-s2);
+}
+.hub-mode {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: var(--cb-s2);
+  row-gap: 2px;
+  align-items: center;
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+}
+.hub-mode__icon {
+  grid-row: 1 / span 2;
+  color: var(--cb-text-2);
+  display: flex;
+}
+.hub-mode__label {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 650;
+}
+.hub-pill {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 650;
+}
+.hub-pill--ok {
+  background: var(--cb-ok-bg);
+  color: var(--cb-ok);
+}
+.hub-pill--demo {
+  background: var(--cb-lime);
+  color: var(--cb-ink);
+}
+.hub-pill--off {
+  background: var(--cb-paper);
+  color: var(--cb-text-2);
+}
+
+.hub-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cb-s2);
+  margin: var(--cb-s3) 0;
+}
+.hub-count {
+  display: flex;
+  flex-direction: column;
+  padding: var(--cb-s2);
+  border-radius: 12px;
+  background: var(--cb-paper);
+  min-width: 0;
+}
+.hub-count__n {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hub-flow {
+  display: block;
+  margin: var(--cb-s3) 0;
+}
+.hub-flow a:focus-visible rect {
+  stroke: var(--cb-iris);
+  stroke-width: 2.5;
+}
+
+/* ---------------------------------------------------------------- PoC 카드 */
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-s3);
+  padding: var(--cb-s4);
+  border: 1px solid var(--cb-line);
+  border-radius: var(--cb-radius-card);
+  background: var(--cb-card);
+}
+.hub-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s3);
+}
+.hub-card__title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.hub-card__path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hub-card__title h3 {
+  margin: 0;
+}
+.hub-card .cb-body {
+  margin: 0;
+}
+.hub-meta {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 4px var(--cb-s2);
+  margin: 0;
+  font-size: 13px;
+  line-height: 19px;
+}
+.hub-meta dt {
+  color: var(--cb-text-2);
+}
+.hub-meta dd {
+  margin: 0;
+  min-width: 0;
+}
+.hub-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-s2);
+}
+.hub-link-off {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--cb-s3);
+  border-radius: 10px;
+  border: 1px dashed var(--cb-line);
+  color: var(--cb-text-2);
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- 토큰 */
+.hub-colors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cb-s3) var(--cb-s4);
+}
+.hub-color {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  column-gap: var(--cb-s2);
+  align-items: center;
+  min-width: 0;
+}
+.hub-color__chip {
+  grid-row: 1 / span 3;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(37, 34, 43, 0.14);
+}
+.hub-color__name {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 18px;
+}
+.hub-type {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-s3);
+}
+.hub-type__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--cb-s3);
+  border-bottom: 1px solid var(--cb-line);
+}
+.hub-type__row > :last-child {
+  margin: 0;
+}
+.hub-space {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-s2);
+}
+.hub-space__row {
+  display: grid;
+  grid-template-columns: 32px auto 1fr;
+  align-items: center;
+  gap: var(--cb-s2);
+}
+.hub-space__bar {
+  height: 10px;
+  border-radius: 3px;
+  background: var(--cb-iris);
+}
+.hub-swatches {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--cb-s2);
+  justify-items: center;
+}
+.hub-gauge-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: var(--cb-s4);
+  align-items: center;
+}

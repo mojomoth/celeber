@@ -1,0 +1,36 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# 로컬 데이터 (SQLite, 업로드, 이미지 캐시)
+pocs/.data/
+
+# 환경변수 (키는 커밋 금지)
+.env
+.env.*
+!.env.example
+
+# 각 앱 public/에 동기화되는 에셋 (원본: pocs/ui/static)
+pocs/*/public/mediapipe/
+pocs/*/public/bi/
+
+.DS_Store
+*.log
+
+# 로컬 도구·배포 설정
+.claude/settings.local.json
+.vercel/
+.turbo/
+test-results/
+playwright-report/
+
+# MediaPipe 원본 (pnpm fetch:models로 다시 받음, 약 86MB)
+pocs/ui/static/mediapipe/
+
+# 검증 스크린샷은 로컬에만 둔다 (약 245MB). 텍스트 로그는 커밋한다
+docs/dev-v1/logs/**/*.png
+!docs/dev-v1/logs/**/*.log

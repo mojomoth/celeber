@@ -1,0 +1,38 @@
+{
+  "name": "@celeber/celeb-vibe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CELEBER PoC · 추구미 추출: 사진 한 장에서 코디, 퍼스널컬러, 분위기를 추출합니다.",
+  "exports": {
+    "./flow": "./src/flow/index.ts",
+    "./components": "./src/components/index.ts",
+    "./lib": "./src/lib/index.ts",
+    "./server": "./src/server/index.ts",
+    "./routes": "./src/routes/index.ts"
+  },
+  "scripts": {
+    "predev": "node ../../scripts/sync-public.mjs .",
+    "dev": "next dev --port 3104",
+    "prebuild": "node ../../scripts/sync-public.mjs .",
+    "build": "next build",
+    "start": "next start --port 3104",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "@celeber/core": "workspace:*",
+    "@celeber/ui": "workspace:*",
+    "@mediapipe/tasks-vision": "1.2.3",
+    "@next/env": "16.4.6",
+    "clsx": "^2.1.1",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  }
+}

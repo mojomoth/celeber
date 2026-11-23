@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .sub { display: flex; justify-content: space-between; align-items: baseline; padding: 6px var(--gutter) 14px; }
+  .sub b { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+  .sub b em { font-style: normal; color: var(--muted); font-weight: 500; margin-left: 4px; }
+  .sub span { font-size: 13px; color: var(--muted); }
+  .lib .tile { height: 300px; }
+  .lib .tile img { object-position: 50% 12%; }
+  .lib .cta { height: 92px; padding-top: 18px; }
+  .lib .cta .go { display: flex; align-items: center; gap: 4px; }
+  .lib .cta svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .mine { padding: 10px var(--gutter) 0; }
+  .mine .h2 { margin-bottom: 14px; }
+  .pc { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; padding: 14px 14px 14px 14px; background: var(--paper); border-radius: 16px; }
+  .pc img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; }
+  .pc b { font-size: 16px; font-weight: 700; letter-spacing: -0.03em; }
+  .pc .meta { margin-top: 6px; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .pc .dots .sw-s { width: 16px; height: 16px; margin-left: -4px; box-shadow: 0 0 0 2px var(--paper); }
+  .pc .dots .sw-s:first-child { margin-left: 0; }
+  .pc svg, .rrow svg { width: 20px; height: 20px; stroke: var(--faint); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .list { margin-top: 10px; }
+  .rrow { display: grid; grid-template-columns: 1fr auto; align-items: center; min-height: 60px; border-bottom: 1px solid var(--line); }
+  .rrow b { font-size: 15px; font-weight: 500; letter-spacing: -0.02em; }
+  .rrow b small { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 400; color: var(--muted); }
+  .rrow.danger b { color: var(--danger); }
+  .rrow svg { margin-right: 14px; }
+  .pad-nav { height: 140px; }
+</style></head>
+<body><div class="screen">
+  <!--@status light-->
+  <div class="header">
+    <span></span>
+    <div class="t">내 기록</div>
+    <div class="icon-btn"><!--@i edit--></div>
+  </div>
+  <div class="sub"><b>찾은 추구미<em>4</em></b><span>최근 본 순</span></div>
+
+  <div class="grid2 lib">
+    <div>
+      <div class="tile"><img src="photos/lib-yuna.png" alt=""><div class="scrim"></div><div class="lbl">이윤아</div></div>
+      <div class="cta"><span class="go">가이드 보기<!--@i arrow--></span><span class="m">라벤더 블라우스 룩</span></div>
+    </div>
+    <div>
+      <div class="tile"><img src="photos/lib-seodo.png" alt=""><div class="scrim"></div><div class="lbl">한서도</div></div>
+      <div class="cta"><span class="go">가이드 보기<!--@i arrow--></span><span class="m">아이보리 니트 룩</span></div>
+    </div>
+    <div>
+      <div class="tile"><img src="photos/lib-doyoung.png" alt=""><div class="scrim"></div><div class="lbl">김도영</div></div>
+      <div class="cta"><span class="go">가이드 보기<!--@i arrow--></span><span class="m">네이비 테일러드 룩</span></div>
+    </div>
+    <div>
+      <div class="tile"><img src="photos/lib-ian.png" alt=""><div class="scrim"></div><div class="lbl">서이안</div></div>
+      <div class="cta"><span class="go">가이드 보기<!--@i arrow--></span><span class="m">더스티 블루 니트 룩</span></div>
+    </div>
+  </div>
+
+  <div class="mine">
+    <div class="h2">내 퍼스널컬러</div>
+    <div class="pc">
+      <img src="photos/u-drape-hero.png" alt="">
+      <div><b>봄 웜 브라이트</b>
+        <div class="meta"><span class="dots"><i class="sw-s" style="background:#DD7330"></i><i class="sw-s" style="background:#E2836F"></i><i class="sw-s" style="background:#F6C39C"></i><i class="sw-s" style="background:#1F8A8A"></i></span>11월 23일 진단</div>
+      </div>
+      <!--@i chev-->
+    </div>
+    <div class="list">
+      <div class="rrow"><b>내 분석 결과 다시 보기<small>정면 · 측면 · 전신 사진 3장</small></b><!--@i chev--></div>
+      <div class="rrow danger"><b>분석 정보 초기화<small>사진과 진단 결과를 모두 지워요</small></b><!--@i chev--></div>
+    </div>
+  </div>
+  <div class="pad-nav"></div>
+  <!--@nav 3-->
+</div></body></html>

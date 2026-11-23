@@ -1,0 +1,33 @@
+{
+  "name": "@celeber/hub",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CELEBER PoC 허브: 랜딩, 6개 PoC 링크와 선행관계, Mock/실제 모드 상태, 디자인 토큰 미리보기 (포트 3100)",
+  "exports": {
+    "./lib": "./src/index.ts"
+  },
+  "scripts": {
+    "predev": "node ../../scripts/sync-public.mjs .",
+    "dev": "next dev --port 3100",
+    "prebuild": "node ../../scripts/sync-public.mjs .",
+    "build": "next build",
+    "start": "next start --port 3100",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "@celeber/core": "workspace:*",
+    "@celeber/ui": "workspace:*",
+    "@next/env": "16.4.6",
+    "clsx": "^2.1.1",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  }
+}

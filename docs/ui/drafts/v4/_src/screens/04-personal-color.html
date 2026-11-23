@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  :root { --type: #DD7330; }
+  .hero { position: relative; height: 500px; overflow: hidden; background: var(--type); }
+  .hero img { position: absolute; left: 0; top: -40px; width: 390px; height: 585px; object-fit: cover; }
+  .hero .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 260px; background: linear-gradient(to bottom, rgba(221,115,48,0) 0%, var(--type) 52%); }
+  .hero .copy { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 54px; color: #fff; display: flex; align-items: flex-end; justify-content: space-between; }
+  .hero .big { font-size: 46px; font-weight: 800; letter-spacing: -0.055em; line-height: 1.0; }
+  .hero .en { margin-top: 10px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; opacity: .9; }
+  .hero .conf { text-align: right; font-size: 14px; font-weight: 600; opacity: .92; }
+  .hero .conf b { display: block; font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; }
+
+  .sheet { position: relative; margin-top: -28px; background: var(--paper); border-radius: 24px; padding: 26px var(--gutter) 34px; }
+  .sheet .head { display: flex; justify-content: space-between; align-items: baseline; }
+  .sheet .head b { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+  .sheet .head span { font-size: 12.5px; color: var(--muted); }
+  .swatches { margin-top: 18px; display: flex; justify-content: space-between; }
+  .swatches .s { display: flex; flex-direction: column; align-items: center; gap: 9px; font-size: 11.5px; color: var(--ink-2); font-weight: 500; }
+  .swatches .sw { width: 46px; height: 46px; }
+  .sliders { margin-top: 28px; display: grid; gap: 38px; }
+  .sl { position: relative; height: 34px; }
+  .sl .track { position: absolute; left: 0; right: 0; top: 16px; height: 3px; border-radius: 2px; background: #E6E2DC; }
+  .sl .fill { position: absolute; left: 0; top: 16px; height: 3px; border-radius: 2px; background: var(--ink); }
+  .sl .pill { position: absolute; top: 0; height: 34px; padding: 0 16px; border-radius: 17px; background: #fff; box-shadow: 0 2px 10px rgba(37,34,43,.10), 0 0 0 1px rgba(37,34,43,.04); display: flex; align-items: center; font-size: 13.5px; font-weight: 600; letter-spacing: -0.02em; transform: translateX(-50%); white-space: nowrap; }
+  .sl .ends { position: absolute; top: 40px; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+
+  .block { padding: 40px var(--gutter) 0; }
+  .block .body { margin-top: 10px; }
+  .tags { margin-top: 14px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tags span { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--line-2); font-size: 13px; color: var(--ink-2); display: inline-flex; align-items: center; }
+
+  .split { margin-top: 18px; }
+  .split .lab { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+  .split .lab .c { color: var(--muted); font-weight: 500; }
+  .split .bar { margin-top: 10px; display: grid; grid-template-columns: 76fr 24fr; gap: 3px; height: 10px; }
+  .split .bar i:first-child { border-radius: 5px 0 0 5px; background: linear-gradient(to right, #F3C49B, #DD7330); }
+  .split .bar i:last-child { border-radius: 0 5px 5px 0; background: linear-gradient(to right, #A8A3C2, #7F8AA6); }
+
+  .drapes { margin-top: 22px; }
+  .drapes .tile { height: 226px; }
+  .drapes .tile img { object-position: 50% 0; }
+    .verdict { font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .verdict svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .good { color: var(--ok); } .bad { color: var(--danger); }
+  .drapes .cta { height: 98px; gap: 5px; }
+  .cn { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+  .cn .sw-s { width: 14px; height: 14px; }
+  .verdict { font-size: 13.5px; }
+
+  .guide { padding: 12px var(--gutter) 0; }
+    .guide .dots .sw-s { width: 20px; height: 20px; }
+  .actions { padding-top: 32px; }
+  .pad-nav { height: 132px; }
+</style></head>
+<body><div class="screen">
+  <!--@status light-->
+  <div class="header">
+    <span></span>
+    <div class="t">퍼스널컬러</div>
+    <div class="icon-btn"><!--@i share--></div>
+  </div>
+
+  <div class="hero">
+    <img src="photos/u-drape-hero.png" alt="">
+    <div class="fade"></div>
+    <div class="copy">
+      <div><div class="big">봄 웜<br>브라이트</div><div class="en">SPRING WARM BRIGHT</div></div>
+      <div class="conf">진단 신뢰도<b>87%</b></div>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="head"><b>추천 의상색</b><span>얼굴 가까이 둘수록 좋아요</span></div>
+    <div class="swatches">
+      <div class="s"><i class="sw sel" style="background:#DD7330"></i>탠저린</div>
+      <div class="s"><i class="sw" style="background:#E2836F"></i>코럴</div>
+      <div class="s"><i class="sw" style="background:#F6C39C"></i>피치</div>
+      <div class="s"><i class="sw" style="background:#1F8A8A"></i>웜 틸</div>
+      <div class="s"><i class="sw" style="background:#8DB38C"></i>세이지</div>
+      <div class="s"><i class="sw" style="background:#F1E4C8"></i>크림</div>
+    </div>
+    <div class="sliders">
+      <div class="sl"><div class="track"></div><div class="pill" style="left:70%">밝은 명도</div><div class="ends"><span>어두움</span><span>밝음</span></div></div>
+      <div class="sl"><div class="track"></div><div class="pill" style="left:64%">선명한 채도</div><div class="ends"><span>부드러움</span><span>선명함</span></div></div>
+      <div class="sl"><div class="track"></div><div class="pill" style="left:72%">또렷한 대비</div><div class="ends"><span>낮음</span><span>높음</span></div></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="h2">첫인상</div>
+    <p class="body">복숭앗빛 피부와 또렷한 눈매가 밝고 생기 있는 인상을 줘요. 선명한 웜 컬러를 얼굴 가까이 두면 혈색이 살아나요.</p>
+    <div class="tags"><span>생기</span><span>맑음</span><span>또렷함</span><span>친근함</span></div>
+  </div>
+
+  <div class="block">
+    <div class="h2">얼굴 주변 컬러 비교</div>
+    <div class="split">
+      <div class="lab"><span>웜톤 76%</span><span class="c">쿨톤 24%</span></div>
+      <div class="bar"><i></i><i></i></div>
+    </div>
+  </div>
+  <div class="grid2 drapes">
+    <div>
+      <div class="tile"><img src="photos/u-drape-coral.png" alt=""></div>
+      <div class="cta"><b class="cn"><i class="sw-s" style="background:#E2836F"></i>코럴</b><span class="verdict good"><!--@i check-->잘 어울려요</span><span class="m">혈색이 살아나요</span></div>
+    </div>
+    <div>
+      <div class="tile"><img src="photos/u-drape-peach.png" alt=""></div>
+      <div class="cta"><b class="cn"><i class="sw-s" style="background:#F6C39C"></i>피치</b><span class="verdict good"><!--@i check-->잘 어울려요</span><span class="m">피부가 맑아 보여요</span></div>
+    </div>
+    <div>
+      <div class="tile"><img src="photos/u-drape-lavender.png" alt=""></div>
+      <div class="cta"><b class="cn"><i class="sw-s" style="background:#968FA2"></i>라벤더 그레이</b><span class="verdict bad"><!--@i x-->피해 주세요</span><span class="m">안색이 창백해져요</span></div>
+    </div>
+    <div>
+      <div class="tile"><img src="photos/u-drape-ashblue.png" alt=""></div>
+      <div class="cta"><b class="cn"><i class="sw-s" style="background:#7C889F"></i>애시 블루</b><span class="verdict bad"><!--@i x-->피해 주세요</span><span class="m">피부가 칙칙해 보여요</span></div>
+    </div>
+  </div>
+
+  <div class="block" style="padding-top:20px">
+    <div class="h2">스타일 가이드</div>
+  </div>
+  <div class="guide">
+    <div class="rows">
+      <div class="row"><span class="k">옷 색상</span><span class="v">크림 · 피치 · 세이지</span><span class="dots"><i class="sw-s" style="background:#F1E4C8"></i><i class="sw-s" style="background:#F6C39C"></i><i class="sw-s" style="background:#8DB38C"></i></span></div>
+      <div class="row"><span class="k">포인트 컬러</span><span class="v">탠저린 · 웜 틸</span><span class="dots"><i class="sw-s" style="background:#DD7330"></i><i class="sw-s" style="background:#1F8A8A"></i></span></div>
+      <div class="row"><span class="k">액세서리</span><span class="v">샴페인 골드 · 따뜻한 진주</span><span class="dots"><i class="sw-s" style="background:linear-gradient(135deg,#F1DDB0,#C9A866)"></i><i class="sw-s" style="background:radial-gradient(circle at 35% 35%,#FFFDF6,#E9DCC8)"></i></span></div>
+      <div class="row"><span class="k">헤어 컬러</span><span class="v">허니 브라운 · 웜 초콜릿</span><span class="dots"><i class="sw-s" style="background:#8A5A33"></i><i class="sw-s" style="background:#4E3122"></i></span></div>
+      <div class="row"><span class="k">그루밍</span><span class="v">살구빛 립밤 · 브라운 눈썹</span><span></span></div>
+      <div class="row avoid"><span class="k">피할 스타일</span><span class="v">잿빛 모브 · 무거운 올블랙</span><span class="dots"><i class="sw-s" style="background:#8E8594"></i><i class="sw-s" style="background:#18171A"></i></span></div>
+    </div>
+  </div>
+
+  <div class="actions btn-row">
+    <div class="btn fill">추구미 찾기</div>
+    <div class="btn line">리포트 저장</div>
+  </div>
+  <div class="pad-nav"></div>
+  <!--@nav 1-->
+</div></body></html>

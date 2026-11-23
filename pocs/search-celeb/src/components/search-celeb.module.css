@@ -1,0 +1,320 @@
+/* search-celeb 전용 스타일. 색·간격은 @celeber/ui 토큰(--cb-*)만 사용 */
+
+.field {
+  position: relative;
+}
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s2);
+  height: 48px;
+  padding: 0 var(--cb-s2) 0 var(--cb-s3);
+  border-radius: 12px;
+  background: var(--cb-paper);
+  border: 1px solid transparent;
+  color: var(--cb-text-2);
+}
+.inputWrap:focus-within {
+  border-color: var(--cb-iris-deep);
+  background: var(--cb-card);
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 16px; /* iOS 확대 방지 */
+  color: var(--cb-ink);
+  outline: none;
+}
+.input::placeholder {
+  color: var(--cb-text-2);
+}
+/* 브라우저 기본 지우기 버튼(×)을 숨긴다. 앱의 .clear 버튼 하나만 보이게 */
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.clear {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cb-text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.suggest {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: var(--cb-s1) 0;
+  list-style: none;
+  background: var(--cb-card);
+  border: 1px solid var(--cb-line);
+  border-radius: 12px;
+  box-shadow: var(--cb-shadow);
+  max-height: 320px;
+  overflow: auto;
+}
+.suggestItem {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s3);
+  width: 100%;
+  min-height: var(--cb-touch);
+  padding: var(--cb-s2) var(--cb-s3);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: var(--cb-ink);
+  cursor: pointer;
+}
+.suggestItem[aria-selected='true'],
+.suggestItem:hover {
+  background: var(--cb-iris-soft);
+}
+
+.actions {
+  display: flex;
+  gap: var(--cb-s2);
+  margin-top: var(--cb-s3);
+}
+.actions > * {
+  flex: 1;
+}
+
+/* 인물 행 (Instagram 07 패턴: 사진 + 이름 + 설명 + 버튼) */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s3);
+  padding: var(--cb-s3) 0;
+  border-bottom: 1px solid var(--cb-line);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s3);
+}
+.rowText {
+  min-width: 0;
+  flex: 1;
+}
+.name {
+  font-size: var(--cb-fs-row);
+  line-height: var(--cb-lh-row);
+  font-weight: 700;
+  color: var(--cb-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sub {
+  font-size: var(--cb-fs-body);
+  line-height: 19px;
+  color: var(--cb-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.evidence {
+  margin-top: 2px;
+  font-size: var(--cb-fs-caption);
+  line-height: var(--cb-lh-caption);
+  color: var(--cb-text-2);
+}
+.tag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--cb-paper);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--cb-text-2);
+  vertical-align: 1px;
+}
+.tagIris {
+  background: var(--cb-iris-soft);
+  color: var(--cb-iris-deep);
+}
+
+.avatar {
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--cb-paper);
+  border: 1px solid var(--cb-line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cb-text-2);
+  font-weight: 700;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+
+/* 프로필 헤더 */
+.profile {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s4);
+}
+.profileName {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cb-s2);
+  margin: var(--cb-s3) 0 var(--cb-s2);
+  min-height: 32px;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--cb-touch);
+  font-size: var(--cb-fs-body);
+  color: var(--cb-ink);
+  cursor: pointer;
+}
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cb-iris-deep);
+}
+.linkBtn {
+  border: 0;
+  background: transparent;
+  padding: 0 var(--cb-s1);
+  min-height: var(--cb-touch);
+  font: inherit;
+  font-size: var(--cb-fs-body);
+  font-weight: 600;
+  color: var(--cb-iris-deep);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.linkBtn[disabled] {
+  color: var(--cb-text-2);
+  cursor: default;
+}
+.source {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--cb-text-2);
+  text-decoration: none;
+}
+a.source:hover {
+  text-decoration: underline;
+}
+.galleryArea {
+  position: relative;
+  min-height: 240px;
+}
+.skeleton {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+.skeleton > div {
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  background: var(--cb-paper);
+}
+
+/* 하단 고정 선택 바 */
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin: var(--cb-s5) calc(-1 * var(--cb-gutter)) 0;
+  padding: var(--cb-s3) var(--cb-gutter) calc(var(--cb-s3) + env(safe-area-inset-bottom));
+  background: var(--cb-ivory);
+  border-top: 1px solid var(--cb-line);
+  display: flex;
+  align-items: center;
+  gap: var(--cb-s3);
+}
+.footer > :last-child {
+  flex: 1;
+}
+.count {
+  font-size: var(--cb-fs-body);
+  color: var(--cb-text-2);
+  white-space: nowrap;
+}
+
+.photoRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: var(--cb-s4);
+  align-items: start;
+}
+.policy {
+  font-size: var(--cb-fs-caption);
+  line-height: var(--cb-lh-caption);
+  color: var(--cb-text-2);
+}
+.texts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.selectedStrip {
+  display: flex;
+  gap: var(--cb-s2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.selectedStrip img {
+  width: 72px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 8px;
+  flex: none;
+}

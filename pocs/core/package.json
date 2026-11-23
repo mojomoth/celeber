@@ -1,0 +1,37 @@
+{
+  "name": "@celeber/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CELEBER 공용 로직: 계약(zod), 색 과학, 퍼스널컬러 분류기, 서버 전용(SQLite/AI/검색/업로드)",
+  "exports": {
+    ".": "./src/index.ts",
+    "./contracts": "./src/contracts/index.ts",
+    "./color": "./src/color/index.ts",
+    "./personal-color": "./src/personal-color/index.ts",
+    "./face": "./src/face/index.ts",
+    "./mock": "./src/mock/index.ts",
+    "./server": "./src/server/index.ts",
+    "./server/env": "./src/server/env.ts",
+    "./server/db": "./src/server/db.ts",
+    "./server/uploads": "./src/server/uploads.ts",
+    "./server/ai": "./src/server/ai.ts",
+    "./server/search": "./src/server/search/index.ts",
+    "./server/fetch-image": "./src/server/fetch-image.ts",
+    "./server/http": "./src/server/http.ts",
+    "./server/access": "./src/server/access.ts",
+    "./server/public-image": "./src/server/public-image.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  }
+}

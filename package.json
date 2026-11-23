@@ -1,0 +1,44 @@
+{
+  "name": "celeber-pocs",
+  "private": true,
+  "version": "0.0.0",
+  "description": "CELEBER 기능 PoC 모노레포 (pnpm workspace)",
+  "packageManager": "pnpm@11.6.0",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "dev:hub": "pnpm --filter @celeber/hub dev",
+    "dev:camera-face": "pnpm --filter @celeber/camera-face dev",
+    "dev:camera-body": "pnpm --filter @celeber/camera-body dev",
+    "dev:search-celeb": "pnpm --filter @celeber/search-celeb dev",
+    "dev:celeb-vibe": "pnpm --filter @celeber/celeb-vibe dev",
+    "dev:personal-color-report": "pnpm --filter @celeber/personal-color-report dev",
+    "dev:celeb-vibe-report": "pnpm --filter @celeber/celeb-vibe-report dev",
+    "build:all": "pnpm -r --workspace-concurrency=1 --filter \"./pocs/*\" --filter \"!@celeber/core\" --filter \"!@celeber/ui\" build",
+    "sync:public": "node scripts/sync-public.mjs --all",
+    "fetch:models": "node scripts/fetch-mediapipe-models.mjs",
+    "test": "pnpm -r --if-present test",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "dev:all": "pnpm -r --parallel --filter \"./pocs/*\" --filter \"!@celeber/core\" --filter \"!@celeber/ui\" dev",
+    "start:all": "pnpm -r --parallel --filter \"./pocs/*\" --filter \"!@celeber/core\" --filter \"!@celeber/ui\" start",
+    "smoke": "node scripts/smoke.mjs",
+    "reset:data": "node scripts/reset-data.mjs"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.6",
+    "jsdom": "^31.0.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.73.0",
+    "vite": "^8.0.0",
+    "vitest": "^5.1.1"
+  }
+}

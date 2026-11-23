@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .hero { grid-template-columns: 1fr 1fr; column-gap: 2px; height: 452px; }
+  .hero .stack { display: grid; grid-template-rows: 1fr 1fr; row-gap: 2px; }
+  .t-full { background: #D6D5D5; }
+  .t-full img { height: 418px; object-position: 50% 0; }
+  .t-front img { object-position: 50% 14%; }
+  .t-side img { object-position: 40% 18%; }
+  .summary { padding: 28px var(--gutter) 0; }
+  .summary .h1 { margin-top: 10px; }
+  .summary .body { margin-top: 12px; }
+  .skin { margin: 28px var(--gutter) 0; padding: 18px 18px 16px; background: var(--paper); border-radius: 16px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 18px; }
+  .skin .k { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .skin .k small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+  .skin .samples { display: flex; justify-content: flex-end; gap: 14px; }
+  .skin .s { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .rows-wrap { padding: 26px var(--gutter) 0; }
+  .rows-wrap .h2 { margin-bottom: 12px; }
+  .actions { padding-top: 32px; }
+  .pad-nav { height: 132px; }
+</style></head>
+<body><div class="screen">
+  <!--@status light-->
+  <div class="header">
+    <span></span>
+    <div class="t">내 분석</div>
+    <div class="icon-btn"><!--@i share--></div>
+  </div>
+
+  <div class="grid2 hero">
+    <div class="tile t-full"><img src="photos/u-full.png" alt=""><div class="scrim"></div><div class="lbl">전신</div></div>
+    <div class="stack">
+      <div class="tile t-front"><img src="photos/u-front.png" alt=""><div class="scrim"></div><div class="lbl">정면</div></div>
+      <div class="tile t-side"><img src="photos/u-side.png" alt=""><div class="scrim"></div><div class="lbl">측면</div></div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="eyebrow">11월 23일 촬영 · 자연광 · 밝기 적정</div>
+    <div class="h1">밝은 웜 베이지 피부와<br>긴 타원형 얼굴이에요</div>
+    <p class="body">노란기가 살짝 도는 밝고 맑은 피부예요.<br>상체가 짧고 다리가 긴&nbsp;편이라 짧은 상의가 잘 어울려요.</p>
+  </div>
+
+  <div class="skin">
+    <div class="k">피부색<small>얼굴 세 곳에서 추출</small></div>
+    <div class="samples">
+      <div class="s"><i class="sw" style="background:#EBCFB9"></i>이마</div>
+      <div class="s"><i class="sw" style="background:#E6C1A8"></i>볼</div>
+      <div class="s"><i class="sw" style="background:#D8B399"></i>턱선</div>
+    </div>
+  </div>
+
+  <div class="rows-wrap">
+    <div class="h2">관찰한 특징</div>
+    <div class="rows">
+      <div class="row"><span class="k">피부 톤</span><span class="v">노란기 우세 · 맑은 결</span><span></span></div>
+      <div class="row"><span class="k">얼굴형</span><span class="v">긴 타원형 · 곧은 턱선</span><span></span></div>
+      <div class="row"><span class="k">이목구비</span><span class="v">곧은 눈썹 · 또렷한 눈매</span><span></span></div>
+      <div class="row"><span class="k">헤어</span><span class="v">가르마를 살린 미디엄 레이어</span><span></span></div>
+      <div class="row"><span class="k">전신 비율</span><span class="v">상체가 짧고 다리가 긴 편</span><span></span></div>
+      <div class="row"><span class="k">코디</span><span class="v">차콜 재킷 · 스트레이트 데님</span><span></span></div>
+      <div class="row"><span class="k">액세서리</span><span class="v">작은 실버 이어링</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="actions btn-row">
+    <div class="btn fill">퍼스널컬러 보기</div>
+    <div class="btn line">추구미 찾기</div>
+  </div>
+  <div class="pad-nav"></div>
+  <!--@nav 0-->
+</div></body></html>

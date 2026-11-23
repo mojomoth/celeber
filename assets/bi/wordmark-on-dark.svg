@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 0 404 73">
+  <title>CELEBER</title>
+  <g color="#FFFDF8" fill="#FFFDF8" aria-label="CELEBER">
+    <g transform="translate(0 0)">
+      <path d="M51 16C42 7 25 6 16 17C8 27 8 45 16 55C25 66 42 65 51 56" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+    <g transform="translate(63 0)">
+      <path d="M43 11H12V61H43 M13 35H37" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+    <g transform="translate(118 0)">
+      <path d="M12 11V61H44" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+    <g transform="translate(173 0)">
+      <path d="M43 11H12V61H43 M13 35H37" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+    <g transform="translate(228 0)">
+      <path d="M12 61V11H32C51 11 52 35 32 35H12 M32 35H34C54 35 55 61 34 61H12" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+    <g transform="translate(289 0)">
+      <path d="M43 11H12V61H43 M13 35H37" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+    <g transform="translate(344 0)">
+      <path d="M12 61V11H32C53 11 54 37 32 37H12 M31 37L48 61" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

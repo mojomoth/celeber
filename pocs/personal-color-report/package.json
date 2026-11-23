@@ -1,0 +1,40 @@
+{
+  "name": "@celeber/personal-color-report",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CELEBER PoC · 퍼스널컬러 리포트: 얼굴과 전신(선택) 분석으로 퍼스널컬러 리포트를 만듭니다.",
+  "exports": {
+    "./flow": "./src/flow/index.ts",
+    "./components": "./src/components/index.ts",
+    "./lib": "./src/lib/index.ts",
+    "./server": "./src/server/index.ts",
+    "./routes": "./src/routes/index.ts"
+  },
+  "scripts": {
+    "predev": "node ../../scripts/sync-public.mjs .",
+    "dev": "next dev --port 3105",
+    "prebuild": "node ../../scripts/sync-public.mjs .",
+    "build": "next build",
+    "start": "next start --port 3105",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "@celeber/core": "workspace:*",
+    "@celeber/ui": "workspace:*",
+    "@celeber/camera-face": "workspace:*",
+    "@celeber/camera-body": "workspace:*",
+    "@mediapipe/tasks-vision": "1.2.3",
+    "@next/env": "16.4.6",
+    "clsx": "^2.1.1",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  }
+}
