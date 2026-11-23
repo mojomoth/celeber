@@ -9,7 +9,7 @@ import { createCelebApi, withBase } from '../lib/api';
 import type { CandidateItem } from '../lib/types';
 import { CelebAvatar } from './CelebAvatar';
 import s from './search-celeb.module.css';
-import { suggestKeyDown } from './suggest-keys';
+import { suggestKeyDown, suggestSubtitle } from './suggest-keys';
 
 export interface CelebSearchBoxProps {
   apiBase?: string;
@@ -145,7 +145,7 @@ export function CelebSearchBox({ apiBase = '', onSearch, onPickSuggestion, onPho
                       {it.name}
                     </span>
                     <span className={s.sub} style={{ display: 'block', fontSize: 12 }}>
-                      {it.saved ? '저장한 인물' : it.celebId ? '찾아본 인물' : it.description ?? ''}
+                      {suggestSubtitle(it)}
                     </span>
                   </span>
                 </button>

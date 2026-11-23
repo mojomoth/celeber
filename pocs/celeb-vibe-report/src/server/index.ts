@@ -21,6 +21,7 @@ import {
   buildRuleGuide,
   draftToAi,
   mergeAiGuide,
+  promptColorNames,
   sortGuides,
   summarizeGuide,
 } from '../lib';
@@ -101,7 +102,7 @@ export async function generateVibeGuide(input: GenerateGuideInput): Promise<Gene
     });
     aiSource = r.source === 'ai' ? 'ai' : 'mock';
     warning = r.warning ? shortWarning(r.warning) : undefined;
-    if (r.source === 'ai') merged = mergeAiGuide(draft, r.data);
+    if (r.source === 'ai') merged = mergeAiGuide(draft, r.data, promptColorNames(ctx, draft));
   }
 
   const existing = input.replaceId ? getGuide(input.replaceId) : null;

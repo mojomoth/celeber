@@ -80,7 +80,8 @@ export function withoutPersonMeasurements(v: VibeAnalysis): VibeAnalysis {
   const pc = v.personalColor;
   return {
     ...v,
-    outfit: { ...v.outfit, items: [] },
+    // 실루엣도 사람에서 본 값이 아니다 (코디 가이드에 '연예인 룩: I라인…'이 남지 않게)
+    outfit: { ...v.outfit, items: [], silhouette: '' },
     personalColor: { ...pc, hair: undefined, eyes: undefined, axes: undefined, measured: false, confidence: Math.min(pc.confidence, 0.1) },
     palette: { ...v.palette, sub: v.palette.sub.filter(notLip), accent: v.palette.accent.filter(notLip) },
     body: undefined,

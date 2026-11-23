@@ -208,6 +208,8 @@ export function PersonalColorReportView({ report: r, warning, onGenderChange, ge
               <span style={{ textAlign: 'right' }}>{Math.round(v * 100)}%</span>
             </div>
           ))}
+          {/* 막대 %를 판정 신뢰도로 읽지 않도록 (재촬영 권장 45% 옆에 85%가 나란히 보이는 문제) */}
+          <p className="pcr-scores__note">12톤 사이의 상대 적합도입니다. 촬영 조건까지 반영한 판정 신뢰도는 {r.confidence.score}%입니다.</p>
         </div>
         {r.aiOpinion ? (
           <div className="pcr-tip">

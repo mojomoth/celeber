@@ -15,7 +15,7 @@ import { callTextStructured, callVisionStructured } from '@celeber/core/server/a
 import { getCapabilities } from '@celeber/core/server/env';
 import { reverseImageSearch } from '@celeber/core/server/search';
 import { getUpload, toImageRef } from '@celeber/core/server/uploads';
-import { extractNameCandidates, photoTextCandidates } from '../lib/candidates';
+import { extractNameCandidates, photoTextCandidates, uniqueTexts } from '../lib/candidates';
 import { mergeCandidates } from '../lib/names';
 import type { IdentifyResponse, PhotoFraming } from '../lib/types';
 import { attachCelebIds } from './celebs';
@@ -138,7 +138,7 @@ export async function identifyFromPhoto(uploadId: string): Promise<IdentifyRespo
       knowledgeGraphCount: reverse.knowledgeGraph.length,
       visualMatchCount: reverse.visualMatches.length,
     },
-    photoText: { texts: photo.source === 'ai' ? photo.data.visibleTexts.slice(0, 15) : [], origin: photo.source === 'ai' ? 'ai' : 'mock', warning: shortWarning(photo.warning) },
+    photoText: { texts: photo.source === 'ai' ? uniqueTexts(photo.data.visibleTexts) : [], origin: photo.source === 'ai' ? 'ai' : 'mock', warning: shortWarning(photo.warning) },
     photoCheck: {
       framing,
       personCount: photo.source === 'ai' && photo.data.personCount >= 0 ? photo.data.personCount : null,

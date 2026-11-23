@@ -285,8 +285,8 @@ export function hasVividColor(colors: { hex: string }[]): boolean {
 
 /** 같은 주의를 다른 말로 쓴 항목을 한 묶음으로 본다 (규칙·AI 병합에서 앞의 항목만 남긴다) */
 const DO_NOT_COPY_GROUPS: [string, RegExp][] = [
-  ['vivid', /원색/],
-  ['retouch', /보정|필터/],
+  ['vivid', /원색|고채도|비비드|쨍한/],
+  ['retouch', /보정|필터|편집|사진\s*(의\s*)?색감/],
   ['contrast', /명도\s*대비|강한\s*대비|블랙\s*[×x]\s*화이트/],
 ];
 export function doNotCopyKey(element: string): string {

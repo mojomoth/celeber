@@ -1,5 +1,6 @@
 // 서버 전용 함수 (DB/AI). "@celeber/camera-face/server"
 // 저장 이미지(uploads)를 sharp로 다시 읽어 분석하므로, 클라이언트가 보낸 값은 랜드마크/마스크/품질 스냅샷뿐이다.
+// 자세(yaw 등)와 품질 issues는 verifyCapture로 저장 픽셀 기준 재판정한 값을 쓴다.
 import 'server-only';
 import { z } from 'zod';
 import type { EnvironmentAnalysis, FaceAiDescription, FaceAnalysis, FaceSession } from '@celeber/core/contracts';
@@ -22,6 +23,7 @@ import {
   runFaceAnalysis,
   sessionLabel,
   summarizeSession,
+  verifyCapture,
   withAiDescription,
 } from '../lib';
 
@@ -213,10 +215,7 @@ export async function analyzeFaceCapture(req: AnalyzeRequest): Promise<AnalyzeRe
       image: toImageRef(sideRec),
       capturedAt: req.side.capturedAt ?? now,
       landmarks: req.side.landmarks,
-      yawDeg: req.side.yawDeg,
-      pitchDeg: req.side.pitchDeg,
-      rollDeg: req.side.rollDeg,
-      quality: req.side.quality,
+      ...verifyCapture('side', req.side, sidePx),
       fromUpload: req.side.fromUpload,
       mask: decodeMask(req.side.mask),
       pixels: sidePx,
@@ -233,10 +232,7 @@ export async function analyzeFaceCapture(req: AnalyzeRequest): Promise<AnalyzeRe
         image: toImageRef(frontRec),
         capturedAt: req.front.capturedAt ?? now,
         landmarks: req.front.landmarks,
-        yawDeg: req.front.yawDeg,
-        pitchDeg: req.front.pitchDeg,
-        rollDeg: req.front.rollDeg,
-        quality: req.front.quality,
+        ...verifyCapture('front', req.front, frontPx),
         fromUpload: req.front.fromUpload,
         mask: decodeMask(req.front.mask),
         pixels: frontPx,

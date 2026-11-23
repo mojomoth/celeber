@@ -99,6 +99,7 @@ export const HEAD_NEAR_EDGE_ISSUE = issue('head-near-edge', '머리가 사진 �
 export const BODY_CROPPED_SIDE_ISSUE = issue('body-cropped-side', '몸 한쪽이 사진 옆 경계에서 잘려 어깨·골반 폭을 잴 수 없습니다. 몸 양옆에 여백을 두고 찍어 주세요.', 'error');
 export const PHOTO_ROTATED_ISSUE = issue('photo-rotated', '사진이 옆으로 누워 있습니다. 사람이 똑바로 서 보이게 사진을 세워서 올려 주세요.', 'error');
 export const CAMERA_TILTED_ISSUE = issue('camera-tilted', '사진이 기울어 있어 비율을 잴 수 없습니다. 카메라를 수평으로 들고 다시 찍어 주세요.', 'error');
+export const NOT_STANDING_ISSUE = issue('not-standing', '앉아 있거나 무릎을 크게 굽힌 자세입니다. 선 자세로 찍어 주세요.', 'error');
 export const HEAD_TOP_UNCERTAIN_ISSUE = issue('head-top-uncertain', '모자나 머리 모양 때문에 정수리 위치가 정확하지 않을 수 있습니다. 모자를 벗고 찍으면 등신이 더 정확합니다.');
 /** 이 사유가 있으면 자세·폭 판정은 잘린 사진에서 나온 값이므로 보여 주지 않는다 */
 export const FRAMING_FAILURE_CODES = ['head-cropped', 'body-cropped-side', 'photo-rotated', 'camera-tilted'] as const;
@@ -137,6 +138,34 @@ export const HEADS_TALL_RANGE: [number, number] = [3.5, 10];
 export const SHOULDER_TO_HEIGHT_MIN = 0.1;
 /** 허벅지/정강이 비가 이보다 크면 발목 점이 정강이 위로 올라온 것으로 본다 (정상 사진 0.85~1.1) */
 export const THIGH_SHIN_MAX = 1.3;
+/** 허벅지/정강이 비가 이보다 작으면 앉아서 허벅지가 카메라 쪽으로 짧아진 것으로 본다
+ *  (선 사진 0.99~1.19, 정면에서 앉은 사진 0.17~0.46: 무릎 각도만으로는 못 잡는다) */
+export const THIGH_SHIN_MIN = 0.7;
+
+/** 사람 몸에서 나올 수 있는 비율 범위. 측정 단계와 서버 저장 검사가 같은 값을 쓴다(벗어나면 측정 실패, 서버는 400) */
+export const RATIO_BOUNDS: Record<string, [number, number]> = {
+  // HEADS_TALL_RANGE, SHOULDER_TO_HEIGHT_MIN과 같은 값. 머리 없는 사진의 가짜 머리(10.5등신, 어깨/키 0.07)를 막는다
+  headsTall: [3.5, 10],
+  headToHeight: [0.07, 0.34],
+  upperToLower: [0.3, 3],
+  legToHeight: [0.2, 0.85],
+  shoulderToHip: [0.4, 3],
+  waistToHip: [0.3, 2.5],
+  shoulderToHeight: [0.1, 0.6],
+  armToHeight: [0.15, 0.8],
+  thighToShin: [0.3, 3],
+};
+
+/** RATIO_BOUNDS를 벗어난 첫 비율 키 (없으면 null). 유한하지 않거나 0 이하인 값도 벗어난 것으로 본다 */
+export function ratioOutOfBounds(ratios: Partial<Record<string, number | undefined>> | undefined): string | null {
+  if (!ratios) return null;
+  for (const [key, v] of Object.entries(ratios)) {
+    if (v === undefined) continue;
+    const b = RATIO_BOUNDS[key];
+    if (!Number.isFinite(v) || v <= 0 || (b && (v < b[0] || v > b[1]))) return key;
+  }
+  return null;
+}
 /** 마스크 발끝이 관절점 발바닥보다 키의 이 비율 넘게 아래면 발 관절점을 믿지 않는다 */
 export const SOLE_MASK_GAP_MAX = 0.05;
 
@@ -151,16 +180,21 @@ export const HEAD_EYE_FLOOR = 0.9;
 export const HEAD_FACE_EYE_FLOOR = 0.95;
 /** 헤어 윤곽(마스크 머리끝)에서 정수리까지 내리는 머리카락 두께. 머리 길이(눈~턱 × 2) 대비 비율 */
 export const HAIR_ALLOWANCE = 0.1;
-/** 헤어 윤곽으로 올린 머리 길이의 상한(눈~턱 × 2 대비). 높은 모자·올림머리가 머리로 잡히지 않게 한다 */
-export const HEAD_EYE_MAX = 1.15;
+/** 헤어 윤곽으로 올린 머리 길이의 상한(눈~턱 × 2 대비). 높은 모자·올림머리가 머리로 잡히지 않게 한다
+ *  (모자 없는 사진 0.95~1.0, 선바이저 사진 1.07. 1.15면 폼폼 비니·올림머리 정수리가 폼폼·상투 속에 잡혀 6.4~6.6등신) */
+export const HEAD_EYE_MAX = 1.05;
 /** 헤어 윤곽 보정으로 정수리를 머리 길이의 이 비율 넘게 올렸으면 '정수리 불확실' 경고 (선바이저 사진 0.12~0.15, 모자 없는 사진 0.05) */
 export const HEAD_TOP_UNCERTAIN = 0.08;
 /** 머리 마스크가 첫 행에 닿을 때 그 행의 사람 구간이 머리 띠 폭의 이 비율 이상이면 머리 중간이 잘린 것 (위 30·45px 제거본 1.2~1.3, 머리끝만 닿은 사진 0.06~0.35) */
 export const HEAD_CUT_COVER = 0.5;
 /** 몸통(어깨 중점→골반 중점)이 수직에서 이보다 기울면 사진이 옆으로 누운 것으로 본다 */
 export const ROTATED_LEAN_MIN = 45;
-/** 어깨·골반 기울기와 몸통 기울기가 모두 같은 방향으로 이 각도 이상이면 사람이 아니라 카메라가 기운 것으로 본다 */
+/** 어깨·골반·몸통 기울기가 모두 같은 방향이고 공통 기울기(cameraTiltDeg)가 이 각도 이상이면 사람이 아니라 카메라가 기운 것으로 본다 */
 export const CAMERA_TILT_MIN = 3;
+/** 공통 기울기를 볼 때 세 기울기 각각의 최소 크기 (수평에 가까운 선의 부호는 의미가 없다) */
+const CAMERA_TILT_EACH_MIN = 1;
+/** 카메라 기울기가 이보다 크면 비율을 내지 않는다 (±12° 돌린 사진 공통 기울기 11~12°, ±8° 사진 8°) */
+export const CAMERA_TILT_MAX = 10;
 /** 정규화 x가 이 범위를 벗어난 어깨·골반·발 점은 사진 옆으로 잘린 것으로 본다 */
 const SIDE_EDGE_TOL = 0.005;
 /** 머리 마스크가 위 경계에 닿고 추정 정수리가 사진 위쪽 이 비율 안이면 '경계에 붙음' 경고 */
@@ -268,12 +302,22 @@ export function detectFeetCropped(L: Landmark3[], maskBottomTouchesEdge = false)
 }
 
 /**
- * 카메라 기울기 판정 (순수 함수). 어깨선·골반선 기울기와 몸통 기울기가 모두 같은 방향으로 CAMERA_TILT_MIN 이상이면 true.
+ * 카메라(사진) 공통 기울기 추정 (순수 함수): 어깨·골반 평균 기울기와 몸통 기울기의 평균.
+ * 어깨·골반 기울기에는 그 사람의 자세(한쪽 어깨가 처짐 등)가 섞여 있어, 어깨·골반만 보면 같은 각도로 돌린 사진도 방향에 따라 값이 달랐다
+ * (look-b +12° 어깨 17°·골반 14°, −12° 어깨 10°·골반 9°). 몸통 기울기와 반반 섞으면 +12° 12.4°, −12° 11.1°.
+ */
+export function cameraTiltDeg(shoulderTiltDeg: number, hipTiltDeg: number, leanDeg: number): number {
+  return ((shoulderTiltDeg + hipTiltDeg) / 2 + leanDeg) / 2;
+}
+
+/**
+ * 카메라 기울기 판정 (순수 함수). 어깨선·골반선·몸통 기울기가 모두 같은 방향이고 공통 기울기가 CAMERA_TILT_MIN 이상이면 true.
  * 부호 규약: tiltDeg 양수 = 화면 오른쪽 점이 아래, leanFromVerticalDeg 양수 = 위쪽이 화면 오른쪽. 사진을 시계 방향으로 돌리면 셋 다 양수가 된다.
  */
 export function isCameraTilt(shoulderTiltDeg: number, hipTiltDeg: number, leanDeg: number): boolean {
   const t = [shoulderTiltDeg, hipTiltDeg, leanDeg];
-  return t.every((v) => Math.abs(v) >= CAMERA_TILT_MIN) && t.every((v) => Math.sign(v) === Math.sign(t[0]));
+  if (!t.every((v) => Math.abs(v) >= CAMERA_TILT_EACH_MIN && Math.sign(v) === Math.sign(t[0]))) return false;
+  return Math.abs(cameraTiltDeg(shoulderTiltDeg, hipTiltDeg, leanDeg)) >= CAMERA_TILT_MIN;
 }
 
 export interface PoseBox {
@@ -548,12 +592,13 @@ export function computeBodyAnalysisDetailed(input: BodyMeasureInput): BodyMeasur
   const postureWarnings: Issue[] = [];
   const tiltMax = Math.max(Math.abs(shoulderTiltDeg), Math.abs(hipTiltDeg));
   // 어깨·골반·몸통이 모두 같은 방향으로 기울면 자세가 아니라 카메라(사진)가 기운 것이다(실측: 12° 돌린 사진 어깨 17°·골반 14°·몸통 9°).
-  // 몸을 비틀거나 한쪽 다리에 기대 선 자세는 어깨와 골반이 반대로 기운다.
+  // 몸을 비틀거나 한쪽 다리에 기대 선 자세는 어깨와 골반이 반대로 기운다. 실패·경고는 공통 기울기로 판단한다(돌린 방향과 상관없이 같은 판정).
   const cameraTilt = torsoVisible && Math.abs(leanDeg) <= ROTATED_LEAN_MIN && isCameraTilt(shoulderTiltDeg, hipTiltDeg, leanDeg);
   if (cameraTilt) {
-    if (tiltMax > POSTURE_TILT_MAX) errors.push(CAMERA_TILTED_ISSUE);
+    const camDeg = Math.abs(cameraTiltDeg(shoulderTiltDeg, hipTiltDeg, leanDeg));
+    if (camDeg > CAMERA_TILT_MAX) errors.push(CAMERA_TILTED_ISSUE);
     else {
-      const deg = Math.round((Math.abs(shoulderTiltDeg) + Math.abs(hipTiltDeg) + Math.abs(leanDeg)) / 3);
+      const deg = Math.round(camDeg);
       warnings.push(issue('camera-tilt', `사진이 ${deg}° 정도 기울어 있어 비율이 조금 부정확할 수 있습니다. 카메라를 수평으로 들고 찍으면 더 정확합니다.`));
     }
   } else {
@@ -570,7 +615,7 @@ export function computeBodyAnalysisDetailed(input: BodyMeasureInput): BodyMeasur
   ].map(([a, b, c]) => jointAngleDeg(P(a), P(b), P(c)));
   const minKnee = Math.min(...kneeAngles);
   if (ankleOk && kneesOk) {
-    if (minKnee < 120) errors.push(issue('not-standing', '앉아 있거나 무릎을 크게 굽힌 자세입니다. 선 자세로 찍어 주세요.', 'error'));
+    if (minKnee < 120) errors.push(NOT_STANDING_ISSUE);
     else if (minKnee < 160) postureWarnings.push(issue('knee-bent', '무릎이 굽어 다리가 짧게 측정될 수 있습니다.'));
     // 정강이가 허벅지보다 한참 짧으면 발목 점이 정강이 중간에 찍힌 것이다(어두운 사진 실측 1.36, 정상 0.85~1.1)
     const thighShinMean = (dist(lHip, lKnee) / Math.max(1, dist(lKnee, lAnk)) + dist(rHip, rKnee) / Math.max(1, dist(rKnee, rAnk))) / 2;
@@ -578,6 +623,8 @@ export function computeBodyAnalysisDetailed(input: BodyMeasureInput): BodyMeasur
       errors.push(dark ? FEET_UNCERTAIN_DARK_ISSUE : FEET_UNCERTAIN_ISSUE);
       soleY = null;
     }
+    // 정면에서 앉으면 허벅지가 카메라 쪽으로 누워 짧게 보이고 무릎 각도는 펴진 것처럼 잡힌다(앉은 사진 0.17~0.46, 무릎 140° 이상)
+    if (minKnee >= 120 && thighShinMean < THIGH_SHIN_MIN) errors.push(NOT_STANDING_ISSUE);
   }
 
   // ---- 사진 조건
@@ -663,7 +710,7 @@ export function computeBodyAnalysisDetailed(input: BodyMeasureInput): BodyMeasur
     ? classifyFrame({ shoulderToHip: shoulderW / hipW, waistToHip: waistW !== undefined ? waistW / hipW : undefined, method: widthMethod, uncertainty: widths.uncertainty, notes: widths.notes })
     : undefined;
 
-  if (errors.length || soleY === null || !(heightPx > 0) || !(headLen > 0)) {
+  const failedDetail = (): BodyMeasureDetail => {
     const analysis: BodyAnalysis = {
       version: 1,
       createdAt,
@@ -683,7 +730,8 @@ export function computeBodyAnalysisDetailed(input: BodyMeasureInput): BodyMeasur
       isMock: false,
     };
     return { analysis, headMethod, widthMethod: frameReady && !framingFailed ? widthMethod : null, silhouette: sil };
-  }
+  };
+  if (errors.length || soleY === null || !(heightPx > 0) || !(headLen > 0)) return failedDetail();
 
   // ---- 비율
   const inFrame = (i: number) => L[i].x >= 0 && L[i].x <= 1 && L[i].y >= 0 && L[i].y <= 1;
@@ -703,6 +751,11 @@ export function computeBodyAnalysisDetailed(input: BodyMeasureInput): BodyMeasur
   if (waistW !== undefined) ratios.waistToHip = r4(waistW / hipW);
   if (arms.length) ratios.armToHeight = r4(Math.max(...arms) / heightPx);
   if (thighShin.length) ratios.thighToShin = r4(thighShin.reduce((a, b) => a + b, 0) / thighShin.length);
+  // 서버가 저장을 거부할 값이면 여기서 실패로 돌린다('이 결과 사용'을 눌렀는데 저장이 400으로 막히지 않게)
+  if (ratioOutOfBounds(ratios)) {
+    errors.push(issue('implausible-ratio', '측정한 비율이 사람 몸에서 나올 수 있는 범위를 벗어났습니다. 머리부터 발끝까지 정면으로 곧게 선 사진으로 다시 찍어 주세요.', 'error'));
+    return failedDetail();
+  }
 
   const skeleton = classifySkeleton({
     shoulderToHip: ratios.shoulderToHip,

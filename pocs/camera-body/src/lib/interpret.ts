@@ -5,7 +5,9 @@
  * - 키/머리 길이(정수리~턱): 일반 성인 6.5~8등신, 평균 7~7.5.
  * - 고관절 높이/키 ≈ 0.50~0.53 (PoseLandmarker 엉덩이 점은 고관절 근처).
  * - 어깨 관절 사이 폭/키 ≈ 0.19~0.23, 실루엣(삼각근 포함) 어깨 폭/키 ≈ 0.23~0.28.
- * - 허벅지(고관절~무릎)/정강이(무릎~발목) ≈ 0.95~1.15, 팔 길이(어깨~손목)/키 ≈ 0.31~0.36.
+ * - 허벅지(고관절~무릎)/정강이(무릎~발목) ≈ 0.95~1.15.
+ * - 팔 길이(어깨~팔꿈치~손목, 사진 2D)/키 ≈ 0.28~0.34. 인체 측정값(0.31~0.36)보다 낮게 잡힌다:
+ *   키에 헤어·신발이 들어가고 팔이 몸 앞뒤로 조금만 기울어도 짧아진다(팔을 내린 선 사진 18장 중 15장이 0.28~0.30).
  * 실측 데이터로 튜닝한 값이 아니며, 사진 각도·옷 부피·자세에 따라 달라진다.
  */
 import type { BodyFrame, BodyRatios, RatioInsight } from '@celeber/core/contracts';
@@ -43,7 +45,7 @@ export function ratioReference(key: RatioKey, method: WidthMethod = 'silhouette'
         ? { min: 0.23, max: 0.28, label: '실루엣 기준 키의 23~28%', domain: [0.17, 0.33] }
         : { min: 0.19, max: 0.23, label: '관절점 기준 키의 19~23%', domain: [0.14, 0.28] };
     case 'armToHeight':
-      return { min: 0.31, max: 0.36, label: '키의 31~36%', domain: [0.26, 0.41] };
+      return { min: 0.28, max: 0.34, label: '키의 28~34%', domain: [0.23, 0.39] };
     case 'thighToShin':
       return { min: 0.95, max: 1.15, label: '0.95~1.15', domain: [0.75, 1.35] };
     default:
@@ -65,10 +67,11 @@ export const RATIO_LABEL_KO: Record<RatioKey, string> = {
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
+/** 표시 문자열. 숫자는 displayedValue로 반올림해 범위 판정(rangeVerdict)과 같은 값을 보인다 (0.945 → '0.95', toFixed는 '0.94') */
 export function formatRatio(key: RatioKey, v: number): string {
   switch (key) {
     case 'headsTall':
-      return `${v.toFixed(1)}등신`;
+      return `${displayedValue(key, v).toFixed(1)}등신`;
     case 'upperToLower': {
       const upper = v / (1 + v);
       return `${Math.round(upper * 100)} : ${100 - Math.round(upper * 100)}`;
@@ -79,7 +82,7 @@ export function formatRatio(key: RatioKey, v: number): string {
     case 'armToHeight':
       return pct(v);
     default:
-      return v.toFixed(2);
+      return displayedValue(key, v).toFixed(2);
   }
 }
 
@@ -149,8 +152,8 @@ function comment(key: RatioKey, raw: number, method: WidthMethod): string {
       return '키 대비 어깨가 좁은 편입니다.';
     }
     case 'armToHeight':
-      if (v > 0.36) return '키 대비 팔이 긴 편입니다.';
-      if (v >= 0.31) return '키 대비 팔 길이가 평균 범위입니다.';
+      if (v > 0.34) return '키 대비 팔이 긴 편입니다.';
+      if (v >= 0.28) return '키 대비 팔 길이가 평균 범위입니다.';
       return '키 대비 팔이 짧게 측정됐습니다. 팔을 굽히면 짧게 잡힙니다.';
     case 'thighToShin':
       if (v > 1.15) return '허벅지가 정강이보다 긴 편입니다.';
@@ -245,7 +248,8 @@ export function buildStylingGuide(ratios: Partial<BodyRatios> | undefined, frame
       suggestions.push({ title: '상체 길이 보완', detail: '미드·로우 라이즈 하의, 상의를 빼 입는 기장으로 상하 균형을 맞춥니다.' });
     }
   }
-  if (ratios?.headsTall !== undefined && ratios.headsTall < 7) {
+  // 화면에 보이는 값 기준 (6.95를 '7.0등신'으로 보여 주면서 7 미만용 제안을 붙이지 않게)
+  if (ratios?.headsTall !== undefined && displayedValue('headsTall', ratios.headsTall) < 7) {
     suggestions.push({ title: '세로선 연결', detail: '하의와 신발 색을 맞추고, V넥·긴 목걸이로 세로 시선을 만듭니다.' });
     avoid.push('하의와 대비가 큰 발목 양말·신발');
   }

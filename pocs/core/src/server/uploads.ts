@@ -153,7 +153,9 @@ export async function saveUpload(input: Buffer | Uint8Array | ArrayBuffer, opts:
 
 /** 래스터: EXIF 회전 + sRGB + 최대 변 제한 (normalize=false면 크기만 읽는다) */
 async function normalizeRaster(buf: Buffer, mime: string, opts: SaveUploadOptions): Promise<{ buf: Buffer; mime: string; width: number | null; height: number | null }> {
-  const img = sharp(buf, { failOn: 'none', limitInputPixels: MAX_INPUT_PIXELS });
+  // 얼굴·조명 분석용 kind는 뒷부분이 잘린 파일(회색으로 채워짐)을 받지 않는다. 그 밖의 kind는 기존처럼 관대하게 디코드
+  const failOn = RASTER_ONLY_KINDS.has(opts.kind) ? 'truncated' : 'none';
+  const img = sharp(buf, { failOn, limitInputPixels: MAX_INPUT_PIXELS });
   if (!(opts.normalize ?? true)) {
     const meta = await img.metadata();
     return { buf, mime, width: meta.width ?? null, height: meta.height ?? null };
@@ -192,13 +194,26 @@ function storeUpload(buf: Buffer, mime: string, width: number | null, height: nu
   return toRecord(row);
 }
 
+const BAD_DATA_URL = '사진 데이터(data URL) 형식이 올바르지 않습니다.';
+
 /** data URL(base64) 저장 — 클라이언트 canvas.toDataURL() 결과 */
 export async function saveUploadFromDataUrl(dataUrl: string, opts: SaveUploadOptions): Promise<UploadRecord> {
+  // JSON에서 온 값은 객체·배열일 수 있다. 정규식이 암묵적으로 문자열로 바꾸다 TypeError(500)가 나지 않게 막는다
+  if (typeof dataUrl !== 'string') throw new UploadError(400, 'bad_request', BAD_DATA_URL);
   const m = /^data:([\w/+.-]+);base64,(.*)$/s.exec(dataUrl);
   if (m) return saveUpload(Buffer.from(m[2], 'base64'), opts);
   const svg = /^data:image\/svg\+xml(?:;charset=[\w-]+)?,(.*)$/s.exec(dataUrl);
-  if (svg) return saveUpload(Buffer.from(decodeURIComponent(svg[1]), 'utf8'), opts);
-  throw new UploadError(400, 'bad_request', '사진 데이터(data URL) 형식이 올바르지 않습니다.');
+  if (svg) {
+    let text: string;
+    try {
+      text = decodeURIComponent(svg[1]);
+    } catch {
+      // '%ZZ' 같은 잘못된 퍼센트 인코딩: URIError를 500으로 넘기지 않는다
+      throw new UploadError(400, 'bad_request', BAD_DATA_URL);
+    }
+    return saveUpload(Buffer.from(text, 'utf8'), opts);
+  }
+  throw new UploadError(400, 'bad_request', BAD_DATA_URL);
 }
 
 export function getUpload(id: string): UploadRecord | null {
@@ -305,13 +320,15 @@ export async function handleUploadPost(req: Request, defaultKind: UploadKind = '
       return jsonError(400, 'upload_failed', UPLOAD_MESSAGES.bodyUnreadable);
     }
     if (ct.includes('application/json')) {
-      let body: { dataUrl?: string; kind?: string };
+      let body: { dataUrl?: unknown; kind?: string };
       try {
-        body = JSON.parse(new TextDecoder().decode(bytes)) as typeof body;
+        // fatal: 잘못된 UTF-8 바이트를 U+FFFD로 바꿔 저장하지 않고 invalid_json으로 거절한다
+        body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as typeof body;
       } catch {
         return jsonError(400, 'invalid_json', '요청 본문이 JSON이 아닙니다.');
       }
       if (!body?.dataUrl) return jsonError(400, 'bad_request', 'dataUrl이 필요합니다.');
+      if (typeof body.dataUrl !== 'string') return jsonError(400, 'bad_request', 'dataUrl은 문자열이어야 합니다.');
       const kind = UploadKindSchema.catch(defaultKind).parse(body.kind ?? defaultKind);
       return Response.json(await saveUploadFromDataUrl(body.dataUrl, { kind }));
     }
@@ -335,6 +352,14 @@ export async function handleUploadPost(req: Request, defaultKind: UploadKind = '
   }
 }
 
+/** SVG는 선언 크기(예: 9000x5000)대로 렌더하면 픽셀 상한에 걸린다. 긴 변이 maxEdge 정도가 되는 density로 렌더한다 */
+async function svgDensity(mime: string, buf: Buffer, maxEdge: number): Promise<number | undefined> {
+  if (mime !== 'image/svg+xml') return undefined;
+  const { width, height } = await sharp(buf, { limitInputPixels: false }).metadata();
+  const edge = Math.max(width ?? 0, height ?? 0);
+  return edge > maxEdge ? Math.max(1, (72 * maxEdge) / edge) : undefined;
+}
+
 /**
  * 분석용 픽셀 읽기 (서버): RGBA raw + 크기. maxEdge로 다운스케일.
  * core/face sampleFaceColors 등 ImageDataLike 입력으로 바로 사용 가능.
@@ -344,7 +369,7 @@ export async function readUploadPixels(id: string, maxEdge = 1024): Promise<{ da
   const f = readUpload(id);
   if (!f) return null;
   try {
-    const { data, info } = await sharp(f.buffer, { limitInputPixels: MAX_INPUT_PIXELS })
+    const { data, info } = await sharp(f.buffer, { limitInputPixels: MAX_INPUT_PIXELS, density: await svgDensity(f.record.mime, f.buffer, maxEdge) })
       .rotate()
       .resize({ width: maxEdge, height: maxEdge, fit: 'inside', withoutEnlargement: true })
       .toColorspace('srgb')

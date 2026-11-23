@@ -210,7 +210,7 @@ export function VibeResultView({ analysis: a, apiBase = '', warning, actions, st
                 ]}
               />
               <p className="cb-caption cb-muted" style={{ margin: 0 }}>
-                {axisLevelLabel('warmth', pc.axes.warmth)} · 명도 {axisLevelLabel('value', pc.axes.value)} · 채도 {axisLevelLabel('chroma', pc.axes.chroma)} · 대비 {axisLevelLabel('contrast', pc.axes.contrast)} · {axisLevelLabel('clarity', pc.axes.clarity)}
+                {pc.undertone ? axisLevelLabel('warmth', pc.axes.warmth) : '웜·쿨 보류'} · 명도 {axisLevelLabel('value', pc.axes.value)} · 채도 {axisLevelLabel('chroma', pc.axes.chroma)} · 대비 {axisLevelLabel('contrast', pc.axes.contrast)} · {axisLevelLabel('clarity', pc.axes.clarity)}
               </p>
             </>
           ) : null}

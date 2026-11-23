@@ -9,7 +9,7 @@ import { type CategoryMaskLike, SELFIE_MULTICLASS, boundingBox, estimateHeadPose
 import { createFaceLandmarker, createPoseLandmarker, createSelfieSegmenter } from '@celeber/ui/mediapipe';
 import { dominantColors } from '../lib/kmeans';
 import { type DetectorStatus, type FaceMeasurement, type MBox, MEASUREMENT_LIMITS, type RegionMeasurement, type VibeMeasurement } from '../lib/measurement';
-import { type P2, type PosePoint, clampBox, headCrop, estimateBodyRatios, framingFromPose, outfitRegions, personBox, poseVisibility } from '../lib/pose';
+import { type P2, type PosePoint, clampBox, headCrop, estimateBodyRatios, framingFromPose, minAnkleVisibility, outfitRegions, personBox, poseVisibility, preferPaddedPose, unpadPoint } from '../lib/pose';
 import { sceneStats } from '../lib/stats';
 
 const MAX_EDGE = 1024;
@@ -37,6 +37,44 @@ function toCanvas(img: HTMLImageElement): { canvas: HTMLCanvasElement; data: Ima
   if (!ctx) throw new Error('canvas 2d context를 만들 수 없습니다.');
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return { canvas, data: ctx.getImageData(0, 0, canvas.width, canvas.height), scale };
+}
+
+/** 정사각형 여백 캔버스: 원본을 가운데에 두고 테두리 평균색으로 채운다. 이미 정사각형이면 null */
+function padToSquare(canvas: HTMLCanvasElement, data: ImageData): { canvas: HTMLCanvasElement; offX: number; offY: number; side: number } | null {
+  const W = canvas.width;
+  const H = canvas.height;
+  const side = Math.max(W, H);
+  if (side === Math.min(W, H)) return null;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let n = 0;
+  const add = (x: number, y: number) => {
+    const i = (y * W + x) * 4;
+    r += data.data[i];
+    g += data.data[i + 1];
+    b += data.data[i + 2];
+    n++;
+  };
+  for (let y = 0; y < H; y += 4) {
+    add(0, y);
+    add(W - 1, y);
+  }
+  for (let x = 0; x < W; x += 4) {
+    add(x, 0);
+    add(x, H - 1);
+  }
+  const c = document.createElement('canvas');
+  c.width = side;
+  c.height = side;
+  const ctx = c.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = `rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})`;
+  ctx.fillRect(0, 0, side, side);
+  const offX = Math.round((side - W) / 2);
+  const offY = Math.round((side - H) / 2);
+  ctx.drawImage(canvas, offX, offY);
+  return { canvas: c, offX, offY, side };
 }
 
 function boxArea(b: MBox) {
@@ -185,11 +223,25 @@ export async function measureVibeImage(src: string | HTMLImageElement, onProgres
   let body: VibeMeasurement['body'];
   try {
     const pl = await createPoseLandmarker({ runningMode: 'IMAGE', numPoses: 3 });
-    const res = pl.detect(canvas);
-    const people = res.landmarks
-      .map((lms) => lms.map((p): PosePoint => ({ x: p.x, y: p.y, v: p.visibility ?? 0 })))
-      .map((kp) => ({ kp, box: personBox(kp) }))
-      .sort((a, b) => boxArea(b.box) - boxArea(a.box));
+    const detectPeople = (src: HTMLCanvasElement, pad?: { offX: number; offY: number; side: number }) =>
+      pl
+        .detect(src)
+        .landmarks.map((lms) =>
+          lms.map((p): PosePoint => {
+            const q = { x: p.x, y: p.y, v: p.visibility ?? 0 };
+            return pad ? unpadPoint(q, pad, W, H) : q;
+          }),
+        )
+        .map((kp) => ({ kp, box: personBox(kp) }))
+        .sort((a, b) => boxArea(b.box) - boxArea(a.box));
+    let people = detectPeople(canvas);
+    // 세로로 긴 흑백·어두운 전신 사진은 사람을 놓치거나 발목을 흐리게 잡아 상반신으로 판정된다.
+    // 정사각형 여백 캔버스로 한 번 더 찾아 나은 쪽을 쓴다 (camera-body와 같은 보정)
+    if (!people.length || minAnkleVisibility(people[0].kp) < 0.5) {
+      const pad = padToSquare(canvas, data);
+      const retry = pad ? detectPeople(pad.canvas, pad) : [];
+      if (preferPaddedPose(people[0]?.kp, retry[0]?.kp)) people = retry;
+    }
     // 너무 작은 검출(배경 인물/오검출)은 인원수에서 제외
     const big = people.filter((p) => boxArea(p.box) >= boxArea(people[0]?.box ?? { x: 0, y: 0, w: 0, h: 0 }) * 0.15);
     poseCount = big.length;

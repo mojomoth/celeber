@@ -1,0 +1,338 @@
+{
+ "runs": [
+  {
+   "tag": "look-a",
+   "file": "look-a.jpg",
+   "mode": "analyze",
+   "m": {
+    "poseCount": 1,
+    "faceCount": 1,
+    "framing": "full-body",
+    "ankleV": [
+     0.911,
+     0.877
+    ],
+    "ankleY": [
+     0.899,
+     0.892
+    ],
+    "personBox": {
+     "x": 0.06,
+     "y": 0.01,
+     "w": 0.906,
+     "h": 0.952
+    },
+    "regions": [
+     "torsoCenter:#D3CDC0",
+     "torsoSides:#CAC4B6",
+     "arms:#C8C1B2",
+     "legs:#433F42",
+     "feet:#3F3C3F"
+    ],
+    "headsTall": 7.35,
+    "upperToLower": 0.9,
+    "notes": [
+     "얼굴이 작아 머리 영역(원본 494px)을 확대해 측정했습니다."
+    ],
+    "ms": 18235,
+    "detectors": {
+     "face": "ok",
+     "pose": "ok",
+     "segmentation": "ok"
+    }
+   },
+   "pre": {
+    "analyzable": true,
+    "personCount": 1,
+    "framing": "full-body",
+    "reasons": [],
+    "measured": true
+   },
+   "tPre": 19641,
+   "btn": "추구미 분석하기",
+   "tAnalyze": 24568,
+   "id": "vibe_mwtrv0si34db23d59d",
+   "mockBadge": 0,
+   "source": "hybrid",
+   "isMock": false,
+   "model": "gpt-6.2-sol"
+  },
+  {
+   "tag": "gray-b",
+   "file": "gray-b.jpg",
+   "mode": "pre",
+   "m": {
+    "poseCount": 1,
+    "faceCount": 1,
+    "framing": "full-body",
+    "ankleV": [
+     0.971,
+     0.987
+    ],
+    "ankleY": [
+     0.886,
+     0.903
+    ],
+    "personBox": {
+     "x": 0.058,
+     "y": 0.004,
+     "w": 0.899,
+     "h": 0.951
+    },
+    "regions": [
+     "torsoCenter:#ECECEC",
+     "torsoSides:#E5E5E5",
+     "arms:#E6E6E6",
+     "legs:#9F9F9F",
+     "feet:#D5D5D5"
+    ],
+    "headsTall": 8.17,
+    "upperToLower": 0.98,
+    "notes": [
+     "얼굴이 작아 머리 영역(원본 403px)을 확대해 측정했습니다."
+    ],
+    "ms": 15940,
+    "detectors": {
+     "face": "ok",
+     "pose": "ok",
+     "segmentation": "ok"
+    }
+   },
+   "pre": {
+    "analyzable": false,
+    "personCount": 1,
+    "framing": "full-body",
+    "reasons": [
+     "heavy-filter/error:흑백 사진이라 색 분석을 할 수 없습니다.",
+     "occluded/info:얼굴이 옆으로 많이 돌아가 있어 피부 측정 영역이 적습니다."
+    ],
+    "measured": true
+   },
+   "tPre": 16571
+  },
+  {
+   "tag": "verydark-a",
+   "file": "verydark-a.jpg",
+   "mode": "analyze",
+   "m": {
+    "poseCount": 1,
+    "faceCount": 0,
+    "framing": "full-body",
+    "ankleV": [
+     0.929,
+     0.903
+    ],
+    "ankleY": [
+     0.892,
+     0.889
+    ],
+    "personBox": {
+     "x": 0.058,
+     "y": 0,
+     "w": 0.931,
+     "h": 0.965
+    },
+    "regions": [
+     "torsoCenter:#181203",
+     "torsoSides:#171202",
+     "arms:#171201",
+     "legs:#0B060C",
+     "feet:#0D0A08"
+    ],
+    "headsTall": 6.63,
+    "upperToLower": 0.98,
+    "notes": [],
+    "ms": 15775,
+    "detectors": {
+     "face": "ok",
+     "pose": "ok",
+     "segmentation": "ok"
+    }
+   },
+   "pre": {
+    "analyzable": true,
+    "personCount": 1,
+    "framing": "full-body",
+    "reasons": [
+     "extreme-lighting/warn:사진이 매우 어둡습니다. 옷 색도 실제보다 어둡게 나올 수 있습니다.",
+     "occluded/warn:얼굴이 가려졌거나 돌아가 있어 피부색을 측정하지 못했습니다."
+    ],
+    "measured": true
+   },
+   "tPre": 16403,
+   "btn": "추구미 분석하기",
+   "tAnalyze": 23999,
+   "id": "vibe_mwtrwadqc9d35d8ff8",
+   "mockBadge": 0,
+   "source": "hybrid",
+   "isMock": false,
+   "model": "gpt-6.2-sol"
+  },
+  {
+   "tag": "dark-a",
+   "file": "dark-a.jpg",
+   "mode": "analyze",
+   "m": {
+    "poseCount": 1,
+    "faceCount": 1,
+    "framing": "full-body",
+    "ankleV": [
+     0.875,
+     0.817
+    ],
+    "ankleY": [
+     0.893,
+     0.897
+    ],
+    "personBox": {
+     "x": 0.05,
+     "y": 0.006,
+     "w": 0.929,
+     "h": 0.962
+    },
+    "regions": [
+     "torsoCenter:#28251A",
+     "torsoSides:#272419",
+     "arms:#272317",
+     "legs:#130F12",
+     "feet:#0C090C"
+    ],
+    "headsTall": 7.48,
+    "upperToLower": 0.92,
+    "notes": [
+     "얼굴이 작아 머리 영역(원본 514px)을 확대해 측정했습니다."
+    ],
+    "ms": 21152,
+    "detectors": {
+     "face": "ok",
+     "pose": "ok",
+     "segmentation": "ok"
+    }
+   },
+   "pre": {
+    "analyzable": true,
+    "personCount": 1,
+    "framing": "full-body",
+    "reasons": [
+     "extreme-lighting/warn:사진이 매우 어둡습니다. 옷 색도 실제보다 어둡게 나올 수 있습니다."
+    ],
+    "measured": true
+   },
+   "tPre": 21803,
+   "btn": "추구미 분석하기",
+   "tAnalyze": 21790,
+   "id": "vibe_mwtrx8uz72591dfd9f",
+   "mockBadge": 0,
+   "source": "hybrid",
+   "isMock": false,
+   "model": "gpt-6.2-sol"
+  },
+  {
+   "tag": "look-b",
+   "file": "look-b.jpg",
+   "mode": "pre",
+   "m": {
+    "poseCount": 1,
+    "faceCount": 1,
+    "framing": "full-body",
+    "ankleV": [
+     0.988,
+     0.994
+    ],
+    "ankleY": [
+     0.892,
+     0.898
+    ],
+    "personBox": {
+     "x": 0.067,
+     "y": 0.001,
+     "w": 0.914,
+     "h": 0.966
+    },
+    "regions": [
+     "torsoCenter:#EDECDF",
+     "torsoSides:#E6E5D6",
+     "arms:#E8E7D8",
+     "legs:#E1DED5",
+     "feet:#D8D3CF"
+    ],
+    "headsTall": 8.18,
+    "upperToLower": 0.97,
+    "notes": [
+     "얼굴이 작아 머리 영역(원본 420px)을 확대해 측정했습니다."
+    ],
+    "ms": 27270,
+    "detectors": {
+     "face": "ok",
+     "pose": "ok",
+     "segmentation": "ok"
+    }
+   },
+   "pre": {
+    "analyzable": true,
+    "personCount": 1,
+    "framing": "full-body",
+    "reasons": [
+     "occluded/info:얼굴이 옆으로 많이 돌아가 있어 피부 측정 영역이 적습니다."
+    ],
+    "measured": true
+   },
+   "tPre": 27922
+  },
+  {
+   "tag": "multi",
+   "file": "multi.jpg",
+   "mode": "pre",
+   "m": {
+    "poseCount": 2,
+    "faceCount": 1,
+    "framing": "full-body",
+    "ankleV": [
+     0.773,
+     0.736
+    ],
+    "ankleY": [
+     0.896,
+     0.894
+    ],
+    "personBox": {
+     "x": 0.01,
+     "y": 0.011,
+     "w": 0.377,
+     "h": 0.964
+    },
+    "regions": [
+     "torsoCenter:#D3CDBF",
+     "torsoSides:#C8C2B3",
+     "arms:#C7C0B1",
+     "legs:#433F42",
+     "feet:#403C3F"
+    ],
+    "headsTall": 7.46,
+    "upperToLower": 0.92,
+    "notes": [
+     "얼굴이 작아 머리 영역(원본 405px)을 확대해 측정했습니다."
+    ],
+    "ms": 29148,
+    "detectors": {
+     "face": "ok",
+     "pose": "ok",
+     "segmentation": "ok"
+    }
+   },
+   "pre": {
+    "analyzable": false,
+    "personCount": 2,
+    "framing": "full-body",
+    "reasons": [
+     "multiple-people/error:인물이 2명 보입니다. 한 명만 나온 사진이 정확합니다."
+    ],
+    "measured": true
+   },
+   "tPre": 29869
+  }
+ ],
+ "logs": [
+  "[error] INFO: Created TensorFlow Lite XNNPACK delegate for CPU."
+ ]
+}

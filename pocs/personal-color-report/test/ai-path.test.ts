@@ -85,6 +85,13 @@ describe('AI 성공 경로 (hybrid)', () => {
     expect(call.images).toEqual([expect.objectContaining({ uploadId: analysis.front.image.uploadId })]);
     expect(call.prompt).toContain('featureContrast');
     expect(call.prompt).toContain('피부, 눈썹, 수염, 향수');
+    expect(call.prompt).not.toContain('independentTone');
+    // AI 독립 판정은 규칙 결과(타입·보조 타입·점수·축)를 모르는 별도 호출 (critic pcr-r2)
+    const opinion = aiState.calls.at(-2)!;
+    expect(opinion.prompt).toContain('independentTone');
+    expect(opinion.prompt).not.toMatch(/규칙|적합도|axes0to100|warmPercent|featureContrast/);
+    expect(opinion.prompt).not.toContain(`${aiState.tone} (`);
+    expect(opinion.images).toEqual(call.images);
 
     // 다른 스타일로 바꾸면 성별 의존 서술은 템플릿 → 안내 표시 대상
     const fem = PersonalColorReportSchema.parse(await (await R.reportPATCH(json('PATCH', { gender: 'female' }), ctx(r.id))).json());

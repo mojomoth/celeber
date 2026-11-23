@@ -169,6 +169,26 @@ export function photoTextCandidates(items: { text: string; where: string }[]): C
   return out.slice(0, 5);
 }
 
+/** 사진 속 글자 목록: 앞뒤 공백·빈 값·중복 제거 (같은 글자가 두 번 읽혀도 칩은 하나) */
+export function uniqueTexts(texts: string[], limit = 15): string[] {
+  return [...new Set(texts.map((t) => t.trim()).filter(Boolean))].slice(0, limit);
+}
+
+/** 사진 후보 확정창 안내. 후보가 어디서 나왔는지에 맞춰 쓴다 */
+export function photoConfirmNote(source: CelebCandidate['source']): string {
+  const unverified = '사진 속 인물과 같은 사람인지는 확인하지 않았습니다.';
+  switch (source) {
+    case 'mock':
+      return '데모 후보입니다. 사진 검색을 쓸 수 없어 흐름 확인용 가상 인물을 보여 드립니다. 실제 인물은 이름으로 검색해 주세요.';
+    case 'photo-text':
+      return `사진 속 글자에서 읽은 이름입니다. ${unverified} 같은 이름의 다른 사람이 있다면 이름으로 검색해 골라 주세요.`;
+    case 'reverse-image':
+      return `비슷한 사진이 실린 페이지 제목에서 나온 이름입니다. ${unverified}`;
+    default:
+      return `검색 결과에서 나온 이름입니다. ${unverified}`;
+  }
+}
+
 function truncate(s: string, n: number): string {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s;
 }

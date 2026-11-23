@@ -8,8 +8,10 @@ import { kvDelete, kvGet, kvSet, newId, nowIso, personalColorReports } from '@ce
 import { getFaceSession, listFaceSessions } from '@celeber/camera-face/server';
 import { getBodySession, listBodySessions } from '@celeber/camera-body/server';
 import {
-  type AiNarrative,
-  AiNarrativeSchema,
+  type AiNarrativeText,
+  AiNarrativeTextSchema,
+  type AiOpinion,
+  AiOpinionSchema,
   type GenerateRequest,
   type GenerateResponse,
   type InputsResponse,
@@ -48,10 +50,10 @@ const SYSTEM = [
   '문장은 짧고 구체적으로: bullet은 20자 안팎, 설명은 2~3문장, TIP은 한 문장.',
 ].join('\n');
 
-function buildPrompt(face: FaceAnalysis, ruleTone: string, ruleSecondary: string, gender: Gender, cls: ReturnType<typeof classifyFace>): string {
-  const p = getToneProfile(cls.tone);
+/** 사진에서 잰 값만 (규칙 분류기의 축·웜 비율·타입 점수는 넣지 않는다) */
+function measuredValues(face: FaceAnalysis) {
   const s = face.skin.corrected;
-  const measured = {
+  return {
     skin: { hex: s.hex, lab: s.lab, ita: s.ita, hueDeg: s.lch.h, chroma: s.lch.c, nameKo: s.nameKo },
     skinRawHex: face.skin.raw.hex,
     whiteBalance: { method: face.skin.whiteBalance.method, deltaE: face.skin.whiteBalance.deltaE },
@@ -59,9 +61,22 @@ function buildPrompt(face: FaceAnalysis, ruleTone: string, ruleSecondary: string
     eyes: face.featureColors.eyes ? { hex: face.featureColors.eyes.hex, lab: face.featureColors.eyes.lab } : null,
     lips: face.featureColors.lips?.hex ?? null,
     environment: { light: face.environment.lightSourceLabel, cctK: face.environment.cctK, brightness: face.environment.brightness.label },
-    axes0to100: cls.axes,
-    warmPercent: cls.warmPercent,
   };
+}
+
+/** AI 독립 판정: 규칙 판정(타입·보조 타입·점수·축)을 보여 주지 않고 사진과 측정값만 준다 */
+function buildOpinionPrompt(face: FaceAnalysis): string {
+  return [
+    `측정값: ${JSON.stringify(measuredValues(face))}`,
+    '',
+    `사진과 측정값만 보고 12톤 중 가장 가까운 톤을 independentTone(${TONES.join(' | ')})으로, 언더톤을 independentUndertone으로, 근거를 independentRationale(1~2문장)로 쓰세요.`,
+    '근거에는 사진에서 보이는 특징이나 측정값을 인용하고, 타입 이름은 "여름쿨 트루"처럼 계절과 세부 톤을 함께 씁니다.',
+  ].join('\n');
+}
+
+function buildPrompt(face: FaceAnalysis, ruleTone: string, ruleSecondary: string, gender: Gender, cls: ReturnType<typeof classifyFace>): string {
+  const p = getToneProfile(cls.tone);
+  const measured = { ...measuredValues(face), axes0to100: cls.axes, warmPercent: cls.warmPercent };
   const topScores = Object.entries(cls.toneScores)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
@@ -72,8 +87,8 @@ function buildPrompt(face: FaceAnalysis, ruleTone: string, ruleSecondary: string
   return [
     `측정값: ${JSON.stringify(measured)}`,
     '',
-    `1) 먼저 규칙 판정과 독립적으로, 사진과 측정값만 보고 12톤 중 가장 가까운 톤을 independentTone(${TONES.join(' | ')})으로, 언더톤을 independentUndertone으로, 근거를 independentRationale(1~2문장)로 쓰세요.`,
-    `2) 리포트의 최종 타입은 측정 규칙 판정 ${ruleTone} (${p.nameKo} / ${p.nameEn}), 보조 타입 ${ruleSecondary} (${getToneProfile(cls.secondaryTone).nameKo})입니다. 규칙 점수 상위: ${topScores}. 아래 서술은 이 최종 타입 기준으로 쓰세요.`,
+    `리포트의 최종 타입은 측정 규칙 판정 ${ruleTone} (${p.nameKo} / ${p.nameEn}), 보조 타입 ${ruleSecondary} (${getToneProfile(cls.secondaryTone).nameKo})입니다. 아래 서술은 이 최종 타입 기준으로 쓰세요.`,
+    `12톤 간 상대 적합도 상위: ${topScores}. 이 %는 판정 신뢰도가 아니므로 문장에 인용하지 마세요.`,
     '타입 이름은 "여름쿨 트루"처럼 계절과 세부 톤을 함께 쓰고, 색온도는 "3,290K"처럼 씁니다.',
     `리포트 스타일: ${style}.`,
     '- firstImpression: 첫인상 체크 bullet 4개',
@@ -94,10 +109,7 @@ function buildPrompt(face: FaceAnalysis, ruleTone: string, ruleSecondary: string
 async function generateNarrative(face: FaceAnalysis, frontUploadId: string, cls: ReturnType<typeof classifyFace>, gender: Gender, skipAi: boolean) {
   const base = templateNarrative(cls, face, gender);
   if (skipAi) return { narrative: base, source: 'rules' as const, aiOpinion: undefined, model: null, warning: undefined };
-  const mock = (): AiNarrative => ({
-    independentTone: cls.tone,
-    independentUndertone: cls.undertone,
-    independentRationale: '',
+  const mock = (): AiNarrativeText => ({
     firstImpression: base.firstImpression,
     hashtags: base.hashtags,
     typeDescription: base.typeDescription,
@@ -118,22 +130,44 @@ async function generateNarrative(face: FaceAnalysis, frontUploadId: string, cls:
     avoidIntro: base.avoidIntro,
     todayActions: base.todayActions,
   });
-  const r = await callVisionStructured({
-    schema: AiNarrativeSchema,
-    mock,
-    system: SYSTEM,
-    prompt: buildPrompt(face, cls.tone, cls.secondaryTone, gender, cls),
-    images: [{ uploadId: frontUploadId, label: '정면 얼굴 (피부색 측정에 쓴 사진)' }],
-    maxTokens: 16000,
-    effort: 'medium',
-    label: 'report/narrative',
-  });
+  const images = [{ uploadId: frontUploadId, label: '정면 얼굴 (피부색 측정에 쓴 사진)' }];
+  // 독립 판정은 규칙 결과를 모르는 별도 호출로 받는다. 서술 호출과 서로 기다릴 필요가 없어 동시에 보낸다.
+  const [op, r] = await Promise.all([
+    callVisionStructured({
+      schema: AiOpinionSchema,
+      mock: (): AiOpinion => ({ independentTone: cls.tone, independentUndertone: cls.undertone, independentRationale: '' }),
+      system: SYSTEM,
+      prompt: buildOpinionPrompt(face),
+      images,
+      maxTokens: 8000,
+      effort: 'medium',
+      label: 'report/opinion',
+    }),
+    callVisionStructured({
+      schema: AiNarrativeTextSchema,
+      mock,
+      system: SYSTEM,
+      prompt: buildPrompt(face, cls.tone, cls.secondaryTone, gender, cls),
+      images,
+      maxTokens: 16000,
+      effort: 'medium',
+      label: 'report/narrative',
+    }),
+  ]);
   if (r.source !== 'ai') return { narrative: base, source: 'mock' as const, aiOpinion: undefined, model: r.model, warning: r.warning };
-  const agree = ruleAiAgreement(cls.tone, r.data.independentTone);
+  // 독립 판정만 실패하면 서술은 쓰고 일치도는 반영하지 않는다
+  const opinion = op.source === 'ai' ? op.data : null;
   return {
     narrative: mergeAiNarrative(base, r.data, { tone: cls.tone, secondaryTone: cls.secondaryTone }),
     source: 'ai' as const,
-    aiOpinion: { tone: r.data.independentTone, undertone: r.data.independentUndertone, rationale: polishAiText(r.data.independentRationale) || '근거 없음', agreesWithRules: agree === true },
+    aiOpinion: opinion
+      ? {
+          tone: opinion.independentTone,
+          undertone: opinion.independentUndertone,
+          rationale: polishAiText(opinion.independentRationale) || '근거 없음',
+          agreesWithRules: ruleAiAgreement(cls.tone, opinion.independentTone) === true,
+        }
+      : undefined,
     model: r.model,
     warning: undefined,
   };

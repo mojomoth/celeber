@@ -97,6 +97,22 @@ export async function koreanUploadError(res: Response): Promise<Response> {
   return jsonError(400, 'upload_failed', '사진 파일을 끝까지 읽지 못했습니다. 25MB 이하의 사진으로 다시 시도해 주세요.');
 }
 
+const NO_PHOTO = '첨부된 사진이 없습니다. 사진을 선택해 주세요.';
+
 export async function uploadPOST(req: Request): Promise<Response> {
-  return koreanUploadError(await handleUploadPost(req));
+  // 빈 본문은 '전송이 끊긴 사진'이 아니라 사진을 고르지 않은 경우다.
+  // Content-Length 없이 빈 스트림으로 오는 요청도 있어, 실제로 읽은 바이트 수로 판단한다.
+  if (!req.body) return jsonError(400, 'bad_request', NO_PHOTO);
+  let read = 0;
+  const counted = req.body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, ctl) {
+        read += chunk.byteLength;
+        ctl.enqueue(chunk);
+      },
+    }),
+  );
+  const res = await handleUploadPost(new Request(req.url, { method: req.method, headers: req.headers, body: counted, duplex: 'half' } as RequestInit));
+  if (res.status === 400 && read === 0) return jsonError(400, 'bad_request', NO_PHOTO);
+  return koreanUploadError(res);
 }

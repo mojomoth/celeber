@@ -52,6 +52,7 @@ const SOURCE_RANK: Record<CelebCandidate['source'], number> = {
  * - 설명이 없는 후보(사진 속 글자 등)는 이름이 같은 첫 후보에 합친다
  * - 한쪽의 영문명(nameEn)이 다른 쪽 이름과 같아도 같은 이름으로 본다
  *   (예: 'Jennie'로 검색하면 입력 이름 'Jennie'와 AI 후보 '제니'(nameEn Jennie)를 하나로)
+ * - 이미 DB에 있는 서로 다른 인물(celebId가 다름)은 합치지 않는다
  * - 같은 인물이 여러 출처에서 나오면 점수에 출처당 +0.1 (최대 1)
  * - 근거(evidence)는 합치고 중복 제거
  * - 설명/영문명/썸네일/링크는 먼저 나온 값 유지
@@ -62,7 +63,7 @@ export function mergeCandidates(lists: CelebCandidate[][], limit = 8): CelebCand
   for (const list of lists) {
     for (const c of list) {
       if (!nameKey(c.name)) continue;
-      const hit = entries.find((e) => sameCandidate(e.c, c));
+      const hit = entries.find((e) => sameCandidate(e.c, c) && !differentCeleb(e.c, c));
       if (!hit) {
         entries.push({ c: { ...c, evidence: [...c.evidence] }, sources: new Set([c.source]), order: entries.length });
         continue;
@@ -86,3 +87,8 @@ export function mergeCandidates(lists: CelebCandidate[][], limit = 8): CelebCand
 }
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
+
+/** 둘 다 DB 인물(celebId)이고 id가 다르면 다른 사람 */
+function differentCeleb(a: CelebCandidate & { celebId?: string }, b: CelebCandidate & { celebId?: string }): boolean {
+  return !!a.celebId && !!b.celebId && a.celebId !== b.celebId;
+}

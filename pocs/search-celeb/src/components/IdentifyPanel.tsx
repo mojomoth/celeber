@@ -50,8 +50,8 @@ export function IdentifyPanel({ previewUrl, result, loading, apiBase = '' }: { p
                 <div>
                   <div className="cb-caption cb-muted">사진 속 글자</div>
                   <div className={s.texts}>
-                    {result.photoText.texts.map((t) => (
-                      <Chip key={t}>{t}</Chip>
+                    {result.photoText.texts.map((t, i) => (
+                      <Chip key={`${i}-${t}`}>{t}</Chip>
                     ))}
                   </div>
                 </div>

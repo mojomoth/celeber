@@ -136,6 +136,14 @@ export function lowConfidenceReasons(a: Pick<FaceAnalysis, 'front' | 'skin'>): s
   return reasons;
 }
 
+/** 결과의 '측면 옆선' 칸이 비었을 때 문구. 정면에 가까운 측면은 side:not-profile 경고와 같은 이유를 보여 준다. */
+export function profileEmptyMessage(a: Pick<FaceAnalysis, 'side' | 'warnings'>): string {
+  if (!a.side) return '측면 촬영을 건너뛰었습니다.';
+  const notProfile = a.warnings.find((w) => w.code === 'side:not-profile');
+  if (notProfile) return notProfile.message;
+  return '측면 사진에서 얼굴을 찾지 못했습니다. 고개를 60° 정도만 돌려 다시 촬영해 보세요.';
+}
+
 /* ------------------------------------------------------------------ 규칙 기반 서술 (AI Mock) */
 
 function hairTone(l: number): string {

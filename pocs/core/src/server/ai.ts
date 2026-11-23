@@ -12,7 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import sharp from 'sharp';
 import type { z } from 'zod';
-import { aiProviderChain, getAiBlock, getEnv, setAiBlock, type AiProviderEntry } from './env';
+import { aiBlockedSummary, aiProviderChain, getAiBlock, getEnv, setAiBlock, type AiProviderEntry } from './env';
 import { readUpload } from './uploads';
 
 /** 모든 비전 호출에 붙는 신원 판단 금지 정책 */
@@ -26,6 +26,43 @@ export const IDENTITY_POLICY = [
 /** 서버측 fallbacks 'default'를 지원하는 모델 */
 const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5', 'claude-fable-5-2', 'claude-fable-5-1']);
 
+/** 공급자 한 곳에 쓰는 최대 시간 (재시도·본문 읽기 포함) */
+export const AI_PROVIDER_TIMEOUT_MS = 90_000;
+/** 체인 전체 마감. 앱 라우트 maxDuration(300초)보다 짧게 두어 Mock 응답까지 시간 안에 끝낸다 */
+export const AI_CHAIN_DEADLINE_MS = 240_000;
+/** 남은 시간이 이보다 적으면 다음 공급자를 부르지 않고 Mock으로 넘긴다 */
+const MIN_PROVIDER_MS = 5_000;
+
+/** 마감 시간 초과 오류 (fetch·SDK가 signal.reason으로 그대로 던진다) */
+function timeoutError(): Error {
+  return Object.assign(new Error('AI 응답 시간 초과'), { name: 'TimeoutError' });
+}
+
+/** ms 뒤 abort되는 signal. AbortSignal.timeout 대신 setTimeout을 써서 테스트의 가짜 타이머를 따른다 */
+function deadlineSignal(ms: number): { signal: AbortSignal; clear: () => void } {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(timeoutError()), ms);
+  return { signal: ac.signal, clear: () => clearTimeout(t) };
+}
+
+/** signal이 abort되면 p를 기다리지 않고 바로 실패시킨다 (본문 스트림이 signal을 따르지 않아도 멈추지 않게) */
+function raceAbort<T>(p: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) {
+    p.catch(() => {});
+    return Promise.reject(signal.reason);
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener('abort', onAbort, { once: true });
+    p.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+  });
+}
+
+/** 서버 로그에 남기기 전 키 모양 문자열(sk-...)을 가린다 */
+function redactKeys(s: string): string {
+  return s.replace(/sk-[A-Za-z0-9_*-]+/g, 'sk-***');
+}
+
 const G = globalThis as unknown as { __celeberAnthropic?: { key: string; client: Anthropic } };
 
 /** Anthropic 클라이언트 (키 없거나 강제 Mock이면 null) */
@@ -33,7 +70,7 @@ export function getAnthropic(): Anthropic | null {
   const env = getEnv();
   if (env.forceMock || !env.anthropicApiKey) return null;
   if (G.__celeberAnthropic?.key === env.anthropicApiKey) return G.__celeberAnthropic.client;
-  const client = new Anthropic({ apiKey: env.anthropicApiKey, timeout: 180_000, maxRetries: 2 });
+  const client = new Anthropic({ apiKey: env.anthropicApiKey, timeout: AI_PROVIDER_TIMEOUT_MS, maxRetries: 1 });
   G.__celeberAnthropic = { key: env.anthropicApiKey, client };
   return client;
 }
@@ -112,9 +149,11 @@ interface ProviderCall<T> {
   system: string;
   images: PreparedImage[];
   effort: NonNullable<CallVisionOptions<T>['effort']>;
+  /** 이 공급자 호출의 마감 (요청·재시도·본문 읽기 전체) */
+  signal: AbortSignal;
 }
 
-async function callAnthropic<T>(p: AiProviderEntry, { opts, system, images, effort }: ProviderCall<T>): Promise<VisionResult<T>> {
+async function callAnthropic<T>(p: AiProviderEntry, { opts, system, images, effort, signal }: ProviderCall<T>): Promise<VisionResult<T>> {
   const client = getAnthropic();
   if (!client) throw new Error('Anthropic 클라이언트 없음');
   const imageBlocks: Anthropic.Beta.Messages.BetaContentBlockParam[] = [];
@@ -126,14 +165,19 @@ async function callAnthropic<T>(p: AiProviderEntry, { opts, system, images, effo
     });
   }
   const useFallbacks = FALLBACK_MODELS.has(p.model);
-  const response = await client.beta.messages.parse({
-    model: p.model,
-    max_tokens: opts.maxTokens ?? 16000,
-    system,
-    messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: opts.prompt }] }],
-    output_config: { effort, format: betaZodOutputFormat(opts.schema as never) },
-    ...(useFallbacks ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
-  });
+  const request = client.beta.messages.parse(
+    {
+      model: p.model,
+      max_tokens: opts.maxTokens ?? 16000,
+      system,
+      messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: opts.prompt }] }],
+      output_config: { effort, format: betaZodOutputFormat(opts.schema as never) },
+      ...(useFallbacks ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
+    },
+    { signal },
+  );
+  // SDK 타이머는 응답 헤더까지만 덮으므로, 본문 읽기까지 signal로 끊는다
+  const response = await raceAbort(request, signal);
 
   const usage = { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens };
   if (response.stop_reason === 'refusal') {
@@ -153,9 +197,15 @@ export class OpenAiApiError extends Error {
     readonly status: number,
     readonly code: string | null,
     message: string,
+    readonly type: string | null = null,
   ) {
     super(message);
   }
+}
+
+/** OpenAI 사용 한도(결제) 소진: code 또는 type이 insufficient_quota */
+function isOpenAiQuota(e: OpenAiApiError): boolean {
+  return e.code === 'insufficient_quota' || e.type === 'insufficient_quota';
 }
 
 /** OpenAI strict 구조화 출력 조건: 모든 객체가 additionalProperties:false이고 모든 속성이 required */
@@ -163,12 +213,16 @@ export function isOpenAiStrictSchema(node: unknown): boolean {
   if (Array.isArray(node)) return node.every(isOpenAiStrictSchema);
   if (!node || typeof node !== 'object') return true;
   const o = node as Record<string, unknown>;
-  if (o.properties && typeof o.properties === 'object') {
-    const keys = Object.keys(o.properties);
-    const req = Array.isArray(o.required) ? o.required : [];
-    if (o.additionalProperties !== false || !keys.every((k) => req.includes(k))) return false;
-  }
-  return Object.values(o).every(isOpenAiStrictSchema);
+  return Object.entries(o).every(([k, v]) => {
+    // properties는 '필드 이름 → 스키마' 맵이다. 맵 자체를 스키마로 보지 않고 값만 재귀한다
+    if (k === 'properties' && v && typeof v === 'object' && !Array.isArray(v)) {
+      const keys = Object.keys(v);
+      const req = Array.isArray(o.required) ? o.required : [];
+      if (o.additionalProperties !== false || !keys.every((key) => req.includes(key))) return false;
+      return Object.values(v).every(isOpenAiStrictSchema);
+    }
+    return isOpenAiStrictSchema(v);
+  });
 }
 
 interface OpenAiResponse {
@@ -180,7 +234,7 @@ interface OpenAiResponse {
   error?: { message?: string; code?: string; type?: string } | null;
 }
 
-async function callOpenAi<T>(p: AiProviderEntry, { opts, system, images, effort }: ProviderCall<T>): Promise<VisionResult<T>> {
+async function callOpenAi<T>(p: AiProviderEntry, { opts, system, images, effort, signal }: ProviderCall<T>): Promise<VisionResult<T>> {
   // Anthropic과 같은 변환(zod → JSON Schema)을 재사용한다
   const schema = betaZodOutputFormat(opts.schema as never).schema as Record<string, unknown>;
   const content: Record<string, string>[] = [];
@@ -201,20 +255,30 @@ async function callOpenAi<T>(p: AiProviderEntry, { opts, system, images, effort 
 
   let res: Response | null = null;
   let json: OpenAiResponse | null = null;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    res = await fetch(OPENAI_RESPONSES_URL, {
+  const MAX_ATTEMPTS = 2;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const r = await fetch(OPENAI_RESPONSES_URL, {
       method: 'POST',
       headers: { authorization: `Bearer ${p.apiKey}`, 'content-type': 'application/json' },
       body,
-      signal: AbortSignal.timeout(180_000),
+      signal,
     });
-    json = (await res.json().catch(() => null)) as OpenAiResponse | null;
-    const retryable = res.status >= 500 || (res.status === 429 && json?.error?.code !== 'insufficient_quota');
-    if (!retryable) break;
-    await new Promise((r) => setTimeout(r, 1500));
+    res = r;
+    json = (await raceAbort(r.json(), signal).catch((err: unknown) => {
+      // 오류 응답의 본문은 없어도 된다. 200 뒤 본문 읽기 실패는 삼키지 않는다
+      if (!r.ok) return null;
+      const name = (err as Error)?.name;
+      if (name === 'TimeoutError' || name === 'AbortError') throw err;
+      if (name === 'SyntaxError') throw new AiOutputError('AI 응답이 JSON이 아닙니다.', null);
+      throw new OpenAiApiError(0, null, `응답 본문 읽기 실패: ${(err as Error)?.message ?? String(err)}`);
+    })) as OpenAiResponse | null;
+    const quota = json?.error?.code === 'insufficient_quota' || json?.error?.type === 'insufficient_quota';
+    const retryable = r.status >= 500 || (r.status === 429 && !quota);
+    if (!retryable || attempt === MAX_ATTEMPTS - 1) break;
+    await new Promise((done) => setTimeout(done, 1500));
   }
   if (!res || !res.ok || !json) {
-    throw new OpenAiApiError(res?.status ?? 0, json?.error?.code ?? json?.error?.type ?? null, json?.error?.message ?? `HTTP ${res?.status ?? 0}`);
+    throw new OpenAiApiError(res?.status ?? 0, json?.error?.code ?? json?.error?.type ?? null, json?.error?.message ?? `HTTP ${res?.status ?? 0}`, json?.error?.type ?? null);
   }
 
   const usage = json.usage ? { inputTokens: json.usage.input_tokens, outputTokens: json.usage.output_tokens } : undefined;
@@ -238,11 +302,11 @@ async function callOpenAi<T>(p: AiProviderEntry, { opts, system, images, effort 
 
 /** 재시도해도 실패할 오류(인증/권한/사용 한도)면 그 공급자를 건너뛸 사유, 아니면 null */
 function blockReason(e: unknown, msg: string): string | null {
-  if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return msg;
+  if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError || e instanceof Anthropic.PaymentRequiredError) return msg;
   if (e instanceof Anthropic.BadRequestError && /usage limit/i.test(e.message)) return 'API 사용 한도 초과';
   if (e instanceof OpenAiApiError) {
     if (e.status === 401 || e.status === 403) return msg;
-    if (e.code === 'insufficient_quota') return 'API 사용 한도 초과';
+    if (isOpenAiQuota(e)) return 'API 사용 한도 초과';
   }
   return null;
 }
@@ -267,10 +331,11 @@ export async function callVisionStructured<T>(opts: CallVisionOptions<T>): Promi
     // 화면용 문구에는 환경변수 이름을 넣지 않는다 (사유는 서버 로그와 허브·/api/health capabilities에서 확인)
     return { data: await resolveMock(opts.mock), source: 'mock', model: null, warning: '데모 데이터로 표시합니다 (AI 분석 미사용).' };
   }
+  const deadline = Date.now() + AI_CHAIN_DEADLINE_MS;
   const fallbackOnError = opts.fallbackOnError ?? true;
   const live = chain.filter((p) => !getAiBlock(p.id));
   if (!live.length) {
-    const reason = getAiBlock(chain[0].id)?.reason ?? '';
+    const reason = aiBlockedSummary(chain) ?? '';
     if (!fallbackOnError) throw new AiOutputError(`AI 일시 중단: ${reason}`, null);
     return { data: await resolveMock(opts.mock), source: 'mock', model: chain[0].model, warning: `AI 분석을 사용할 수 없어 데모 데이터를 표시합니다: ${reason}` };
   }
@@ -280,10 +345,19 @@ export async function callVisionStructured<T>(opts: CallVisionOptions<T>): Promi
   try {
     const images: PreparedImage[] = [];
     for (const img of opts.images ?? []) images.push(await prepareImage(img, opts.maxImageEdge ?? 1568));
-    const call: ProviderCall<T> = { opts, images, system: [IDENTITY_POLICY, opts.system].filter(Boolean).join('\n\n'), effort: opts.effort ?? env.visionEffort };
+    const base = { opts, images, system: [IDENTITY_POLICY, opts.system].filter(Boolean).join('\n\n'), effort: opts.effort ?? env.visionEffort };
     for (const p of live) {
+      const remaining = deadline - Date.now();
+      if (remaining < MIN_PROVIDER_MS) {
+        // 체인 마감: 남은 공급자는 부르지 않고 Mock으로
+        lastError ??= timeoutError();
+        console.error(`[celeber/ai] ${label} 마감 시간이 지나 ${p.id} 호출을 건너뜁니다.`);
+        break;
+      }
       lastModel = p.model;
+      const { signal, clear } = deadlineSignal(Math.min(AI_PROVIDER_TIMEOUT_MS, remaining));
       try {
+        const call: ProviderCall<T> = { ...base, signal };
         return p.id === 'anthropic' ? await callAnthropic(p, call) : await callOpenAi(p, call);
       } catch (e) {
         lastError = e;
@@ -292,13 +366,15 @@ export async function callVisionStructured<T>(opts: CallVisionOptions<T>): Promi
         // 재시도해도 실패할 오류는 그 공급자를 10분간 건너뛴다
         const reason = blockReason(e, msg);
         if (reason) setAiBlock(reason, undefined, p.id);
-        console.error(`[celeber/ai] ${label} ${p.id}(${p.model}) 실패:`, msg, '|', (e as Error)?.message ?? e);
+        console.error(`[celeber/ai] ${label} ${p.id}(${p.model}) 실패:`, msg, '|', redactKeys(String((e as Error)?.message ?? e)));
+      } finally {
+        clear();
       }
     }
   } catch (e) {
     // 이미지 준비 실패 등 공급자와 무관한 오류
     lastError = e;
-    console.error(`[celeber/ai] ${label} 실패:`, describeAiError(e), '|', (e as Error)?.message ?? e);
+    console.error(`[celeber/ai] ${label} 실패:`, describeAiError(e), '|', redactKeys(String((e as Error)?.message ?? e)));
   }
   if (!fallbackOnError) throw lastError;
   return { data: await resolveMock(opts.mock), source: 'mock', model: lastModel, warning: `AI 분석 실패로 데모 데이터를 표시합니다: ${describeAiError(lastError)}` };
@@ -321,8 +397,14 @@ export class AiOutputError extends Error {
 /** SDK 오류 → 한국어 요약 (구체적 타입부터) */
 export function describeAiError(e: unknown): string {
   if (e instanceof AiOutputError) return e.message;
+  // 시간 초과를 연결 실패보다 먼저 본다 (APIConnectionTimeoutError는 APIConnectionError의 하위 클래스).
+  // 사용자 abort는 우리 마감 signal에서만 생기므로 시간 초과로 본다
+  if (e instanceof Anthropic.APIConnectionTimeoutError || e instanceof Anthropic.APIUserAbortError || (e as Error)?.name === 'TimeoutError') {
+    return 'API 응답 시간 초과';
+  }
   if (e instanceof Anthropic.AuthenticationError) return 'API 키 인증 실패';
   if (e instanceof Anthropic.PermissionDeniedError) return 'API 권한 없음';
+  if (e instanceof Anthropic.PaymentRequiredError) return 'API 크레딧 부족';
   if (e instanceof Anthropic.NotFoundError) return '모델을 찾을 수 없음 (CELEBER_VISION_MODEL 확인)';
   if (e instanceof Anthropic.RateLimitError) return '요청 한도 초과 (잠시 후 다시 시도)';
   if (e instanceof Anthropic.BadRequestError) return /usage limit/i.test(e.message) ? 'API 사용 한도 초과' : '잘못된 요청 (서버 로그 확인)';
@@ -332,11 +414,10 @@ export function describeAiError(e: unknown): string {
     if (e.status === 401) return 'API 키 인증 실패';
     if (e.status === 403) return 'API 권한 없음';
     if (e.status === 404) return '모델을 찾을 수 없음 (CELEBER_OPENAI_MODEL 확인)';
-    if (e.status === 429) return e.code === 'insufficient_quota' ? 'API 사용 한도 초과' : '요청 한도 초과 (잠시 후 다시 시도)';
+    if (e.status === 429) return isOpenAiQuota(e) ? 'API 사용 한도 초과' : '요청 한도 초과 (잠시 후 다시 시도)';
     if (e.status === 400) return '잘못된 요청 (서버 로그 확인)';
     return e.status ? `API 오류 ${e.status}` : 'API 연결 실패';
   }
-  if ((e as Error)?.name === 'TimeoutError') return 'API 응답 시간 초과';
   // SDK 밖의 오류(이미지 읽기 실패 등)도 화면에는 첫 줄 120자만
   const raw = (e as Error)?.message ?? String(e);
   return raw.split('\n')[0].slice(0, 120);

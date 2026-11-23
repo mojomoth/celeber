@@ -34,6 +34,14 @@ export const AiNarrativeSchema = z.object({
 });
 export type AiNarrative = z.infer<typeof AiNarrativeSchema>;
 
+const OPINION_KEYS = { independentTone: true, independentUndertone: true, independentRationale: true } as const;
+/** AI 독립 판정 전용 스키마: 규칙 판정 결과를 보여 주지 않은 별도 호출에 쓴다 */
+export const AiOpinionSchema = AiNarrativeSchema.pick(OPINION_KEYS);
+export type AiOpinion = z.infer<typeof AiOpinionSchema>;
+/** 서술 전용 스키마: 규칙 판정을 알려 준 호출이므로 독립 판정 필드를 받지 않는다 */
+export const AiNarrativeTextSchema = AiNarrativeSchema.omit(OPINION_KEYS);
+export type AiNarrativeText = z.infer<typeof AiNarrativeTextSchema>;
+
 /** 리포트 조립에 쓰는 서술 (AI 또는 템플릿) */
 export interface ReportNarrative {
   firstImpression: string[];
@@ -308,7 +316,7 @@ export function polishAiText(text: string, ctx?: { tone: Tone; secondaryTone: To
 }
 
 /** AI 서술을 템플릿 위에 덮는다 (빈 값은 템플릿 유지, 해시태그는 # 정규화). ctx가 있으면 타입 이름·숫자 표기를 정리한다. */
-export function mergeAiNarrative(base: ReportNarrative, ai: AiNarrative, ctx?: { tone: Tone; secondaryTone: Tone }): ReportNarrative {
+export function mergeAiNarrative(base: ReportNarrative, ai: AiNarrativeText, ctx?: { tone: Tone; secondaryTone: Tone }): ReportNarrative {
   const merged = mergeAiNarrativeRaw(base, ai);
   const p = (x: string) => polishAiText(x, ctx);
   return {
@@ -336,7 +344,7 @@ export function mergeAiNarrative(base: ReportNarrative, ai: AiNarrative, ctx?: {
   };
 }
 
-function mergeAiNarrativeRaw(base: ReportNarrative, ai: AiNarrative): ReportNarrative {
+function mergeAiNarrativeRaw(base: ReportNarrative, ai: AiNarrativeText): ReportNarrative {
   const hashtags = nonEmptyList(ai.hashtags, base.hashtags, 5).map((h) => (h.startsWith('#') ? h : `#${h}`).replace(/\s+/g, ''));
   const grooming = base.grooming.map((g, i) => nonEmpty(stripLeadLabel(ai.grooming[i]), g));
   return {

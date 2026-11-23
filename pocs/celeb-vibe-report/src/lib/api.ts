@@ -8,7 +8,7 @@ import type { GuideSummary, MyReportBrief } from './types';
 
 const IdSchema = z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/);
 
-/** POST /api/guide/generate */
+/** POST /api/guide/generate. 모르는 필드(예: 오타 'skipAI')는 400: 오타를 버리고 유료 AI 호출로 진행하지 않게 한다 */
 export const GenerateGuideRequestSchema = z.object({
   reportId: IdSchema,
   vibeAnalysisId: IdSchema,
@@ -16,7 +16,7 @@ export const GenerateGuideRequestSchema = z.object({
   skipAi: z.boolean().optional(),
   /** 저장 목록에 바로 넣을지 (기본 true) */
   saved: z.boolean().optional(),
-});
+}).strict();
 export type GenerateGuideRequest = z.infer<typeof GenerateGuideRequestSchema>;
 
 export interface GenerateGuideResponse {
@@ -24,6 +24,9 @@ export interface GenerateGuideResponse {
   aiSource: 'ai' | 'mock' | 'skipped';
   warning?: string;
 }
+
+/** POST /api/guide/guides/[id]/regenerate. 모르는 필드는 400 */
+export const RegenerateGuideRequestSchema = z.object({ skipAi: z.boolean().optional() }).strict();
 
 /** PATCH /api/guide/guides/[id]. 모르는 필드(예: 오타 'save')는 400. 바꿀 필드가 없으면 라우트가 400 nothing_to_update */
 export const PatchGuideRequestSchema = z

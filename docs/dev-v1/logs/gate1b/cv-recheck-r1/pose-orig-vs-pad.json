@@ -1,0 +1,149 @@
+{
+ "multi.jpg": {
+  "orig": [
+   {
+    "minAnkleV": 0.764,
+    "ankleY": [
+     0.896,
+     0.89
+    ],
+    "xRange": [
+     0.05,
+     0.35
+    ],
+    "noseV": 1
+   },
+   {
+    "minAnkleV": 0.778,
+    "ankleY": [
+     0.903,
+     0.884
+    ],
+    "xRange": [
+     0.71,
+     0.96
+    ],
+    "noseV": 1
+   }
+  ],
+  "padded": [
+   {
+    "minAnkleV": 0.57,
+    "ankleY": [
+     0.903,
+     0.899
+    ],
+    "xRange": [
+     0.05,
+     0.34
+    ],
+    "noseV": 1
+   },
+   {
+    "minAnkleV": 0.746,
+    "ankleY": [
+     0.922,
+     0.893
+    ],
+    "xRange": [
+     0.71,
+     0.96
+    ],
+    "noseV": 1
+   }
+  ]
+ },
+ "look-b-nofeet.jpg": {
+  "orig": [
+   {
+    "minAnkleV": 0.497,
+    "ankleY": [
+     0.296,
+     0.319
+    ],
+    "xRange": [
+     0.29,
+     0.43
+    ],
+    "noseV": 1
+   },
+   {
+    "minAnkleV": 0.941,
+    "ankleY": [
+     1.018,
+     1.004
+    ],
+    "xRange": [
+     0.16,
+     0.88
+    ],
+    "noseV": 1
+   }
+  ],
+  "padded": []
+ },
+ "gray-b.jpg": {
+  "orig": [
+   {
+    "minAnkleV": 0.06,
+    "ankleY": [
+     0.732,
+     0.724
+    ],
+    "xRange": [
+     0.16,
+     0.85
+    ],
+    "noseV": 1
+   }
+  ],
+  "padded": [
+   {
+    "minAnkleV": 0.424,
+    "ankleY": [
+     0.801,
+     0.786
+    ],
+    "xRange": [
+     0.16,
+     0.83
+    ],
+    "noseV": 1
+   }
+  ]
+ },
+ "verydark-a.jpg": {
+  "orig": [],
+  "padded": []
+ },
+ "look-a.jpg": {
+  "orig": [
+   {
+    "minAnkleV": 0.898,
+    "ankleY": [
+     0.895,
+     0.899
+    ],
+    "xRange": [
+     0.15,
+     0.89
+    ],
+    "noseV": 1
+   }
+  ],
+  "padded": [
+   {
+    "minAnkleV": 0.954,
+    "ankleY": [
+     0.887,
+     0.885
+    ],
+    "xRange": [
+     0.15,
+     0.88
+    ],
+    "noseV": 1
+   }
+  ]
+ }
+}

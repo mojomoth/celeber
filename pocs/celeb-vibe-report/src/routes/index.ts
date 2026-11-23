@@ -15,9 +15,8 @@
 //   GET    /api/guide/my-data                    내 정보 전체 초기화 미리보기 ← myDataGET
 //   DELETE /api/guide/my-data?confirm=1          얼굴·전신·리포트·가이드 + 참조 없는 내 사진 삭제 ← myDataDELETE
 import 'server-only';
-import { z } from 'zod';
 import { jsonError, parseJsonBody, withErrors } from '@celeber/core/server/http';
-import { GenerateGuideRequestSchema, PatchGuideRequestSchema } from '../lib/api';
+import { GenerateGuideRequestSchema, PatchGuideRequestSchema, RegenerateGuideRequestSchema } from '../lib/api';
 import { GuideHttpError, deleteAllGuides, deleteGuide, generateVibeGuide, getGuide, guideResetPreview, listGuides, listMyReports, myDataPreview, regenerateVibeGuide, resetMyData, updateGuide } from '../server';
 
 type IdCtx = { params: Promise<{ id: string }> };
@@ -72,7 +71,7 @@ export const guideDELETE = withErrors(async (_req: Request, ctx: IdCtx) => {
 
 export const regeneratePOST = withErrors(async (req: Request, ctx: IdCtx) => {
   const { id } = await ctx.params;
-  const body = await parseJsonBody(req, z.object({ skipAi: z.boolean().optional() }));
+  const body = await parseJsonBody(req, RegenerateGuideRequestSchema);
   if (!body.ok) return body.response;
   try {
     return Response.json(await regenerateVibeGuide(id, body.data));

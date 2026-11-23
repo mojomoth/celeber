@@ -1,0 +1,10 @@
+PROBE2 anthropic402 warning = AI 분석 실패로 데모 데이터를 표시합니다: API 오류 402 | blocked = false
+PROBE3 after 1800 simulated sec: settled = false | calls = anthropic
+PROBE2 openai type-only quota calls = 2 | blocked = false | warning = AI 분석 실패로 데모 데이터를 표시합니다: 요청 한도 초과 (잠시 후 다시 시도)
+PROBE2 anthropic hang calls = 3 | simulated sec = 542 | warning = AI 분석 실패로 데모 데이터를 표시합니다: API 연결 실패
+PROBE server-log-contains-upstream-key-echo = true
+PROBE concurrent anthropic calls = 5
+PROBE record schema = {"type":"object","properties":{"m":{"type":"object","properties":{},"additionalProperties":false,"description":"{propertyNames: {\"type\":\"string\"}}"}},"additionalProperties":false,"required":["m"]} strict = true
+PROBE field-named-properties strict = false
+ Test Files  3 passed (3)
+      Tests  28 passed (28)

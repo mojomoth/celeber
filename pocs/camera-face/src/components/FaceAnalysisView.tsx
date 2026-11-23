@@ -7,7 +7,7 @@ import { useState, type ReactNode } from 'react';
 import type { FaceAnalysis, SkinColorMeasurement } from '@celeber/core/contracts';
 import { ITA_CATEGORY_LABEL_KO } from '@celeber/core/color';
 import { AxisBars, Card, CheckList, EmptyState, Gauge, Icon, MockBadge, Notice, ReportRow, ReportTable, SectionHeader, Swatch, SwatchRow, Tabs } from '@celeber/ui';
-import { lowConfidenceReasons } from '../lib/analysis';
+import { lowConfidenceReasons, profileEmptyMessage } from '../lib/analysis';
 import { AnnotatedPhoto } from './AnnotatedPhoto';
 import { EnvironmentSummary } from './EnvironmentSummary';
 
@@ -192,7 +192,7 @@ export function FaceAnalysisView({ analysis: a, aiWarning, actions }: FaceAnalys
             </ul>
           </>
         ) : (
-          <EmptyState title="옆선 분석 없음" description={a.side ? '측면 사진에서 얼굴을 찾지 못했습니다. 고개를 60° 정도만 돌려 다시 촬영해 보세요.' : '측면 촬영을 건너뛰었습니다.'} />
+          <EmptyState title="옆선 분석 없음" description={profileEmptyMessage(a)} />
         )}
       </Card>
 

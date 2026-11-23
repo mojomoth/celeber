@@ -72,6 +72,7 @@ describe('aiProviderChain', () => {
     expect(env.aiProviderChain().map((p) => `${p.id}:${p.model}`)).toEqual(['openai:gpt-6.2-astra']);
   });
   it('CELEBER_AI_PROVIDER로 하나만 고르고, 모르는 값은 auto', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
     setEnv({ ANTHROPIC_API_KEY: 'a', OPENAI_API_KEY: 'o', CELEBER_AI_PROVIDER: 'openai' });
     expect(env.aiProviderChain().map((p) => p.id)).toEqual(['openai']);
     setEnv({ ANTHROPIC_API_KEY: 'a', OPENAI_API_KEY: 'o', CELEBER_AI_PROVIDER: 'anthropic' });
@@ -90,7 +91,7 @@ describe('aiProviderChain', () => {
     env.setAiBlock('API 사용 한도 초과', undefined, 'anthropic');
     expect(env.getCapabilities()).toMatchObject({ ai: true, aiProvider: 'openai', model: 'gpt-6.2-sol', aiBlockedReason: null });
     env.setAiBlock('API 키 인증 실패', undefined, 'openai');
-    expect(env.getCapabilities()).toMatchObject({ ai: false, aiProvider: null, aiBlockedReason: 'API 사용 한도 초과' });
+    expect(env.getCapabilities()).toMatchObject({ ai: false, aiProvider: null, aiBlockedReason: 'Anthropic API 사용 한도 초과, OpenAI API 키 인증 실패' });
   });
 });
 

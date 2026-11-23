@@ -174,6 +174,19 @@ describe('analyzeVibe (Mock, SQLite)', () => {
     expect(db.vibeAnalyses.count()).toBe(before - 1);
   });
 
+  it('측정 없이 강행(force)한 기록은 다시 분석해도 강행을 유지한다', async () => {
+    const rec = await saveUpload(await outfitJpeg(), { kind: 'vibe' });
+    const { analysis } = await server.analyzeVibe({ uploadId: rec.id, force: true });
+    expect(db.kvGet<{ force?: boolean }>(`vibe:measurement:${analysis.id}`)?.force).toBe(true);
+    const again = await server.reanalyzeVibe(analysis.id);
+    expect(again.analysis.id).toBe(analysis.id);
+    expect(again.analysis.analyzability).toEqual(analysis.analyzability);
+    expect(db.kvGet<{ force?: boolean }>(`vibe:measurement:${analysis.id}`)?.force).toBe(true);
+    // 강행하지 않은 측정 없는 기록은 저장할 것이 없다
+    const plain = await server.analyzeVibe({ uploadId: rec.id });
+    expect(db.kvGet(`vibe:measurement:${plain.analysis.id}`)).toBeNull();
+  });
+
   it('투명 여백이 있는 PNG: 사전 판정에서 매우 어둡다고 하지 않는다', async () => {
     const opaque = await outfitJpeg();
     const png = await sharp(opaque)

@@ -27,6 +27,7 @@ const CSS = `
 .pcr-secondary { display: flex; align-items: baseline; gap: var(--cb-s3); font-size: 14px; }
 .pcr-secondary strong { font-size: 20px; color: var(--cb-iris-deep); font-weight: 700; }
 .pcr-scores { display: grid; gap: 6px; }
+.pcr-scores__note { margin: 2px 0 0; font-size: 12px; line-height: 18px; color: var(--cb-text-2); }
 .pcr-score { display: grid; grid-template-columns: 96px 1fr 40px; align-items: center; gap: var(--cb-s2); font-size: 12px; color: var(--cb-text-2); }
 .pcr-score__track { height: 6px; border-radius: 3px; background: var(--cb-line); overflow: hidden; }
 .pcr-score__fill { display: block; height: 100%; background: var(--cb-ink); border-radius: 3px; }

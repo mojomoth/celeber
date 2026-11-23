@@ -179,7 +179,7 @@ describe('카메라 기울기 (minor)', () => {
     for (const n of [...LOOK_B_FAMILY, 'look-a', 'look-a-pad']) expect(codes(computeBodyAnalysis(loadFixture(n))), n).not.toContain('camera-tilt');
   });
 
-  it('조금 기운 사진(15° 이하)은 실패 대신 카메라 기울기 경고 하나', () => {
+  it('조금 기운 사진(공통 기울기 10° 이하)은 실패 대신 카메라 기울기 경고 하나', () => {
     const input = loadFixture('look-b');
     // 사진 중심 기준 6° 회전
     const th = (6 * Math.PI) / 180;

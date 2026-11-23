@@ -1,0 +1,10 @@
+== POST /api/guide/guides/guide_mwtrzfqud5171c824f/regenerate {"skipAI":true}	400
+== POST /api/guide/generate {"reportId":"pcr_mwtiidd798d9cc8769","vibeAnalysisId":"vibe_mwtryqq9b223f951a9","skipAI":true}	400
+== PATCH /api/guide/guides/guide_mwtrzfqud5171c824f {"save":true}	400
+== PATCH /api/guide/guides/guide_mwtrzfqud5171c824f {}	400
+== POST /api/guide/guides/guide_mwtrzfqud5171c824f/regenerate not json	400
+== POST /api/guide/guides/guide_mwtrzfqud5171c824f/regenerate {"skipAi":"yes"}	400
+== POST /api/guide/guides/nope_x/regenerate {"skipAi":true}	404
+== POST /api/guide/guides/guide_mwtrzfqud5171c824f/regenerate {"skipAi":true}	200
+== POST /api/guide/guides/guide_mwtrzfqud5171c824f/regenerate 	400
+== GET /api/guide/guides/guide_mwtrzfqud5171c824f 	200

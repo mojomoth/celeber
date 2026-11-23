@@ -156,6 +156,71 @@ describe('업로드 오류는 한국어 문구와 맞는 상태코드로', () =>
     expect(r.status).toBe(400);
     expect((await errorOf(r)).code).toBe('invalid_json');
   });
+  it.each(['data:image/svg+xml,%ZZ', 'data:image/svg+xml;charset=utf-8,%3Csvg%E0%A4%A'])('잘못된 퍼센트 인코딩 data URL은 400 bad_request + 한국어 (%s)', async (dataUrl) => {
+    const r = await uploads.handleUploadPost(new Request('http://x/api/uploads', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dataUrl }) }));
+    expect(r.status).toBe(400);
+    const e = await errorOf(r);
+    expect(e.code).toBe('bad_request');
+    expect(e.message).toMatch(HANGUL);
+    expect(e.message).not.toMatch(/URI|malformed/i);
+  });
+  const postJson = (body: string) => uploads.handleUploadPost(new Request('http://x/api/uploads', { method: 'POST', headers: { 'content-type': 'application/json' }, body }));
+  it.each([{ toString: null }, { toString: 1 }, 123, true])('문자열이 아닌 dataUrl(%j)은 500 대신 400 bad_request + 한국어', async (dataUrl) => {
+    const r = await postJson(JSON.stringify({ dataUrl }));
+    expect(r.status).toBe(400);
+    const e = await errorOf(r);
+    expect(e.code).toBe('bad_request');
+    expect(e.message).toMatch(HANGUL);
+  });
+  it('배열로 감싼 dataUrl은 문자열로 바뀌어 저장되지 않고 400', async () => {
+    const png = await sharp({ create: { width: 30, height: 20, channels: 3, background: '#4a6' } }).png().toBuffer();
+    const r = await postJson(JSON.stringify({ dataUrl: [`data:image/png;base64,${png.toString('base64')}`] }));
+    expect(r.status).toBe(400);
+    expect((await errorOf(r)).code).toBe('bad_request');
+  });
+  it('saveUploadFromDataUrl에 문자열이 아닌 값이 와도 UploadError(400)', async () => {
+    await expect(uploads.saveUploadFromDataUrl({ toString: null } as unknown as string, { kind: 'other' })).rejects.toMatchObject({ status: 400, code: 'bad_request' });
+  });
+  it('JSON 본문의 잘못된 UTF-8 바이트는 U+FFFD로 바꿔 저장하지 않고 400 invalid_json', async () => {
+    const head = Buffer.from('{"kind":"vibe","dataUrl":"data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22%3E%3Ctitle%3E');
+    const tail = Buffer.from('%3C/title%3E%3C/svg%3E"}');
+    const r = await postJson(Buffer.concat([head, Buffer.from([0xe0, 0xa4]), tail]) as unknown as string);
+    expect(r.status).toBe(400);
+    expect((await errorOf(r)).code).toBe('invalid_json');
+  });
+  const noisyJpeg = async () => {
+    const raw = Buffer.alloc(640 * 480 * 3);
+    for (let i = 0; i < raw.length; i++) raw[i] = (i * 2654435761) >>> 24;
+    return sharp(raw, { raw: { width: 640, height: 480, channels: 3 } }).jpeg({ quality: 90 }).toBuffer();
+  };
+  it.each(['face-front', 'face-side', 'environment'])('뒷부분이 잘린 JPEG는 %s에서 422 unreadable (회색 채움 사진 저장 안 함)', async (kind) => {
+    const jpg = await noisyJpeg();
+    const r = await post(new Blob([new Uint8Array(jpg.subarray(0, jpg.length >> 1))], { type: 'image/jpeg' }), kind);
+    expect(r.status).toBe(422);
+    const e = await errorOf(r);
+    expect(e.code).toBe('unreadable');
+    expect(e.message).toMatch(HANGUL);
+  });
+  it('온전한 JPEG는 face-front에서 그대로 저장', async () => {
+    const r = await post(new Blob([new Uint8Array(await noisyJpeg())], { type: 'image/jpeg' }), 'face-front');
+    expect(r.status).toBe(200);
+    expect(((await r.json()) as { width: number }).width).toBe(640);
+  });
+  it('선언 크기가 큰 SVG(9000x5000)도 저장 후 분석용 픽셀을 읽을 수 있다 (낮은 density로 렌더)', async () => {
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="9000" height="5000"><rect width="9000" height="5000" fill="#c84"/></svg>');
+    const rec = await uploads.saveUpload(svg, { kind: 'vibe' });
+    const px = await uploads.readUploadPixels(rec.id);
+    expect(px).not.toBeNull();
+    expect(Math.max(px!.width, px!.height)).toBeLessThanOrEqual(1024);
+    expect(px!.width / px!.height).toBeCloseTo(9000 / 5000, 1);
+    [0xcc, 0x88, 0x44].forEach((v, i) => expect(Math.abs(px!.data[i] - v)).toBeLessThanOrEqual(2));
+  });
+  it('퍼센트 인코딩된 정상 SVG data URL은 그대로 저장', async () => {
+    const dataUrl = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"/>');
+    const r = await uploads.handleUploadPost(new Request('http://x/api/uploads', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dataUrl }) }));
+    expect(r.status).toBe(200);
+    expect(((await r.json()) as { mime: string }).mime).toBe('image/svg+xml');
+  });
   it('readUploadPixels: 저장 파일을 디코드할 수 없으면 예외 대신 null', async () => {
     const png = await sharp({ create: { width: 12, height: 12, channels: 3, background: '#123456' } }).png().toBuffer();
     const rec = await uploads.saveUpload(png, { kind: 'other' });

@@ -146,6 +146,20 @@ describe('동명이인 확정과 DB 연결', () => {
     const c = await server.confirmCandidate({ ...cand('가수'), name: '박하늘' });
     expect(c.id).not.toBe(a.id);
   });
+  it('사진 글자처럼 설명 없는 이름은 설명이 있는 동명이인에 자동으로 붙이지 않는다', async () => {
+    const { attachCelebIds } = await import('../src/server/celebs');
+    const player = await server.confirmCandidate({ ...cand('야구선수 · 한화'), name: '이민호' });
+    const caption = { name: '이민호', source: 'photo-text' as const, score: 0.55, evidence: ['사진 속 글자에서 읽음 (하단 자막)'] };
+    expect(attachCelebIds([caption])[0].celebId).toBeUndefined();
+    const fromCaption = await server.confirmCandidate(caption);
+    expect(fromCaption.id).not.toBe(player.id);
+    expect((await server.confirmCandidate(caption)).id).toBe(fromCaption.id);
+    expect(attachCelebIds([caption])[0].celebId).toBe(fromCaption.id);
+    // 자동완성: DB의 두 사람을 하나로 합치지 않고, 설명도 섞지 않는다
+    const items = server.suggestCelebs('이민호').items;
+    expect(items.map((i) => i.celebId).sort()).toEqual([player.id, fromCaption.id].sort());
+    expect(items.find((i) => i.celebId === fromCaption.id)?.description).toBeUndefined();
+  });
 });
 
 describe('사진으로 찾기 (Mock: 얼굴 인식 없음)', () => {

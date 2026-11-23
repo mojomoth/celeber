@@ -61,6 +61,23 @@ export function poseVisibility(kp: readonly PosePoint[]): PoseVisibility {
   };
 }
 
+/** 두 발목 중 낮은 visibility. 0.5 미만이면 발목을 제대로 못 잡은 것 */
+export function minAnkleVisibility(kp: readonly PosePoint[] | undefined): number {
+  if (!kp) return 0;
+  return Math.min(kp[POSE.leftAnkle]?.v ?? 0, kp[POSE.rightAnkle]?.v ?? 0);
+}
+
+/** 정사각형 여백 캔버스(한 변 side, 원본 위치 offX·offY px)의 정규화 좌표 → 원본(w×h px) 정규화 좌표 */
+export function unpadPoint<T extends P2>(p: T, pad: { side: number; offX: number; offY: number }, w: number, h: number): T {
+  return { ...p, x: (p.x * pad.side - pad.offX) / w, y: (p.y * pad.side - pad.offY) / h };
+}
+
+/** 원본 검출(first)과 여백 재검출(retry)의 주 인물 비교: 원본에서 못 찾았거나 재검출의 발목이 더 잘 보이면 재검출을 쓴다 */
+export function preferPaddedPose(first: readonly PosePoint[] | undefined, retry: readonly PosePoint[] | undefined): boolean {
+  if (!retry) return false;
+  return !first || minAnkleVisibility(retry) > minAnkleVisibility(first);
+}
+
 /** 프레이밍: 발목까지 보이면 전신, 골반까지면 상반신 */
 export function framingFromPose(vis: PoseVisibility, hasFace: boolean): 'full-body' | 'upper-body' | 'face' | 'unknown' {
   if (vis.head && vis.shoulders && vis.hips && vis.knees && vis.ankles) return 'full-body';

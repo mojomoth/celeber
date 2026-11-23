@@ -159,9 +159,10 @@ export function buildVibePrompt(d: RuleDraft, input: VibeMeasurement | undefined
     personCount: m ? Math.max(m.faceCount, m.poseCount) : undefined,
     framing: d.analyzability.framing,
     ruleIssues: d.analyzability.reasons.map((r) => `${r.code}: ${r.message}`),
-    outfitRegions: d.outfit.items.map((i) => ({ category: i.category, measuredColor: i.color.hex, colorName: i.color.name, box: i.box })),
-    outfitNotes: d.outfit.notes,
-    personalColor: pc.skin
+    // 브라우저 측정이 없으면 의상·피부 '측정색'은 사진 중앙 픽셀 추정이라 넣지 않는다 (AI가 '서버 중앙값은…'처럼 입력을 문장에 옮김)
+    outfitRegions: m ? d.outfit.items.map((i) => ({ category: i.category, measuredColor: i.color.hex, colorName: i.color.name, box: i.box })) : undefined,
+    outfitNotes: m ? d.outfit.notes : undefined,
+    personalColor: pc.skin && pc.measured
       ? {
           skin: pc.skin.hex,
           skinLab: pc.skin.lab,

@@ -3,7 +3,7 @@
 개발 진행을 통제하는 단일 문서다. 기술 검증 결과와 결정 근거는 [report.md](report.md), 문서 목록은 [wiki/index.md](../wiki/index.md)에 있다.
 
 - 갱신: 2026-11-24
-- 현재 단계: **Gate 1 마감 확인 끝, 게이트는 미통과**. camera-body 재검증과 core 회귀 1건이 남았고, HIL은 사용자 판정 대기, UI 목업은 HOLD다.
+- 현재 단계: **Gate 1 자동 검증 PASS — HIL 대기, UI 목업 HOLD**. 모든 PoC와 core·AI 공급자 체인이 재검증 PASS(minor만 남음)다. 게이트 통과는 사용자 HIL 판정을 기다린다.
 - 루프: Plan → Build → Independent Critic → Fix → Recheck → PASS ([gauntlet-loop 적용법](../wiki/tools.md))
 
 ## 게이트 통과 조건
@@ -31,34 +31,37 @@
 | 최소 API 계약 | PASS | [wiki/api-contract.md](../wiki/api-contract.md) |
 | 하네스 생성 | PASS | 이 문서, report.md, wiki/index.md, wiki/log.md |
 
-## Gate 1: 미통과
+## Gate 1: 자동 검증 PASS — HIL 대기, UI 목업 HOLD
+
+판정 규칙: 모든 PoC와 core·AI 공급자 체인이 PASS(minor만 남음)이면 자동 검증 PASS다. HIL과 UI 목업은 사용자 결정 전까지 게이트 PASS로 올리지 않는다.
 
 ### 공통 항목
 
 | 항목 | 상태 | 근거·비고 |
 |---|---|---|
 | 실제 API 호출 | PASS | Anthropic → OpenAI(`gpt-6.2-sol`) → Mock. 각 PoC에서 `source: 'ai'`·`hybrid` 확인. [gate1-ai](logs/gate1-ai.md) |
-| 이미지 검색 실제 공급자 | BLOCKED | 키 없음. 제한으로 기록. [report.md 미해결](report.md#미해결) |
+| AI 공급자 체인(`ai.ts`·`env.ts`) | PASS | Codex sol 포함 독립 재검증 r2, major 0·minor 8. [ai-chain-review-r2](logs/gate1b/ai-chain-review-r2.md) |
+| core 공용 수정 | PASS | 회귀·data URL 오류 수정 후 재검증 r2, major 0·minor 5. [core-dataurl-r2-verify](logs/gate1b/core-dataurl-r2-verify.md) |
+| 이미지 검색 실제 공급자 | BLOCKED | 키 없음. 제한으로 기록. [사용자 결정 필요](#사용자-결정-필요) |
 | `/pocs/<앱>` 경로 | PASS | 6개 PoC 모두 307로 앱 경로에 연결. 각 PoC 로그 참고 |
-| core 공용 수정 | FAIL | 대상 5건은 해결. 재검증에서 회귀 1건(minor). [gate1-core-fix](logs/gate1-core-fix.md), [재검증](logs/core-recheck/run-log.txt) |
-| 빌드·테스트·키 노출 | PASS | [gate1-close](logs/gate1-close.md) |
+| 빌드·테스트·키 노출 | PASS | [gate1b/close](logs/gate1b/close.md) |
 | UI 목업 (`pocs/ui`, v4 시안) | HOLD | 아래 참고 |
 | HIL 검증 | HIL 대기 | 사용자 판정 전까지 PASS로 올리지 않는다 |
-| 커밋 | PASS | 로컬 `main`에 커밋 2개 |
+| 커밋 | PASS | 로컬 `main`에 커밋 3개 |
 | 푸시 | BLOCKED | 원격 없음 |
 
 ### PoC별 결과
 
-입출력 검증은 구현 측, critic은 새 컨텍스트의 독립 검증자(Claude sonnet + Codex sol 2차 의견)가 맡았다. minor 이슈 원문은 critic 로그에 있다.
+입출력 검증은 구현 측, 재검증은 새 컨텍스트의 독립 검증자(Claude + Codex sol 2차 의견)가 맡았다. minor 원문은 재검증 로그에 있다.
 
-| PoC | 입출력 검증 | critic | 판정 | 남은 이슈 | 로그 |
+| PoC | 입출력 검증 | 재검증 | 판정 | 남은 이슈 (모두 minor) | 로그 |
 |---|---|---|---|---|---|
-| camera-face | PASS | PASS | PASS | minor 2 (앱). core 2건은 core 수정으로 해결 | [검증](logs/gate1-camera-face.md), [critic](logs/critic/camera-face-r2.md) |
-| camera-body | PASS | FAIL | FAIL | major 1(선바이저 사진의 정수리), minor 5. 라운드 3 수정은 끝났고 재검증 전이다 | [검증](logs/gate1-camera-body.md), [critic](logs/critic/cb-r3/README.md), [수정](logs/cb-fix-r3/README.md) |
-| search-celeb | PASS | PASS | PASS | minor 5 (앱). core 1건 해결 | [검증](logs/gate1-search-celeb.md), [critic](logs/critic/gate1-search-celeb-r2.md) |
-| celeb-vibe | PASS | PASS | PASS | minor 4 (앱). core 1건 해결 | [검증](logs/gate1-celeb-vibe.md), [critic](logs/critic/celeb-vibe-r3.md) |
-| personal-color-report | PASS | PASS | PASS | minor 4 (앱), core 회귀 1건이 이 앱에서 드러남. core 2건 해결 | [검증](logs/gate1-personal-color-report.md), [critic](logs/critic/pcr-r2/) |
-| celeb-vibe-report | PASS | PASS | PASS | minor 6 (앱 5, celeb-vibe 측정 1). dev HMR 새로고침 반복 포함 | [검증](logs/gate1-celeb-vibe-report.md), [critic](logs/critic/cvr-r2/) |
+| camera-face | PASS | PASS | PASS | 3: 조작된 랜드마크 미검증, 서버 yaw 범위가 브라우저 값을 깎음, core ROI 상한으로 낮아진 신뢰도 | [재검증](logs/gate1b/camera-face-recheck-r1.md) |
+| camera-body | PASS | PASS | PASS | 4: ±10° 기울기 판정 비대칭, 요약 칩 반올림 차이, 무릎 하나 가려진 앉은 사진, 딱 맞는 모자 경고 없음 | [재검증](logs/gate1b/cb-recheck-r2/README.md) |
+| search-celeb | PASS | PASS | PASS | 4: 설명 없는 행이 후보를 흡수, 동명이인 검색어 2·3번째 동일, `cleanRole` 오인식, 데모 안내 중복 | [재검증](logs/gate1b/search-celeb-recheck-r1.md) |
+| celeb-vibe | PASS | PASS | PASS | 2: 언더톤 보류인데 톤 이름에 '웜', 앱 전체 404 문구가 기록 전용 | [재검증](logs/gate1b/cv-recheck-r1/README.md) |
+| personal-color-report | PASS | PASS | PASS | 5: ⑭ ROI 누락 안내 잘림·문장 모순, 업로드 중단·text/plain 문구, 마침표 중복 | [재검증](logs/gate1b/pcr-minor-recheck-r1.md) |
+| celeb-vibe-report | PASS | PASS | PASS | 9: 색 측정 불가 근거 문장, 예전 가이드, 색 단어 필터 누락·오인식, 중복 주의 문구, 레이더 라벨 잘림(`pocs/ui`, HOLD), dev HMR 미재현 | [재검증](logs/gate1b/cvr-recheck-r1/README.md) |
 
 **UI 목업(pocs/ui, v4 시안): HOLD.** 사용자 확인을 기다린다. 다른 세션에서 "HIL 생략, UI는 docs/ui/drafts/v4 기준" 지시가 전달되었지만 사용자에게 직접 확인하지 않았다. 진행하게 되면 `@celeber/ui` 패키지(디자인 토큰·공용 컴포넌트)를 깨지 않도록 별도 경로나 별도 앱으로 둔다.
 
@@ -70,17 +73,21 @@ Gate 1
 - [x] OpenAI 대체 공급자 추가, 실제 호출 ([gate1-ai](logs/gate1-ai.md))
 - [x] PoC 6개 입출력 검증과 독립 critic(병렬)
 - [x] `/pocs/...` 경로 접근
-- [x] core 공용 이슈 5건 수정 ([gate1-core-fix](logs/gate1-core-fix.md))
-- [x] 실패·제한 기록, 빌드·테스트·키 노출 검사, git 초기화와 커밋
-- [ ] camera-body 라운드 3 수정분 재검증 (major 선바이저)
-- [ ] personal-color-report `assemble.ts:208` 정규식이 새 ROI 누락 문구를 인식하게 수정 (core 회귀)
-- [ ] core: data URL `%ZZ` 500 → 400
-- [ ] AI 공급자 변경분(`ai.ts`, `env.ts`) Codex sol 독립 리뷰
-- [ ] PoC별 minor 이슈 정리 (critic 로그 기준)
-- [ ] (결정 필요) 이미지 검색 대체로 OpenAI `web_search`를 쓸지
-- [ ] (결정 필요) 원격 저장소 연결과 푸시
-- [ ] (HOLD) UI 목업
+- [x] core 공용 수정과 재검증(회귀·data URL 포함)
+- [x] camera-body 정수리 major 수정과 재검증
+- [x] AI 공급자 체인 Codex sol 독립 리뷰와 수정
+- [x] PoC별 minor 1차 정리와 재검증
+- [x] 빌드·테스트·키 노출 재검사, 커밋
 - [ ] (HIL 대기) 사용자 HIL 판정
+- [ ] (HOLD) UI 목업
+- [ ] 남은 minor 정리(위 표, Gate 2 통합 전에 우선순위 결정)
+
+## 사용자 결정 필요
+
+1. **HIL 판정.** PoC 6개를 실제로 써 보고 통과 여부를 정한다.
+2. **UI 목업 v4 진행 여부.** 진행하면 `@celeber/ui`와 분리된 경로에 둔다.
+3. **원격 저장소.** 연결할 저장소와 공개 범위(커밋에서 뺀 파일 포함)를 정한다.
+4. **이미지 검색 대체.** 키가 없는 동안 OpenAI `web_search`를 연예인 사진 검색에 쓸지 정한다.
 
 ## 역할과 파일 소유권
 
@@ -100,16 +107,14 @@ Gate 1
 
 ## 마지막 검증 (2026-11-24)
 
-- `pnpm typecheck`·`pnpm lint` exit 0, `pnpm test` 518개 통과(17개 건너뜀), `pnpm build:all` 7개 앱 성공. [gate1-close](logs/gate1-close.md)
-- 키 노출: 저장소, `.next/static`·`.next/server`, docs, 로그, `pocs/.data`에서 `.env` 값 6개 일치 0건. `NEXT_PUBLIC_` 사용 0건
-- 커밋 전 스테이징 검사: `.env`는 스테이징되지 않았고, 스테이징된 파일 전체에서 `.env` 값 일치 0건
+- `pnpm typecheck`·`pnpm lint` exit 0, `pnpm test` 594개 통과(17개 건너뜀), `pnpm build:all` 7개 앱 성공. [gate1b/close](logs/gate1b/close.md)
+- 키 노출: 저장소, 각 앱 `.next`, docs, 로그, `pocs/.data`에서 `.env` 값 6개 일치 0건. 코드의 `NEXT_PUBLIC_` 사용 0건
+- 커밋 전 스테이징 검사: `.env`는 추적·스테이징되지 않았고, 스테이징된 파일 전체에서 `.env` 값 일치 0건
 - dev 서버는 띄우지 않았다. 3100~3106 LISTEN 0건
-- git: 로컬 `main`에 커밋 2개(PoC 기준선, Gate 0·1). 푸시: BLOCKED(원격 없음)
+- git: 로컬 `main`에 커밋 3개. 푸시: BLOCKED(원격 없음)
 
 ## 다음 작업
 
-1. camera-body 라운드 3 수정분을 새 critic으로 재검증한다.
-2. personal-color-report 정규식 회귀와 core data URL 500을 고친 뒤 core 재검증을 다시 돌린다.
-3. `ai.ts`·`env.ts`를 Codex sol로 독립 리뷰한다.
-4. 사용자에게 HIL 판정, UI 목업 진행 여부, 원격 저장소, 이미지 검색 대체 여부를 묻는다.
-5. 위 1~3이 PASS이고 HIL을 통과하면 Gate 1을 PASS로 올리고 Gate 2를 시작한다.
+1. 사용자에게 [사용자 결정 필요](#사용자-결정-필요) 4건을 묻는다.
+2. HIL을 통과하면 Gate 1을 PASS로 올리고 Gate 2(통합)를 시작한다.
+3. HIL 판정을 기다리는 동안 남은 minor 가운데 통합에 영향이 큰 것(camera-face 서버 검증, ai.ts 동시 요청 차단, env.ts 경고 로그 원문)부터 고친다.

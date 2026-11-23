@@ -1,0 +1,10 @@
+ RUN  v5.1.1 /Users/jyl/work/repo/celeber/pocs/search-celeb
+
+
+ Test Files  5 passed | 2 skipped (7)
+      Tests  56 passed | 9 skipped (65)
+   Start at  06:18:31
+   Duration  304ms (import 43%, tests 35%, transform 20%, worker 1%)
+
+typecheck=0
+lint=0

@@ -140,7 +140,8 @@ export async function analyzeVibe(input: AnalyzeVibeInput): Promise<AnalyzeVibeR
   };
   if (existing) vibeAnalyses.update(id, { data: analysis, cols });
   else vibeAnalyses.insert({ id, data: analysis, cols, createdAt: analysis.createdAt });
-  if (measurement) kvSet(measureKey(id), { uploadId: input.uploadId, measurement, force: !!input.force });
+  // 측정 없이 '그래도 분석'한 기록도 다시 분석할 때 강행을 유지하도록 force를 함께 저장한다
+  if (measurement || input.force) kvSet(measureKey(id), { uploadId: input.uploadId, measurement, force: !!input.force });
 
   if (analysis.celebImageId) markCelebImage(analysis.celebImageId, analysis.analyzability);
   return { analysis, warning: ai.warning };

@@ -1,0 +1,312 @@
+[
+ {
+  "file": "look-b.jpg",
+  "force": false,
+  "status": 200,
+  "ms": 27656,
+  "id": "vibe_mwtrrmthe3b8943b7c",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": true,
+  "reasons": [
+   "other/info",
+   "face-too-small/warn"
+  ],
+  "n": 66,
+  "bad": [
+   [
+    "personalColor.evidence[2]",
+    "측정값 없이 AI가 사진을 보고 판단했습니다."
+   ],
+   [
+    "personalColor.evidence[4]",
+    "피부·헤어·눈 색은 AI가 사진에서 읽은 값이며 픽셀 측정값이 아닙니다."
+   ]
+  ],
+  "items": [
+   "headwear:로고 선바이저:오프화이트",
+   "top:추상 프린트 반소매 티셔츠:크림 아이보리",
+   "bottom:추상 프린트 쇼츠:웜 오프화이트",
+   "accessory:골지 크루 삭스:화이트",
+   "shoes:패널 러닝 스타일 스니커즈:아이보리"
+  ],
+  "pc": {
+   "undertone": "warm",
+   "conf": 0,
+   "partial": {
+    "outfit": true,
+    "personalColor": false,
+    "mood": true
+   }
+  }
+ },
+ {
+  "file": "dark-a.jpg",
+  "force": false,
+  "status": 200,
+  "ms": 20211,
+  "id": "vibe_mwtrs2fob7834d6336",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": true,
+  "reasons": [
+   "extreme-lighting/warn",
+   "other/info"
+  ],
+  "n": 48,
+  "bad": [
+   [
+    "personalColor.evidence[2]",
+    "측정값 없이 AI가 사진을 보고 판단했습니다."
+   ],
+   [
+    "personalColor.evidence[4]",
+    "피부·헤어·눈 색은 AI가 사진에서 읽은 값이며 픽셀 측정값이 아닙니다."
+   ]
+  ],
+  "items": [
+   "top:크루넥 스웨트셔츠:다크 올리브 그레이",
+   "bottom:와이드 슬랙스:푸른빛 차콜",
+   "shoes:볼륨 솔 블랙 슈즈:블랙",
+   "bag:더블 핸들 토트백:다크 토프"
+  ],
+  "pc": {
+   "conf": 0,
+   "partial": {
+    "outfit": true,
+    "personalColor": false,
+    "mood": true
+   }
+  }
+ },
+ {
+  "file": "noperson-flatlay.jpg",
+  "force": true,
+  "status": 200,
+  "ms": 19314,
+  "id": "vibe_mwtrshdjb0e10d07c2",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": true,
+  "reasons": [
+   "other/info",
+   "no-person/warn"
+  ],
+  "n": 42,
+  "bad": [],
+  "items": [
+   "top:크루넥 니트 스웨터:오트밀 베이지",
+   "bottom:진청 데님 팬츠:딥 인디고",
+   "shoes:레이스업 로우탑 스니커즈:오프화이트",
+   "accessory:사각 버클 벨트:밤색"
+  ],
+  "pc": {
+   "conf": 0,
+   "partial": {
+    "outfit": true,
+    "personalColor": false,
+    "mood": true
+   }
+  },
+  "re": {
+   "status": 200,
+   "sameId": true,
+   "source": "ai",
+   "analyzable": true,
+   "reasons": [
+    "other/info",
+    "no-person/warn"
+   ],
+   "bad": []
+  }
+ },
+ {
+  "file": "noperson-beach.jpg",
+  "force": false,
+  "status": 200,
+  "ms": 12822,
+  "id": "vibe_mwtrt6f52f5f3e70c4",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": false,
+  "reasons": [
+   "low-resolution/warn",
+   "other/info",
+   "no-person/error",
+   "not-photo/error"
+  ],
+  "n": 20,
+  "bad": [],
+  "items": [],
+  "pc": {
+   "conf": 0,
+   "partial": {
+    "outfit": false,
+    "personalColor": false,
+    "mood": true
+   }
+  }
+ },
+ {
+  "file": "gray-b.jpg",
+  "force": false,
+  "status": 200,
+  "ms": 22338,
+  "id": "vibe_mwtrtnoff895fd906a",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": false,
+  "reasons": [
+   "heavy-filter/error",
+   "other/info"
+  ],
+  "n": 50,
+  "bad": [],
+  "items": [
+   "headwear:로고 선바이저:화이트",
+   "top:그래픽 크루넥 반팔 티셔츠:화이트",
+   "bottom:그래픽 쇼츠:밝은 회백색",
+   "accessory:리브 크루 삭스:화이트",
+   "shoes:레이스업 로우톱 스니커즈:라이트 그레이"
+  ],
+  "pc": {
+   "conf": 0,
+   "partial": {
+    "outfit": false,
+    "personalColor": false,
+    "mood": true
+   }
+  }
+ },
+ {
+  "file": "look-a.jpg",
+  "force": false,
+  "status": 200,
+  "ms": 22488,
+  "id": "vibe_mwtrv8s2829c33b646",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": true,
+  "reasons": [
+   "other/info"
+  ],
+  "n": 51,
+  "bad": [
+   [
+    "personalColor.evidence[3]",
+    "측정값 없이 AI가 사진을 보고 판단했습니다."
+   ],
+   [
+    "personalColor.evidence[5]",
+    "피부·헤어·눈 색은 AI가 사진에서 읽은 값이며 픽셀 측정값이 아닙니다."
+   ]
+  ],
+  "items": [
+   "top:드롭 숄더 크루넥 스웨트셔츠:오트밀 베이지",
+   "bottom:와이드 스트레이트 슬랙스:차콜 그레이",
+   "shoes:라운드토 러그솔 슈즈:블랙",
+   "bag:롱 핸들 소프트 토트백:웜 그레이"
+  ],
+  "pc": {
+   "tone": "autumn-deep",
+   "undertone": "warm",
+   "conf": 0.3,
+   "partial": {
+    "outfit": true,
+    "personalColor": false,
+    "mood": true
+   }
+  }
+ },
+ {
+  "file": "look-b-2.jpg",
+  "force": false,
+  "status": 200,
+  "ms": 25599,
+  "id": "vibe_mwtrvsjh31977c1081",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": true,
+  "reasons": [
+   "other/info",
+   "face-too-small/warn"
+  ],
+  "n": 68,
+  "bad": [
+   [
+    "personalColor.evidence[3]",
+    "측정값 없이 AI가 사진을 보고 판단했습니다."
+   ],
+   [
+    "personalColor.evidence[6]",
+    "피부·헤어·눈 색은 AI가 사진에서 읽은 값이며 픽셀 측정값이 아닙니다."
+   ]
+  ],
+  "items": [
+   "headwear:로고 선바이저:오프화이트",
+   "top:그래픽 크루넥 반팔 티셔츠:크림 아이보리",
+   "bottom:추상 프린트 쇼츠:연한 아이보리",
+   "accessory:골지 크루 삭스:소프트 화이트",
+   "shoes:러닝 스타일 로우톱 스니커즈:라이트 그레이지"
+  ],
+  "pc": {
+   "tone": "autumn-mute",
+   "undertone": "neutral",
+   "conf": 0.28,
+   "partial": {
+    "outfit": true,
+    "personalColor": false,
+    "mood": true
+   }
+  }
+ },
+ {
+  "file": "verydark-a.jpg",
+  "force": true,
+  "status": 200,
+  "ms": 25176,
+  "id": "vibe_mwtrwbzn4e67abc389",
+  "source": "ai",
+  "model": "gpt-6.2-sol",
+  "isMock": false,
+  "analyzable": true,
+  "reasons": [
+   "extreme-lighting/warn",
+   "other/info"
+  ],
+  "n": 41,
+  "bad": [],
+  "items": [
+   "top:크루넥 긴소매 니트:딥 올리브",
+   "bottom:턱 와이드 팬츠:딥 네이비",
+   "shoes:둥근 앞코의 두꺼운 밑창 구두:블랙",
+   "bag:긴 손잡이 토트백:다크 브라운"
+  ],
+  "pc": {
+   "conf": 0,
+   "partial": {
+    "outfit": true,
+    "personalColor": false,
+    "mood": true
+   }
+  },
+  "re": {
+   "status": 200,
+   "sameId": true,
+   "source": "ai",
+   "analyzable": true,
+   "reasons": [
+    "extreme-lighting/warn",
+    "other/info"
+   ],
+   "bad": []
+  }
+ }
+]

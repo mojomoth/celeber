@@ -1,0 +1,15 @@
+Gate 1 판정은 **A만 Major**, **B·D·E·F·G는 Minor**입니다. **C의 실제 401은 결함 미확인**이며, upstream 원문을 서버 로그에 남기는 동작은 Minor로 봅니다.
+
+| 항목 | 판정 근거 |
+|---|---|
+| A | **Major.** Anthropic이 무응답이면 OpenAI가 정상이어도 로컬 분석이 약 9분 뒤에야 폴백을 시작합니다. OpenAI `fetch` 자체가 타임아웃되면 재시도 없이 Mock으로 가므로, 양쪽 연결이 무응답인 경우는 약 **12분**입니다. 약 **15분**은 첫 OpenAI 응답이 재시도 가능한 HTTP 오류일 때의 시나리오입니다. 3,003ms는 두 번의 대기 합계이고, `maxDuration=300`은 배포 설정입니다. Anthropic의 `API 연결 실패` 표시는 재현과 일치합니다. [ai.ts:36](/Users/jyl/work/repo/celeber/pocs/core/src/server/ai.ts:36) · [ai.ts:204](/Users/jyl/work/repo/celeber/pocs/core/src/server/ai.ts:204) |
+| B | **Minor.** 재현과 일치합니다. 해당 변형에서 차단·안내가 어긋나지만 폴백은 동작하고, 실측한 한도 오류는 처리됩니다. |
+| C | 실제 401의 마스킹과 UI·capabilities 동작은 보고와 일치합니다. 합성 401에 키 원문을 넣으면 서버 로그에는 그대로 남습니다. [ai.ts:295](/Users/jyl/work/repo/celeber/pocs/core/src/server/ai.ts:295) |
+| D | **Minor.** 같은 프로세스에서 차단 전에 시작한 요청이 중복 호출됩니다. 차단 후 새 요청은 건너뛰고, 공급자별 차단 기록은 보존됩니다. |
+| E | **Minor.** `properties` 필드가 strict를 끌 수 있지만 현재 앱 스키마에는 영향이 없고 Zod 검증은 유지됩니다. |
+| F | **Minor.** Claude 라벨은 고정이고, `aiBlockedReason`은 모든 공급자가 차단됐을 때 첫 공급자 사유만 담습니다. |
+| G | **Minor.** `OpenAI`는 조용히 `auto`로 해석됩니다. `openai` 지정 후 키가 없으면 Mock으로 갑니다. ‘키 없음’은 capabilities 값에서 UI가 만든 문구입니다. |
+
+**추가 Major 재현은 A와 같은 타임아웃 문제입니다.** `/api/vibe/analyze`에서 Anthropic이 `200` 헤더와 일부 JSON만 보낸 뒤 멈추면, SDK는 헤더 수신 시 타이머를 해제하고 `messages.parse()`는 본문을 계속 기다립니다. OpenAI와 Mock 모두 이 대기가 끝날 때까지 시작되지 않습니다. 로컬 fake-fetch에서 SDK 제한을 25ms로 두고 200ms 뒤에도 취소 없이 대기 중임을 확인했습니다. [ai.ts:129](/Users/jyl/work/repo/celeber/pocs/core/src/server/ai.ts:129) · [SDK client.ts:1888](/Users/jyl/work/repo/celeber/pocs/core/node_modules/@anthropic-ai/sdk/src/client.ts:1888)
+
+파일 변경과 네트워크 호출 없이 검토했습니다.

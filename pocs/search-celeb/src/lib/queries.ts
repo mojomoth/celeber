@@ -22,7 +22,7 @@ export const CATEGORY_HINT: Record<CelebImageCategory, string> = {
 
 /**
  * 인물 이름 + 카테고리 → 검색어 목록 (앞쪽이 우선).
- * @param description '배우', '가수 · 그룹명' 등. 동명이인 구분용으로 대표 검색어에만 덧붙인다.
+ * @param description '배우', '가수 · 그룹명' 등. 동명이인 구분용으로 카테고리마다 첫 검색어에 덧붙인다.
  */
 export function buildCategoryQueries(name: string, category: CelebImageCategory, now: Date = new Date(), description?: string): string[] {
   const n = name.trim().replace(/\s+/g, ' ');
@@ -35,17 +35,17 @@ export function buildCategoryQueries(name: string, category: CelebImageCategory,
     case 'signature':
       return dedupe([role ? `${n} ${role} 화보 전신` : `${n} 화보 전신`, `${n} 레드카펫`, `${n} 시상식 전신`]);
     case 'recent':
-      return dedupe([`${n} ${recentYear} 공항패션`, `${n} ${recentYear} 행사 전신`, `${n} ${recentYear - 1} 공항패션`]);
+      return dedupe([role ? `${n} ${role} ${recentYear} 공항패션` : `${n} ${recentYear} 공항패션`, `${n} ${recentYear} 행사 전신`, `${n} ${recentYear - 1} 공항패션`]);
     case 'daily':
-      return dedupe([`${n} 사복 전신`, `${n} 일상 패션`, `${n} 데일리룩`]);
+      return dedupe([role ? `${n} ${role} 사복 전신` : `${n} 사복 전신`, `${n} 일상 패션`, `${n} 데일리룩`]);
   }
 }
 
-/** '배우 (데모 인물)' → '배우'. 괄호·구분자 뒤는 버리고 짧은 직업명만 남긴다 */
+/** '배우 (데모 인물)' → '배우', '전 농구선수 · 서울 SK' → '농구선수'. 괄호·구분자 뒤는 버리고 짧은 직업명만 남긴다 */
 function cleanRole(description?: string): string | null {
   if (!description) return null;
-  const head = description.split(/[(·,/|]/)[0]?.trim() ?? '';
-  return /^(배우|가수|모델|방송인|아이돌|래퍼|코미디언|MC)$/.test(head) ? head : null;
+  const head = (description.split(/[(·,/|]/)[0]?.trim() ?? '').replace(/^전\s+/, '');
+  return /^(배우|가수|모델|방송인|아이돌|래퍼|코미디언|개그맨|MC|[가-힣]{1,3}선수)$/.test(head) ? head : null;
 }
 
 function dedupe(list: string[]): string[] {

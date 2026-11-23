@@ -187,6 +187,20 @@ export function gapComment(axis: ColorAxisKey | 'style' | 'body-ratio', poles: [
 
 /* ------------------------------------------------------------------ 계산 */
 
+/**
+ * 저장된 가이드의 색 갭을 지금 규칙으로 다시 거른다 (화면용). 연예인 사진이 지금 기준으로 색 비교 불가
+ * (인물 없음·조명·보정 등)인데 예전에 저장한 가이드에 색 갭 값이 남아 있으면 '비교 불가'로 바꿔 그린다.
+ */
+export function gapsForDisplay(gaps: Gap[], v: VibeAnalysis | null | undefined): Gap[] {
+  if (!v) return gaps;
+  const c = celebAxes(v);
+  if (c.axes) return gaps;
+  const color = new Set<string>(COLOR_AXES.map((a) => a.axis));
+  return gaps.map((g) =>
+    color.has(g.axis) && !g.unavailable ? { ...g, celeb: g.me, gap: 0, comment: c.reason ?? '연예인 사진에서 피부·헤어 색을 측정하지 못해 비교하지 않았습니다.', unavailable: true } : g,
+  );
+}
+
 export function computeGaps(r: PersonalColorReport, v: VibeAnalysis, myBody?: MyBodyRatios | null): Gap[] {
   const me = r.classification.axes;
   const c = celebAxes(v);

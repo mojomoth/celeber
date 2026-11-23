@@ -7,7 +7,7 @@ import { z } from 'zod';
 import type { GuideItem, VibeGuide } from '@celeber/core/contracts';
 import { OUTFIT_CATEGORY_LABEL_KO } from '@celeber/core/contracts';
 import { guideVibe } from './limits';
-import { dedupeDoNotCopy, hasVividColor, orderActions } from './rules';
+import { dedupeDoNotCopy, doNotCopyKey, hasVividColor, orderActions } from './rules';
 import type { GuideContext, GuideDraft } from './types';
 
 const AiItem = z.object({ title: z.string(), detail: z.string() });
@@ -79,6 +79,12 @@ export function guidePromptFacts(ctx: GuideContext, draft: GuideDraft) {
   };
 }
 
+/** 프롬프트로 AI에 넘긴 색 이름 (AI 서술이 이 밖의 색을 말하면 버린다: mergeAiGuide) */
+export function promptColorNames(ctx: GuideContext, draft: GuideDraft): string[] {
+  const f = guidePromptFacts(ctx, draft);
+  return [...f.me.tops, ...f.me.outer, ...f.me.hair, ...f.celebLook.items.map((i) => i.color), ...(f.celebLook.hair ? [f.celebLook.hair] : [])];
+}
+
 export function buildGuidePrompt(ctx: GuideContext, draft: GuideDraft): string {
   const facts = guidePromptFacts(ctx, draft);
   const grooming = ctx.report.variant.gender === 'female' ? '메이크업(베이스/립/아이/치크)' : '그루밍(피부/눈썹/수염 또는 헤어 스타일링/향수)';
@@ -117,6 +123,47 @@ export function draftToAi(d: GuideDraft): GuideAi {
 }
 
 const COLOR_AXES: ReadonlySet<string> = new Set(['warmth', 'value', 'chroma', 'contrast', 'clarity']);
+
+/** 같은 색 계열의 한국어·외래어 표기. 근거 색 이름에 한 표기라도 있으면 그 계열은 말해도 된다 */
+const COLOR_WORD_GROUPS: string[][] = [
+  ['초록', '녹색', '그린'],
+  ['빨강', '빨간', '레드'],
+  ['파랑', '파란', '블루'],
+  ['노랑', '노란', '옐로'],
+  ['보라', '퍼플', '바이올렛'],
+  ['분홍', '핑크'],
+  ['주황', '오렌지'],
+  ['남색', '네이비'],
+  ['카키'],
+  ['민트'],
+  ['버건디', '와인'],
+  ['라벤더'],
+  ['코랄'],
+  ['머스타드', '머스터드'],
+  ['올리브'],
+  ['베이지'],
+  ['아이보리'],
+  ['갈색', '브라운'],
+  ['회색', '그레이'],
+  ['검정', '검은', '블랙'],
+  ['흰색', '하얀', '화이트'],
+];
+
+/** 근거 색 이름(allowed)에 없는 색 계열을 text가 말하는지 */
+export function mentionsUnknownColor(text: string, allowed: readonly string[]): boolean {
+  const names = allowed.join(' ');
+  return COLOR_WORD_GROUPS.some((g) => g.some((w) => text.includes(w)) && !g.some((w) => names.includes(w)));
+}
+
+/** 규칙 초안이 근거로 쓴 색 이름 (치환·팔레트 매핑·항목 색) */
+function draftColorNames(d: GuideDraft): string[] {
+  const items = [...d.face.hair, ...d.face.makeup, ...d.outfit.items, ...d.mood.items];
+  return [
+    ...d.outfit.substitutions.flatMap((x) => [x.celebColor.name, x.myColor.name]),
+    ...d.paletteMapping.flatMap((m) => [m.celeb.name, m.mine.name]),
+    ...items.flatMap((i) => (i.colors ?? []).map((c) => c.name)),
+  ];
+}
 const clean = (s: string) => s.trim();
 const nonEmpty = <T extends { title: string; detail: string }>(xs: T[]) => xs.filter((x) => clean(x.title) && clean(x.detail));
 
@@ -125,13 +172,18 @@ const nonEmpty = <T extends { title: string; detail: string }>(xs: T[]) => xs.fi
  *  - 색이 붙은 규칙 항목(측정·계산 근거)은 앞에 남기고, AI 항목을 뒤에 붙인다(제목 중복 제거, 최대 max개).
  *  - 액션은 AI 결과가 있으면 대체(쉬움→어려움 재정렬), doNotCopy는 규칙 + AI 합집합(같은 주의는 하나만, 룩에 원색이 없으면 원색 주의 제외).
  *  - 제한된 사진(limitations)이면 전체 요약·코디 요약은 규칙 문장을 쓴다. AI가 사진에서 본 색으로 치환 결과와 다른 말을 하지 않게 한다.
+ *  - 요약·코디·분위기 항목·액션이 근거 색(초안 + extraColorNames)에 없는 색 계열을 말하면 그 AI 서술은 버린다.
  */
-export function mergeAiGuide(d: GuideDraft, ai: GuideAi): GuideDraft {
-  const mergeItems = (rule: GuideItem[], aiItems: { title: string; detail: string }[], max = 6): GuideItem[] => {
+export function mergeAiGuide(d: GuideDraft, ai: GuideAi, extraColorNames: readonly string[] = []): GuideDraft {
+  // AI가 계산 결과(치환·매핑·근거 색)에 없는 색을 말하면 그 서술은 쓰지 않는다 (예: 매핑에 없는 '초록으로 바꾸세요')
+  const allowed = [...draftColorNames(d), ...extraColorNames];
+  const fits = (...texts: string[]) => !mentionsUnknownColor(texts.join(' '), allowed);
+  const mergeItems = (rule: GuideItem[], aiItems: { title: string; detail: string }[], max = 6, checkColor = false): GuideItem[] => {
     const colored = rule.filter((i) => i.colors?.length);
     const out: GuideItem[] = [...colored];
     const seen = new Set(out.map((i) => i.title));
     for (const a of nonEmpty(aiItems)) {
+      if (checkColor && !fits(a.title, a.detail)) continue;
       if (seen.has(a.title)) continue;
       seen.add(a.title);
       out.push({ title: clean(a.title), detail: clean(a.detail) });
@@ -145,21 +197,21 @@ export function mergeAiGuide(d: GuideDraft, ai: GuideAi): GuideDraft {
     }
     return out.slice(0, max);
   };
-  const actions = nonEmpty(ai.actions);
+  const actions = nonEmpty(ai.actions).filter((a) => fits(a.title, a.detail));
   const vivid = hasVividColor([...d.paletteMapping.map((m) => m.celeb), ...d.outfit.substitutions.map((x) => x.celebColor)]);
   const aiDoNot = ai.doNotCopy
     .filter((x) => clean(x.element) && clean(x.alternative))
-    .filter((x) => vivid || !/원색/.test(x.element))
+    .filter((x) => vivid || doNotCopyKey(x.element) !== 'vivid')
     .map((x) => ({ element: clean(x.element), reason: clean(x.reason), alternative: clean(x.alternative) }));
   const doNotCopy = dedupeDoNotCopy([...d.doNotCopy, ...aiDoNot]);
   const limited = !!d.limitations?.length;
   const kw = ai.moodKeywords.map((k) => k.replace(/^#/, '').trim()).filter(Boolean);
   return {
     ...d,
-    summary: (!limited && clean(ai.summary)) || d.summary,
-    face: { hair: mergeItems(d.face.hair, ai.hair, 4), makeup: mergeItems(d.face.makeup, ai.makeup, 5), summary: clean(ai.faceSummary) || d.face.summary },
-    outfit: { substitutions: d.outfit.substitutions, items: mergeItems(d.outfit.items, ai.outfit, 7), summary: (!limited && clean(ai.outfitSummary)) || d.outfit.summary },
-    mood: { keywords: kw.length ? kw.slice(0, 5) : d.mood.keywords, items: mergeItems(d.mood.items, ai.mood, 5), summary: clean(ai.moodSummary) || d.mood.summary },
+    summary: (!limited && fits(ai.summary) && clean(ai.summary)) || d.summary,
+    face: { hair: mergeItems(d.face.hair, ai.hair, 4), makeup: mergeItems(d.face.makeup, ai.makeup, 5), summary: (fits(ai.faceSummary) && clean(ai.faceSummary)) || d.face.summary },
+    outfit: { substitutions: d.outfit.substitutions, items: mergeItems(d.outfit.items, ai.outfit, 7, true), summary: (!limited && fits(ai.outfitSummary) && clean(ai.outfitSummary)) || d.outfit.summary },
+    mood: { keywords: kw.length ? kw.slice(0, 5) : d.mood.keywords, items: mergeItems(d.mood.items, ai.mood, 5, true), summary: (fits(ai.moodSummary) && clean(ai.moodSummary)) || d.mood.summary },
     actions: actions.length ? orderActions(actions) : d.actions,
     doNotCopy,
   };

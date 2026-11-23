@@ -337,7 +337,7 @@ describe('Gate 1 실제 AI 응답 보정', () => {
   it('촬영 경고의 엠대시를 리포트 문구에서 뺀다', () => {
     const face = { ...FACE, warnings: [{ code: 'front:pitch', severity: 'warn' as const, message: '정면 — 카메라를 눈높이에 맞춰 주세요' }] };
     const r = build(face);
-    expect(r.cautions.items).toContain('이번 촬영(정면): 카메라를 눈높이에 맞춰 주세요');
+    expect(r.cautions.items).toContain('이번 촬영(정면): 카메라를 눈높이에 맞춰 주세요.');
     expect(r.cautions.items.join(' ')).not.toContain('—');
   });
 });

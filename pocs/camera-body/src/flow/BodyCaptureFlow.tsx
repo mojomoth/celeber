@@ -261,7 +261,7 @@ export function BodyCaptureFlow(props: BodyCaptureFlowProps) {
                 <div className="cb-row" style={{ gap: 16, alignItems: 'flex-start' }}>
                   <TipsFigure />
                   <ul className="cb-list cb-body" style={{ margin: 0 }}>
-                    <li>정수리와 발바닥이 모두 보이게</li>
+                    <li>모자는 벗고, 정수리와 발바닥이 모두 보이게</li>
                     <li>정면으로 곧게, 팔은 몸에서 살짝 떼기</li>
                     <li>카메라는 허리 높이에서 수평으로</li>
                     <li>몸선이 보이는 옷일수록 정확</li>

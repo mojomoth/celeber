@@ -71,6 +71,25 @@ export function sharpnessOf(img: { data: ArrayLike<number>; width: number; heigh
   return Math.round((sum2 / n - m * m) * 10) / 10;
 }
 
+/** 얼굴 박스 중앙부(눈 아래~입 위) 평균 luma — 품질 체크용 */
+export function faceLumaOf(img: { data: ArrayLike<number>; width: number; height: number }, landmarks: readonly { x: number; y: number }[]): number {
+  const b = faceBoxFromLandmarks(landmarks);
+  const x0 = Math.max(0, Math.floor((b.x + b.w * 0.2) * img.width));
+  const x1 = Math.min(img.width - 1, Math.ceil((b.x + b.w * 0.8) * img.width));
+  const y0 = Math.max(0, Math.floor((b.y + b.h * 0.3) * img.height));
+  const y1 = Math.min(img.height - 1, Math.ceil((b.y + b.h * 0.75) * img.height));
+  const step = Math.max(1, Math.floor(Math.sqrt(((x1 - x0) * (y1 - y0)) / 3000)));
+  let s = 0;
+  let n = 0;
+  for (let y = y0; y <= y1; y += step)
+    for (let x = x0; x <= x1; x += step) {
+      const i = (y * img.width + x) * 4;
+      s += 0.299 * img.data[i] + 0.587 * img.data[i + 1] + 0.114 * img.data[i + 2];
+      n++;
+    }
+  return n ? s / n : 0;
+}
+
 export interface QualityInput {
   pose: FacePose;
   /** 정규화 랜드마크 (없으면 얼굴 미검출) */
@@ -208,4 +227,50 @@ export function reviewAction(pose: FacePose | 'environment', draft: { landmarks:
 export function canForceShutter(pose: FacePose, failingMs: number, faceDetected: boolean, afterMs = 8000): boolean {
   if (failingMs <= afterMs) return false;
   return pose === 'side' || faceDetected;
+}
+
+/**
+ * 서버 측 재판정. 클라이언트가 보낸 자세·품질을 그대로 믿지 않는다.
+ * - yaw: 브라우저는 변환 행렬 값을 보내고 서버엔 행렬이 없으므로, 랜드마크 근사값 근처로만 허용한다
+ *   (측면에서 행렬이 근사보다 ~10° 크게 나와 위로 20°, 아래로 8°까지). pitch는 ±15°, roll은 근사값을 쓴다.
+ * - 품질: 저장 이미지 픽셀로 다시 평가하고, 클라이언트가 보고한 issues와 합친다(같은 코드면 더 엄격한 쪽).
+ */
+export function verifyCapture(
+  pose: FacePose,
+  c: { landmarks: readonly LandmarkLike[] | null; yawDeg: number; pitchDeg: number; rollDeg: number; quality: CaptureQuality },
+  img: { data: ArrayLike<number>; width: number; height: number },
+): { yawDeg: number; pitchDeg: number; rollDeg: number; quality: CaptureQuality } {
+  let { yawDeg, pitchDeg, rollDeg } = c;
+  let server: CaptureQuality;
+  if (!c.landmarks) {
+    server = evaluateCaptureQuality({ pose, landmarks: null, faceLuma: null }).quality;
+  } else {
+    const est = estimateHeadPose(c.landmarks, img.width, img.height);
+    const absYaw = Math.min(Math.abs(est.yawDeg) + 20, Math.max(Math.abs(est.yawDeg) - 8, Math.abs(yawDeg)));
+    yawDeg = (Math.sign(yawDeg) || Math.sign(est.yawDeg) || 1) * absYaw;
+    pitchDeg = Math.min(est.pitchDeg + 15, Math.max(est.pitchDeg - 15, pitchDeg));
+    rollDeg = est.rollDeg;
+    server = evaluateCaptureQuality({
+      pose,
+      landmarks: c.landmarks,
+      yawDeg,
+      pitchDeg,
+      rollDeg,
+      faceLuma: faceLumaOf(img, c.landmarks),
+      sharpness: sharpnessOf(img, faceBoxFromLandmarks(c.landmarks)),
+    }).quality;
+  }
+  const issues = [...server.issues];
+  for (const i of c.quality.issues) {
+    const k = issues.findIndex((s) => s.code === i.code);
+    if (k < 0) issues.push(i);
+    else if (i.severity === 'error' && issues[k].severity !== 'error') issues[k] = i;
+  }
+  const quality: CaptureQuality = {
+    ...server,
+    detectionScore: Math.min(server.detectionScore, c.quality.detectionScore),
+    passed: !issues.some((i) => i.severity === 'error'),
+    issues,
+  };
+  return { yawDeg, pitchDeg, rollDeg, quality };
 }

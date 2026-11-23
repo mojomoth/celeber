@@ -1,6 +1,7 @@
 /**
  * fixtures/*.pose.json 로더. 데모 사진(pocs/core/fixtures/demo-people)과 그 변형을 브라우저 MediaPipe로 잰 실측값이다
  * (포즈 33점, 얼굴 이마·턱·눈 중심, 사람 마스크 행별 구간, 평균 휘도).
+ * g-*는 검증자가 만든 합성 전신 사진(앉은 자세·모자·올림머리), rot*-b·rotm*-b는 look-b를 돌린 사본이다.
  */
 import fs from 'node:fs';
 import type { Landmark3 } from '@celeber/core/contracts';

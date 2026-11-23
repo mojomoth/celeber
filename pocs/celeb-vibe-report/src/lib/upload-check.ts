@@ -37,6 +37,8 @@ export function checkUploadFile(file: { name: string; type: string; size: number
 /** 업로드 오류 → 사용자 문구. 서버의 한국어 안내는 살리고, 영어 원문·내부 형식 목록은 바꾼다 */
 export function friendlyUploadError(message: string): string {
   const m = message.trim();
+  // 용량이 작아도 해상도(약 4000만 화소)에 걸릴 수 있다: 용량 문구가 아니라 해상도를 줄이라고 안내한다
+  if (/pixel limit|too_many_pixels/i.test(m)) return '사진 해상도가 너무 큽니다. 가로·세로 크기를 줄여서(약 4000만 화소 이하) 다시 올려 주세요.';
   if (/너무 큽니다|too large|exceeded|FormData/i.test(m)) return `사진이 너무 큽니다. ${MAX_UPLOAD_MB}MB 이하 사진을 올려 주세요.`;
   if (/지원하지 않는 이미지 형식|unsupported|heif|heic|bad seek|Input buffer|Input file/i.test(m)) return `사진 파일을 읽지 못했습니다. ${HINT}`;
   if (!/[가-힣]/.test(m)) return `사진을 올리지 못했습니다. 잠시 뒤 다시 시도하거나 다른 사진을 올려 주세요.`;

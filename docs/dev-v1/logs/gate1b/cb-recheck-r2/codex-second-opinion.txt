@@ -1,0 +1,20 @@
+codex
+코드에서 자세·기울기 판정과 저장 검증 경로를 따라가며, 재현 조건을 특정할 수 있는 문제를 확인하겠습니다.
+exec
+/bin/zsh -lc "rg -n 'THIGH_SHIN|RATIO_BOUNDS|ratioOutOfBounds|HEAD_EYE|cameraTiltDeg|CAMERA_TILT|formatRatio|displayedValue|모자는 벗고|head-top-uncertain|not-standing|feet-unclear|armToHeight' pocs/camera-body/src" in /Users/jyl/work/repo/celeber
+exec
+/bin/zsh -lc "rg --files -g 'AGENTS.md' -g '*ratio*' -g '*analy*' -g '*interpret*' -g 'package.json' -g '*test*' pocs/camera-body" in /Users/jyl/work/repo/celeber
+ succeeded in 0ms:
+pocs/camera-body/src/flow/BodyCaptureFlow.tsx:264:                    <li>모자는 벗고, 정수리와 발바닥이 모두 보이게</li>
+pocs/camera-body/src/lib/interpret.ts:47:    case 'armToHeight':
+pocs/camera-body/src/lib/interpret.ts:64:  armToHeight: '팔 길이 / 키',
+pocs/camera-body/src/lib/interpret.ts:70:/** 표시 문자열. 숫자는 displayedValue로 반올림해 범위 판정(rangeVerdict)과 같은 값을 보인다 (0.945 → '0.95', toFixed는 '0.94') */
+pocs/camera-body/src/lib/interpret.ts:71:export function formatRatio(key: RatioKey, v: number): string {
+pocs/camera-body/src/lib/interpret.ts:74:      return `${displayedValue(key, v).toFixed(1)}등신`;
+pocs/camera-body/src/lib/interpret.ts:82:    case 'armToHeight':
+pocs/camera-body/src/lib/interpret.ts:85:      return displayedValue(key, v).toFixed(2);
+pocs/camera-body/src/lib/interpret.ts:93:export function displayedValue(key: RatioKey, v: number): number {
+pocs/camera-body/src/lib/interpret.ts:104:    case 'armToHeight':
+pocs/camera-body/src/lib/interpret.ts:113:  const v = key in RATIO_LABEL_KO ? displayedValue(key as RatioKey, value) : value;
+pocs/camera-body/src/lib/interpret.ts:122:  const v = displayedValue(key, raw);
+pocs/camera-body/src/lib/interpret.ts:154:    case 'armToHeight':

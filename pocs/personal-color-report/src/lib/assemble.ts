@@ -206,6 +206,9 @@ export function skinReasonTexts(reasons: readonly string[]): string[] {
     else if (/^촬영 품질 경고/.test(r)) problems.push('촬영 품질 경고가 있어 점수를 낮췄습니다.');
     else if (/^피부 샘플 픽셀이 적습니다/.test(r)) problems.push('피부가 보이는 면적이 작습니다. 얼굴을 더 크게 찍으면 정확해집니다.');
     else if (/^일부 피부 영역/.test(r)) problems.push('이마·볼·턱 중 일부를 측정하지 못했습니다.');
+    // core sample.ts의 ROI 누락 사유 (구조화된 사유 코드가 없어 문구로 읽는다)
+    else if ((m = /^(.+?) 피부색을 읽지 못해 나머지 (\d+)곳으로/.exec(r))) problems.push(`${m[1]} 피부색을 읽지 못해 나머지 ${m[2]}곳으로 계산했습니다.`);
+    else if (/^피부 영역을 하나도 측정하지 못했/.test(r)) problems.push('피부 영역을 하나도 측정하지 못했습니다. 밝고 고른 조명에서 다시 촬영해 주세요.');
     else if (/보정량이 (커서|큽니다)/.test(r)) problems.push('조명 색 보정량이 커서 원래 조명의 영향이 남아 있을 수 있습니다.');
     else if (/^피부 밝기 편차/.test(r)) problems.push('그림자나 반사광 때문에 피부 밝기 편차가 큽니다.');
     else if (/^보정에 쓸 배경 정보가 없어/.test(r)) problems.push('조명 색을 추정할 배경이 없어 원본 색을 그대로 썼습니다.');
@@ -346,7 +349,8 @@ function cautionItems(face: FaceAnalysis): string[] {
     // camera-face 경고는 '정면 — 메시지' 형식이다. 리포트 문구에는 엠대시를 쓰지 않는다.
     .map((t) => {
       const m = /^(정면|측면) — (.+)$/.exec(t);
-      return m ? `이번 촬영(${m[1]}): ${m[2]}` : `이번 촬영: ${t}`;
+      const line = m ? `이번 촬영(${m[1]}): ${m[2]}` : `이번 촬영: ${t}`;
+      return /[.!?]$/.test(line) ? line : `${line}.`;
     });
   return [...retake, ...DEFAULT_CAUTIONS, ...measured];
 }

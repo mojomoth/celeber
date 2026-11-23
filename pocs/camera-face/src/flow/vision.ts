@@ -7,7 +7,9 @@ import { createFaceLandmarker, createSelfieSegmenter } from '@celeber/ui/mediapi
 import { quietMediapipeInfoLogs } from './mediapipe-log';
 import type { Landmark3, UploadKind, UploadRecord } from '@celeber/core/contracts';
 import { faceBoxFromLandmarks } from '@celeber/core/face';
-import { type CategoryMask, type QualityResult, downsampleMask, evaluateCaptureQuality, poseFromMatrix, sharpnessOf } from '../lib';
+import { type CategoryMask, type QualityResult, downsampleMask, evaluateCaptureQuality, faceLumaOf, poseFromMatrix, sharpnessOf } from '../lib';
+
+export { faceLumaOf };
 
 export type CapturePose = 'environment' | 'front' | 'side';
 
@@ -76,25 +78,6 @@ export async function fileToCanvas(file: File, maxEdge = CAPTURE_MAX_EDGE): Prom
 
 export function canvasImageData(c: HTMLCanvasElement): ImageData {
   return c.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, c.width, c.height);
-}
-
-/** 얼굴 박스 중앙부(눈 아래~입 위) 평균 luma — 품질 체크용 */
-export function faceLumaOf(img: { data: ArrayLike<number>; width: number; height: number }, landmarks: readonly { x: number; y: number }[]): number {
-  const b = faceBoxFromLandmarks(landmarks);
-  const x0 = Math.max(0, Math.floor((b.x + b.w * 0.2) * img.width));
-  const x1 = Math.min(img.width - 1, Math.ceil((b.x + b.w * 0.8) * img.width));
-  const y0 = Math.max(0, Math.floor((b.y + b.h * 0.3) * img.height));
-  const y1 = Math.min(img.height - 1, Math.ceil((b.y + b.h * 0.75) * img.height));
-  const step = Math.max(1, Math.floor(Math.sqrt(((x1 - x0) * (y1 - y0)) / 3000)));
-  let s = 0;
-  let n = 0;
-  for (let y = y0; y <= y1; y += step)
-    for (let x = x0; x <= x1; x += step) {
-      const i = (y * img.width + x) * 4;
-      s += 0.299 * img.data[i] + 0.587 * img.data[i + 1] + 0.114 * img.data[i + 2];
-      n++;
-    }
-  return n ? s / n : 0;
 }
 
 /** FaceLandmarker IMAGE 모드 검출 */

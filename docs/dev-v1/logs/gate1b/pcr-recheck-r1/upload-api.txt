@@ -1,0 +1,26 @@
+== empty body no ct
+400 {"error":{"code":"bad_request","message":"첨부된 사진이 없습니다. 사진을 선택해 주세요."}}
+== empty multipart boundary only
+400 {"error":{"code":"bad_request","message":"첨부된 사진이 없습니다. 사진을 선택해 주세요."}}
+== multipart closing boundary only
+400 {"error":{"code":"bad_request","message":"'file' 필드가 필요합니다."}}
+== multipart kind only (no file)
+400 {"error":{"code":"bad_request","message":"'file' 필드가 필요합니다."}}
+== text/plain body
+400 {"error":{"code":"upload_failed","message":"사진 파일을 끝까지 읽지 못했습니다. 25MB 이하의 사진으로 다시 시도해 주세요."}}
+== json empty object
+400 {"error":{"code":"bad_request","message":"dataUrl이 필요합니다."}}
+== json bad dataUrl
+400 {"error":{"code":"bad_request","message":"사진 데이터(data URL) 형식이 올바르지 않습니다."}}
+== truncated multipart
+400 {"error":{"code":"upload_failed","message":"사진 파일을 끝까지 읽지 못했습니다. 25MB 이하의 사진으로 다시 시도해 주세요."}}
+== empty file part
+400 {"error":{"code":"unsupported_type","message":"지원하지 않는 이미지 형식입니다. JPEG, PNG, WebP 사진을 올려 주세요."}}
+== fake jpg
+422 {"error":{"code":"unreadable","message":"이 HEIC 사진은 열 수 없습니다. JPEG로 바꿔서 올려 주세요."}}
+== normal jpg
+200 {"id":"up_mwtrnox7bef3f61189","createdAt":"2026-11-23T21:16:58.987Z","kind":"other","mime":"image/jpeg","bytes":92611,"width":800,"height":856,"sha256":"f5c272db70d16cf6c83cb9bf78c4b89cf622fa2940ef0162fe71851118c0e1fe","sourceUrl":null,"url":"/api/up
+== pad27 (27MB)
+413 {"error":{"code":"too_large","message":"이미지가 너무 큽니다 (최대 25MB)."}}
+== external origin empty
+403 {"error":{"code":"cross_site_request","message":"다른 사이트에서 보낸 요청은 처리하지 않습니다."}}

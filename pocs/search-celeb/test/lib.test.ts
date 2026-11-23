@@ -4,8 +4,8 @@ import { buildCategoryQueries, CATEGORY_ORDER } from '../src/lib/queries';
 import { candidateKey, mergeCandidates, nameKey, sameName } from '../src/lib/names';
 import { MAX_PHOTO_BYTES, photoErrorMessage, photoFileProblem } from '../src/lib/upload';
 import { CelebApiError } from '../src/lib/api';
-import { suggestKeyDown } from '../src/components/suggest-keys';
-import { extractNameCandidates, photoTextCandidates, titleNameGrams } from '../src/lib/candidates';
+import { suggestKeyDown, suggestSubtitle } from '../src/components/suggest-keys';
+import { extractNameCandidates, photoConfirmNote, photoTextCandidates, titleNameGrams, uniqueTexts } from '../src/lib/candidates';
 import { canonicalUrl, groupByCategory, judgeByMetadata, rankSearchResults, shortReason, sourceLabel, visibleImages } from '../src/lib/filter';
 import { withBase } from '../src/lib/api';
 
@@ -22,9 +22,16 @@ describe('buildCategoryQueries', () => {
   it('대표·평소 검색어에는 공항/연도가 없다 (Mock 카테고리 추정과 충돌 방지)', () => {
     for (const c of ['signature', 'daily'] as const) for (const q of buildCategoryQueries('B', c, now)) expect(q).not.toMatch(/공항|20\d\d|최근|행사/);
   });
-  it('직업 설명은 대표 검색어에만 붙이고 괄호는 버린다', () => {
+  it('직업 설명은 카테고리마다 첫 검색어에 붙이고 괄호는 버린다 (동명이인 구분)', () => {
     expect(buildCategoryQueries('C', 'signature', now, '배우 (데모 인물)')[0]).toBe('C 배우 화보 전신');
+    expect(buildCategoryQueries('C', 'recent', now, '배우 · 압구정 백야')[0]).toBe('C 배우 2026 공항패션');
+    expect(buildCategoryQueries('C', 'daily', now, '코미디언 · 피식대학')[0]).toBe('C 코미디언 사복 전신');
+    expect(buildCategoryQueries('C', 'daily', now, '전 농구선수 · 서울 SK')[0]).toBe('C 농구선수 사복 전신');
     expect(buildCategoryQueries('C', 'signature', now, '알 수 없는 설명')[0]).toBe('C 화보 전신');
+    const a = buildCategoryQueries('김민수', 'recent', now, '배우');
+    const b = buildCategoryQueries('김민수', 'recent', now, '가수');
+    expect(a[0]).not.toBe(b[0]);
+    for (const q of buildCategoryQueries('D', 'daily', now, '배우')) expect(q).not.toMatch(/공항|20\d\d|최근|행사/);
   });
   it('빈 이름은 빈 목록, 카테고리 순서 고정', () => {
     expect(buildCategoryQueries('  ', 'daily', now)).toEqual([]);
@@ -117,6 +124,16 @@ describe('자동완성 키 처리', () => {
     expect(e.prevented).toBe(true);
     expect(closed).toBe(true);
   });
+  it('자동완성 부제: 동명이인을 설명으로 구분한다', () => {
+    const base = { name: '김민수', source: 'name-search' as const, evidence: [] };
+    const a = suggestSubtitle({ ...base, description: '배우 · 압구정 백야', celebId: 'c1' });
+    const b = suggestSubtitle({ ...base, description: '코미디언 · 피식대학', celebId: 'c2' });
+    expect(a).toBe('배우 · 압구정 백야 · 찾아본 인물');
+    expect(a).not.toBe(b);
+    expect(suggestSubtitle({ ...base, celebId: 'c3', saved: true })).toBe('저장한 인물');
+    expect(suggestSubtitle({ ...base, description: '가수' })).toBe('가수');
+    expect(suggestSubtitle({ ...base, description: undefined })).toBe('');
+  });
   it('목록이 닫혀 있으면 아무것도 하지 않는다', () => {
     const e = ev('Escape');
     let closed = false;
@@ -175,6 +192,16 @@ describe('extractNameCandidates (역이미지 검색 텍스트)', () => {
     expect([...g]).toContain('나다');
     expect([...g]).not.toContain('가');
     expect([...g]).not.toContain('라마바사아');
+  });
+  it('uniqueTexts: 사진 속 글자 중복·빈 값 제거 (칩 key 중복 방지)', () => {
+    expect(uniqueTexts(['Y-3', 'Y-3', ' 이민호 공항 패션 ', '', '이민호 공항 패션'])).toEqual(['Y-3', '이민호 공항 패션']);
+    expect(uniqueTexts(Array.from({ length: 20 }, (_, i) => `t${i}`))).toHaveLength(15);
+  });
+  it('photoConfirmNote: 데모 후보는 데모라고 안내', () => {
+    expect(photoConfirmNote('mock')).toContain('데모 후보');
+    expect(photoConfirmNote('mock')).not.toContain('사진 속 글자');
+    expect(photoConfirmNote('photo-text')).toContain('사진 속 글자');
+    expect(photoConfirmNote('reverse-image')).toContain('페이지 제목');
   });
   it('photoTextCandidates: @ 제거·중복 제거·source photo-text', () => {
     const r = photoTextCandidates([

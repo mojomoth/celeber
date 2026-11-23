@@ -1,0 +1,55 @@
+R2CX #3 warning has key false | log has key false | warning AI 분석 실패로 데모 데이터를 표시합니다: Unexpected token 'o', "not json sk"... is not valid JSON
+R2CX #4 warn has value true
+R2CX #5 blocked after key change API 키 인증 실패
+R2CX #8 sec 90 | calls 2 | AI 분석 실패로 데모 데이터를 표시합니다: API 오류 503
+R2CX #9 calls 1 | AI 분석 실패로 데모 데이터를 표시합니다: AI 응답이 JSON이 아닙니다.
+R2CX #10 rootArray strict true {"type":"array","items":{"type":"object","properties":{"a":{"type":"string"}},"additionalProperties":false,"required":["
+R2CX #10 rootUnion strict true {"anyOf":[{"type":"object","properties":{"a":{"type":"string"}},"additionalProperties":false,"required":["a"]},{"type":"
+R2CX #2 openai blocked before B reached openai true | openai calls 2
+      Tests  7 passed (7)
+R2REAL openai hang | settled true | sec 90 | mock | AI 분석 실패로 데모 데이터를 표시합니다: API 응답 시간 초과
+R2REAL openai stall | settled true | sec 90 | mock | AI 분석 실패로 데모 데이터를 표시합니다: API 응답 시간 초과
+R2REAL anthropic hang | settled true | sec 90 | mock | AI 분석 실패로 데모 데이터를 표시합니다: API 응답 시간 초과
+R2REAL anthropic stall | settled true | sec 90 | mock | AI 분석 실패로 데모 데이터를 표시합니다: API 응답 시간 초과
+      Tests  4 passed (4)
+R2PROBE anthropic hang → openai ok | settled true | sec 90 | calls anthropic,openai | source ai | warning null
+R2PROBE anthropic stall(200 뒤 본문 정지) → openai ok | settled true | sec 90 | calls anthropic,openai | source ai | warning null
+R2PROBE anthropic hang + openai hang | settled true | sec 180 | calls anthropic,openai | source mock | warning AI 분석 실패로 데모 데이터를 표시합니다: aborted
+R2PROBE anthropic stall + openai stall | settled true | sec 180 | calls anthropic,openai | source mock | warning AI 분석 실패로 데모 데이터를 표시합니다: API 응답 시간 초과
+R2PROBE anthropic hang + openai 500x2 | settled true | sec 91.5 | calls anthropic,openai,openai | source mock | warning AI 분석 실패로 데모 데이터를 표시합니다: API 오류 500
+R2PROBE anthropic deafHang(signal 무시) + openai deafHang | settled false | sec 1800 | calls anthropic,openai | source  | warning null
+R2PROBE openai 500x2 sec 1.5 | calls 2 | AI 분석 실패로 데모 데이터를 표시합니다: API 오류 500
+R2PROBE anthropic402 AI 분석 실패로 데모 데이터를 표시합니다: API 크레딧 부족 | blocked API 크레딧 부족 | calls 1
+R2PROBE openai type-quota calls 1 | blocked API 사용 한도 초과 | AI 분석 실패로 데모 데이터를 표시합니다: API 사용 한도 초과
+R2PROBE openai ratelimit calls 2 | blocked false | AI 분석 실패로 데모 데이터를 표시합니다: 요청 한도 초과 (잠시 후 다시 시도)
+R2PROBE anthropic usage-limit r1 ai anthropic,openai | r2 ai openai | caps {"ai":true,"aiProvider":"openai","imageSearch":"mock","reverseImageSearch":false,"reverseImageSearchUploads":false,"model":"gpt-6.2-sol","forceMock":false,"aiBlockedReason":null}
+R2PROBE anthropic 401 AI 분석 실패로 데모 데이터를 표시합니다: API 키 인증 실패 | blocked true
+R2PROBE anthropic 529 AI 분석 실패로 데모 데이터를 표시합니다: API 오류 529 | blocked false
+R2PROBE anthropic 404 AI 분석 실패로 데모 데이터를 표시합니다: 모델을 찾을 수 없음 (CELEBER_VISION_MODEL 확인) | blocked false
+R2PROBE anthropic 403 AI 분석 실패로 데모 데이터를 표시합니다: API 권한 없음 | blocked true
+R2PROBE openai bodyError AI 분석 실패로 데모 데이터를 표시합니다: API 연결 실패 | notJson AI 분석 실패로 데모 데이터를 표시합니다: AI 응답이 JSON이 아닙니다.
+R2PROBE timeout API 응답 시간 초과 | userAbort API 응답 시간 초과 | conn API 연결 실패
+R2PROBE key in log false | key in warning false | key in caps false | caps {"ai":false,"aiProvider":null,"imageSearch":"mock","reverseImageSearch":false,"reverseImageSearchUploads":false,"model":null,"forceMock":false,"aiBlockedReason":"Anthropic API 키 인증 실패, OpenAI API 키 인증 실패"}
+R2PROBE strict fieldProperties true {"type":"object","properties":{"properties":{"type":"string"},"required":{"type":"array","items":{"type":"string"}}},"additionalProperties":false,"required":["properties","required"]}
+R2PROBE strict optionalField false {"type":"object","properties":{"a":{"type":"string"}},"additionalProperties":false}
+R2PROBE strict nullable true {"type":"object","properties":{"a":{"type":["string","null"]}},"additionalProperties":false,"required":["a"]}
+R2PROBE strict nestedArr true {"type":"object","properties":{"items":{"type":"array","items":{"type":"object","properties":{"x":{"type":"number"},"y":{"enum":["a","b"]}},"additionalProperties":false,"required":["x","y"]}}},"additionalProperties":false,"required":["items"]}
+R2PROBE strict record true {"type":"object","properties":{"m":{"type":"object","properties":{},"additionalProperties":false,"description":"{propertyNames: {\"type\":\"string\"}}"}},"additionalProperties":false,"required":["m"]}
+R2PROBE provider  ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["anthropic","openai"] | calls ["anthropic","anthropic","openai"] | source ai | caps.ai true anthropic | warn []
+R2PROBE provider "auto" ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["anthropic","openai"] | calls ["anthropic","anthropic","openai"] | source ai | caps.ai true anthropic | warn []
+R2PROBE provider "anthropic" ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["anthropic"] | calls ["anthropic","anthropic"] | source mock | caps.ai true anthropic | warn []
+R2PROBE provider "openai" ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["openai"] | calls ["openai"] | source ai | caps.ai true openai | warn []
+R2PROBE provider "OpenAI" ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["openai"] | calls ["openai"] | source ai | caps.ai true openai | warn []
+R2PROBE provider " ANTHROPIC " ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["anthropic"] | calls ["anthropic","anthropic"] | source mock | caps.ai true anthropic | warn []
+R2PROBE provider "gpt" ANTHROPIC_API_KEY+OPENAI_API_KEY | chain ["anthropic","openai"] | calls ["anthropic","anthropic","openai"] | source ai | caps.ai true anthropic | warn ["[celeber/env] CELEBER_AI_PROVIDER 값 \"gpt\"를 알 수 없어 auto로 동작합니다 (auto|anthropic|openai)."]
+R2PROBE provider "openai" ANTHROPIC_API_KEY | chain [] | calls [] | source mock | caps.ai false null | warn ["[celeber/env] CELEBER_AI_PROVIDER=openai인데 OPENAI_API_KEY가 없어 Mock으로 동작합니다."]
+R2PROBE provider "anthropic" OPENAI_API_KEY | chain [] | calls [] | source mock | caps.ai false null | warn ["[celeber/env] CELEBER_AI_PROVIDER=anthropic인데 ANTHROPIC_API_KEY가 없어 Mock으로 동작합니다."]
+R2PROBE forceMock calls [] mock 데모 데이터로 표시합니다 (AI 분석 미사용). {"ai":false,"aiProvider":null,"imageSearch":"mock","reverseImageSearch":false,"reverseImageSearchUploads":false,"model":null,"forceMock":true,"aiBlockedReason":null}
+R2PROBE caps anthropic-blocked {"ai":true,"aiProvider":"openai","imageSearch":"mock","reverseImageSearch":false,"reverseImageSearchUploads":false,"model":"gpt-6.2-sol","forceMock":false,"aiBlockedReason":null} | both-blocked {"ai":false,"aiProvider":null,"imageSearch":"mock","reverseImageSearch":false,"reverseImageSearchUploads":false,"model":null,"forceMock":false,"aiBlockedReason":"Anthropic API 사용 한도 초과, OpenAI API 키 인증 실패"} | mockReasons ["AI 분석 일시 중단: Anthropic API 사용 한도 초과, OpenAI API 키 인증 실패"]
+R2PROBE block expire before true after false
+R2PROBE concurrent anthropic 5 openai 5 | blocks true true | next calls [] AI 분석을 사용할 수 없어 데모 데이터를 표시합니다: Anthropic API 사용 한도 초과, OpenAI API 키 인증 실패 | sources ["mock","mock","mock","mock","mock"]
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 28 passed (29)
+--- live (CELEBER_AI_PROVIDER=openai, 1회)
+      Tests  1 passed (1)
+   Duration  5.25s (tests 99%, import 1%)

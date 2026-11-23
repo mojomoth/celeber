@@ -15,9 +15,10 @@ import { uploadIdFromUrl } from './util';
  * 이름(+설명)으로 기존 인물 찾기. 같은 이름의 행이 여러 개일 수 있다(동명이인).
  * - 설명이 있으면: 설명이 같은 행, 없으면 설명이 비어 있는 행(같은 사람일 수 있음)
  * - 설명이 없으면: 설명이 비어 있는 행, 없으면 같은 이름이 한 명뿐일 때만 그 행
+ *   (strict면 설명이 비어 있는 행만. 사진 글자처럼 이름만 있는 후보를 설명이 있는 동명이인에 붙이지 않는다)
  * 어느 쪽인지 알 수 없으면 null (다른 사람에 잘못 붙이지 않는다)
  */
-export function findCelebByName(name: string, description?: string): Row<CelebProfile> | null {
+export function findCelebByName(name: string, description?: string, opts: { strict?: boolean } = {}): Row<CelebProfile> | null {
   const key = nameKey(name);
   if (!key) return null;
   const rows = celebs.list({ where: { name_key: key }, order: 'created_at ASC', limit: 50 });
@@ -25,7 +26,7 @@ export function findCelebByName(name: string, description?: string): Row<CelebPr
   const want = descKey(description);
   const blank = rows.find((r) => !descKey(r.data.description));
   if (want) return rows.find((r) => descKey(r.data.description) === want) ?? blank ?? null;
-  return blank ?? (rows.length === 1 ? rows[0] : null);
+  return blank ?? (!opts.strict && rows.length === 1 ? rows[0] : null);
 }
 
 /** 이름/별칭이 검색어를 포함하는 기존 인물 (자동완성) */
@@ -60,7 +61,7 @@ export function attachCelebIds(list: CandidateItem[]): CandidateItem[] {
   for (const c of list) perName.set(nameKey(c.name), (perName.get(nameKey(c.name)) ?? 0) + 1);
   return list.map((c) => {
     if (c.celebId) return c;
-    const r = findCelebByName(c.name, c.description);
+    const r = findCelebByName(c.name, c.description, { strict: true });
     if (!r) return c;
     // 목록에 같은 이름이 여럿이면(동명이인) 설명까지 같은 인물에만 붙인다
     if ((perName.get(nameKey(c.name)) ?? 0) > 1 && descKey(r.data.description) !== descKey(c.description)) return c;
@@ -79,7 +80,7 @@ async function thumbRef(url: string | undefined): Promise<ImageRef | undefined> 
 export async function confirmCandidate(c: CelebCandidate): Promise<CelebProfile> {
   const name = c.name.trim();
   if (!name) throw new Error('이름이 비어 있습니다.');
-  const existing = findCelebByName(name, c.description);
+  const existing = findCelebByName(name, c.description, { strict: true });
   const now = nowIso();
   if (existing) {
     const d = existing.data;

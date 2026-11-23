@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CelebImage, CelebImageCategory, ImageRef } from '@celeber/core/contracts';
 import { Button, ConfirmDialog, MockBadge, Notice, SectionHeader } from '@celeber/ui';
 import { CelebApiError, createCelebApi } from '../lib/api';
+import { photoConfirmNote } from '../lib/candidates';
 import { candidateKey } from '../lib/names';
 import { photoFileProblem, photoErrorMessage } from '../lib/upload';
 import { CATEGORY_ORDER } from '../lib/queries';
@@ -407,7 +408,7 @@ export function CelebSearchFlow({
       <ConfirmDialog
         open={!!pendingPhotoCandidate}
         title={`${pendingPhotoCandidate?.name ?? ''}(으)로 확정할까요?`}
-        description="이 후보는 검색 결과 제목이나 사진 속 글자에서 나온 이름입니다. 사진 속 인물과 같은 사람인지는 확인하지 않았습니다."
+        description={pendingPhotoCandidate ? photoConfirmNote(pendingPhotoCandidate.source) : ''}
         items={pendingPhotoCandidate?.evidence.slice(0, 3)}
         confirmLabel="이 인물로 확정"
         cancelLabel="다시 고르기"

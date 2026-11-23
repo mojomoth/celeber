@@ -31,12 +31,26 @@ export const DEFAULT_VISION_MODEL = 'claude-opus-5-5';
 /** 대체 공급자 기본 모델 (Gate 0 실측에서 가장 빠른 비전 모델) */
 export const DEFAULT_OPENAI_MODEL = 'gpt-6.2-sol';
 
+/** 같은 설정 경고를 요청마다 반복하지 않도록 한 번만 남긴다 */
+const warned = new Set<string>();
+function warnOnce(msg: string): void {
+  if (warned.has(msg)) return;
+  warned.add(msg);
+  console.warn(`[celeber/env] ${msg}`);
+}
+
+function parseAiProvider(raw: string | undefined): AiProviderSetting {
+  const v = (raw ?? '').trim().toLowerCase();
+  if (v === 'anthropic' || v === 'openai') return v;
+  if (v && v !== 'auto') warnOnce(`CELEBER_AI_PROVIDER 값 "${raw}"를 알 수 없어 auto로 동작합니다 (auto|anthropic|openai).`);
+  return 'auto';
+}
+
 export function getEnv(): ServerEnv {
   const e = process.env;
   const effort = (e.CELEBER_VISION_EFFORT ?? 'medium') as ServerEnv['visionEffort'];
-  const provider = (e.CELEBER_AI_PROVIDER ?? 'auto').trim();
   return {
-    aiProvider: provider === 'anthropic' || provider === 'openai' ? provider : 'auto',
+    aiProvider: parseAiProvider(e.CELEBER_AI_PROVIDER),
     // ANTHROPIC_API_KEY 우선, CLAUDE_API_KEY는 별칭
     anthropicApiKey: nonEmpty(e.ANTHROPIC_API_KEY) ?? nonEmpty(e.CLAUDE_API_KEY),
     visionModel: nonEmpty(e.CELEBER_VISION_MODEL) ?? DEFAULT_VISION_MODEL,
@@ -104,7 +118,25 @@ export function aiProviderChain(env: ServerEnv = getEnv()): AiProviderEntry[] {
     env.anthropicApiKey ? { id: 'anthropic', model: env.visionModel, apiKey: env.anthropicApiKey } : null,
     env.openaiApiKey ? { id: 'openai', model: env.openaiModel, apiKey: env.openaiApiKey } : null,
   ];
-  return all.filter((p): p is AiProviderEntry => !!p && (env.aiProvider === 'auto' || p.id === env.aiProvider));
+  const chain = all.filter((p): p is AiProviderEntry => !!p && (env.aiProvider === 'auto' || p.id === env.aiProvider));
+  if (env.aiProvider !== 'auto' && !chain.length) {
+    warnOnce(`CELEBER_AI_PROVIDER=${env.aiProvider}인데 ${env.aiProvider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY'}가 없어 Mock으로 동작합니다.`);
+  }
+  return chain;
+}
+
+const PROVIDER_NAMES: Record<AiProviderId, string> = { anthropic: 'Anthropic', openai: 'OpenAI' };
+
+/** 체인의 공급자가 모두 막혔을 때 공급자별 사유를 합친 문구 (하나라도 살아 있으면 null) */
+export function aiBlockedSummary(chain: AiProviderEntry[]): string | null {
+  if (!chain.length) return null;
+  const reasons: string[] = [];
+  for (const p of chain) {
+    const b = getAiBlock(p.id);
+    if (!b) return null;
+    reasons.push(chain.length === 1 ? b.reason : `${PROVIDER_NAMES[p.id]} ${b.reason}`);
+  }
+  return reasons.join(', ');
 }
 
 export function getCapabilities(env: ServerEnv = getEnv()): Capabilities {
@@ -121,7 +153,7 @@ export function getCapabilities(env: ServerEnv = getEnv()): Capabilities {
     reverseImageSearchUploads: serp && !!env.publicBaseUrl,
     model: active?.model ?? null,
     forceMock: m,
-    aiBlockedReason: chain.length && !active ? (getAiBlock(chain[0].id)?.reason ?? null) : null,
+    aiBlockedReason: aiBlockedSummary(chain),
   };
 }
 

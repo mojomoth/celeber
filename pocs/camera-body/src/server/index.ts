@@ -5,7 +5,7 @@ import { BodyAnalysisSchema, type BodyAnalysis, type BodySession } from '@celebe
 import { callVisionStructured } from '@celeber/core/server/ai';
 import { bodySessions, kvDelete, kvGet, kvSet, newId, nowIso } from '@celeber/core/server/db';
 import { getUpload, saveUploadFromDataUrl, toImageRef } from '@celeber/core/server/uploads';
-import { computeBodyAnalysis } from '../lib/analyze';
+import { computeBodyAnalysis, RATIO_BOUNDS, ratioOutOfBounds } from '../lib/analyze';
 import { DEMO_H, DEMO_W, demoFace, demoFigureSvg, demoLandmarks, demoMask, DEMO_PALETTE } from '../lib/demo';
 import { outfitSummaryFromColors, sanitizeOutfitColors, type OutfitColors } from '../lib/outfit';
 import { bodyOneLiner } from '../lib/summary';
@@ -108,30 +108,12 @@ export function resolveBodyImage(analysis: BodyAnalysis): BodyAnalysis {
   return { ...analysis, image: { ...ref, width: ref.width ?? analysis.image.width, height: ref.height ?? analysis.image.height } };
 }
 
-/** 사람 몸에서 나올 수 있는 비율 범위. 벗어나면 400으로 거부한다 (거대값이 렌더링에서 메모리를 터뜨리는 것 방지). */
-export const RATIO_BOUNDS: Record<string, [number, number]> = {
-  // 측정 단계(analyze.ts HEADS_TALL_RANGE, SHOULDER_TO_HEIGHT_MIN)와 같은 값. 머리 없는 사진의 가짜 머리(10.5등신, 어깨/키 0.07)를 막는다
-  headsTall: [3.5, 10],
-  headToHeight: [0.07, 0.34],
-  upperToLower: [0.3, 3],
-  legToHeight: [0.2, 0.85],
-  shoulderToHip: [0.4, 3],
-  waistToHip: [0.3, 2.5],
-  shoulderToHeight: [0.1, 0.6],
-  armToHeight: [0.15, 0.8],
-  thighToShin: [0.3, 3],
-};
+/** 비율 범위는 측정 단계(analyze.ts)와 같은 값을 쓴다. 클라이언트가 실패로 돌리지 않은 값이 여기서 400이 되지 않게 */
+export { RATIO_BOUNDS };
 
 export function assertPlausibleRatios(analysis: BodyAnalysis): void {
-  const r = analysis.ratios as Record<string, number | undefined> | undefined;
-  if (!r) return;
-  for (const [key, v] of Object.entries(r)) {
-    if (v === undefined) continue;
-    const b = RATIO_BOUNDS[key];
-    if (!Number.isFinite(v) || v <= 0 || (b && (v < b[0] || v > b[1]))) {
-      throw new BodyInputError('implausible_ratios', `측정 비율(${key})이 사람 몸에서 나올 수 있는 범위를 벗어났습니다. 사진을 다시 분석해 주세요.`);
-    }
-  }
+  const key = ratioOutOfBounds(analysis.ratios as Record<string, number | undefined> | undefined);
+  if (key) throw new BodyInputError('implausible_ratios', `측정 비율(${key})이 사람 몸에서 나올 수 있는 범위를 벗어났습니다. 사진을 다시 분석해 주세요.`);
 }
 
 /** 정규화 좌표(이미지 0..1)가 가질 수 있는 범위. 사진 밖으로 약간 나간 관절점은 허용한다. */

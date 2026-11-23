@@ -9,7 +9,8 @@ import { Chips, Icon, MockBadge, Notice, PhotoFrame, SectionHeader } from '@cele
 import { VibeResultView, statsOnly } from '@celeber/celeb-vibe/components';
 import { guideSourceLabel } from '../lib/ai';
 import { wj } from '../lib/josa';
-import { analysisLimits, guideLimitations, limitationNotice } from '../lib/limits';
+import { gapsForDisplay } from '../lib/gaps';
+import { analysisLimits, guideLimitations, guideVibe, limitationNotice, withoutColorMeasurements } from '../lib/limits';
 import { formatDate } from '../lib/summary';
 import type { MyReportBrief } from '../lib/types';
 import { ActionList, DoNotCopyList, GapSection, GuideItems, PaletteCompare, PaletteMapping, StylingPoints, SubstitutionTable } from './GuideParts';
@@ -35,7 +36,9 @@ export interface VibeGuideViewProps {
 export function VibeGuideView({ guide: g, vibe, myReport, apiBase = '', warning, actions, bodyAddHref, reportHref }: VibeGuideViewProps) {
   const photo = g.thumbnail ? `${apiBase}${g.thumbnail.url}` : undefined;
   const aspect = g.thumbnail?.width && g.thumbnail?.height ? `${g.thumbnail.width} / ${g.thumbnail.height}` : '3 / 4';
-  const celebPalette: NamedColor[] = vibe ? [...vibe.palette.main, ...vibe.palette.sub, ...vibe.palette.accent] : g.paletteMapping.map((m) => m.celeb);
+  // 팔레트는 가이드 계산과 같은 입력(guideVibe): 인물 없음·색 측정 불가 사진이면 입술 측정색을 뺀다
+  const shown = vibe ? guideVibe(vibe) : null;
+  const celebPalette: NamedColor[] = shown ? [...shown.palette.main, ...shown.palette.sub, ...shown.palette.accent] : g.paletteMapping.map((m) => m.celeb);
   const myPalette: NamedColor[] = myReport?.best.length ? myReport.best : g.paletteMapping.map((m) => m.mine);
   const groomingLabel = g.face.makeup.some((m) => m.title.includes('립')) ? '메이크업' : '그루밍';
   const originalCaption = vibe ? vibe.outfit.items.slice(0, 2).map((i) => `${i.color.name} ${i.name}`).join(' · ') : undefined;
@@ -43,10 +46,12 @@ export function VibeGuideView({ guide: g, vibe, myReport, apiBase = '', warning,
   const vibeLimits = vibe ? analysisLimits(vibe.analyzability) : null;
   const limitations = g.limitations?.length ? g.limitations : vibeLimits?.limited || vibeLimits?.colorCaution ? guideLimitations(vibeLimits) : [];
   // 색 축을 하나도 비교하지 못했거나 celeb-vibe가 퍼스널컬러 분석 불가로 본 사진이면 연예인 톤 라벨(추정)을 보여주지 않는다
-  const colorCompared = g.gaps.some((x) => COLOR_GAP_AXES.has(x.axis) && !x.unavailable) && !vibeLimits?.colorUnusable;
+  // 예전에 저장한 가이드도 지금 기준으로 비교 불가인 색 갭은 그리지 않는다
+  const gaps = gapsForDisplay(g.gaps, vibe);
+  const colorCompared = gaps.some((x) => COLOR_GAP_AXES.has(x.axis) && !x.unavailable) && !vibeLimits?.colorUnusable;
   const celebTone = colorCompared ? (vibe?.personalColor.toneNameKo ?? undefined) : '톤 비교 불가';
   // 인물이 없는 사진: 저장된 가이드만 있을 때는 색 축 비교 사유로 판단한다
-  const noPerson = vibeLimits ? vibeLimits.noPerson : g.gaps.some((x) => x.unavailable && x.comment.includes('인물을 찾지 못해'));
+  const noPerson = vibeLimits ? vibeLimits.noPerson : gaps.some((x) => x.unavailable && x.comment.includes('인물을 찾지 못해'));
   const limitNotice = limitationNotice(limitations, vibeLimits, colorCompared);
   // 브라우저 측정 없이 사진 통계로 잡은 코디 색·위치는 부정확해 사진 위 색 바꾸기를 만들지 않는다
   const recolorBlocked = vibe ? statsOnly(vibe.analyzability) || !!vibeLimits?.noPerson : true;
@@ -128,8 +133,8 @@ export function VibeGuideView({ guide: g, vibe, myReport, apiBase = '', warning,
       </section>
 
       <section className={s.section}>
-        <SectionHeader title="나와 추구미의 차이" subtitle={gapSubtitle(g.gaps)} />
-        <GapSection gaps={g.gaps} celebName={g.celebName} bodyAddHref={bodyAddHref} />
+        <SectionHeader title="나와 추구미의 차이" subtitle={gapSubtitle(gaps)} />
+        <GapSection gaps={gaps} celebName={g.celebName} bodyAddHref={bodyAddHref} />
       </section>
 
       <section className={s.section}>
@@ -172,7 +177,8 @@ export function VibeGuideView({ guide: g, vibe, myReport, apiBase = '', warning,
               <Icon name="chevron-right" size={18} />
             </summary>
             <div style={{ marginTop: 12 }}>
-              <VibeResultView analysis={vibe} apiBase={apiBase} hideHeader />
+              {/* 색 측정을 믿을 수 없는 사진이면 원본 톤·입술색도 상세에서 빼고 보여 준다 (가이드의 '톤 비교 불가'와 맞춤) */}
+              <VibeResultView analysis={vibeLimits?.colorUnusable ? withoutColorMeasurements(vibe) : vibe} apiBase={apiBase} hideHeader />
             </div>
           </details>
         </section>
