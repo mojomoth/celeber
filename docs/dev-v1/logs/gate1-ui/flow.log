@@ -1,0 +1,98 @@
+PASS  [mobile] 모바일: 프레임 없음
+PASS  [mobile] 이동 → /capture
+PASS  [mobile] 촬영 시작 단계 2/4  (2/4)
+PASS  [mobile] 1/4 환경  (1/4)
+PASS  [mobile] 셔터 → 2/4
+PASS  [mobile] 셔터 → 3/4
+PASS  [mobile] 셔터 → 4/4
+PASS  [mobile] 4/4 건너뛰기·올리기 표시
+PASS  [mobile] 이동 → /analysis
+PASS  [mobile] 내비 활성: 내 분석
+PASS  [mobile] 이동 → /personal-color
+PASS  [mobile] 내비 활성: 퍼스널컬러
+PASS  [mobile] 의상색 선택: 코럴
+PASS  [mobile] 이동 → /muse
+PASS  [mobile] 내비 활성: 추구미
+PASS  [mobile] 검색 시트 열림
+PASS  [mobile] 검색 입력란에 초점
+PASS  [mobile] 검색 결과: 한서도
+PASS  [mobile] 검색 결과 없음 안내
+PASS  [mobile] Esc로 검색 시트 닫힘
+PASS  [mobile] 올린 사진: 분석 불가 안내에 표시  (올린 사진은 역광이 강해 분석하기 어려워요한서도의 다른 사진을 골라 주세요)
+PASS  [mobile] 다른 사진 고르기: 최근 룩
+PASS  [mobile] 다른 룩 보기: 다음 룩 선택
+PASS  [mobile] 가이드 저장 → 저장했어요
+PASS  [mobile] 이동 → /library
+PASS  [mobile] 경로 바뀌면 맨 위부터  (scrollTop 0)
+PASS  [mobile] 내비 활성: 내 기록
+PASS  [mobile] 초기화 대화상자 열림
+PASS  [mobile] 대화상자 초점: 취소
+PASS  [mobile] 대화상자 뒤 하단 내비 inert
+PASS  [mobile] Tab이 대화상자 안에서 돈다  (지우기)
+PASS  [mobile] Esc로 대화상자 닫힘
+PASS  [mobile] 닫으면 초점이 연 버튼으로
+PASS  [mobile] 이동 → /
+PASS  [mobile] 이동 → /muse
+PASS  [mobile] 이동 → /library
+PASS  [mobile] 이동 → /personal-color
+PASS  [mobile] 이동 → /library
+PASS  [mobile] 이동 → /analysis
+PASS  [mobile] 이동 → /personal-color
+PASS  [mobile] 내비 퍼스널컬러: 활성·맨 위  (active 퍼스널컬러, scrollTop 0)
+PASS  [mobile] 이동 → /muse
+PASS  [mobile] 내비 추구미: 활성·맨 위  (active 추구미, scrollTop 0)
+PASS  [mobile] 이동 → /library
+PASS  [mobile] 내비 내 기록: 활성·맨 위  (active 내 기록, scrollTop 0)
+PASS  [mobile] 이동 → /analysis
+PASS  [mobile] 내비 내 분석: 활성·맨 위  (active 내 분석, scrollTop 0)
+PASS  [mobile] 콘솔 오류·경고 없음
+PASS  [desktop] 목업 프레임 표시
+PASS  [desktop] 이동 → /capture
+PASS  [desktop] 촬영 시작 단계 2/4  (2/4)
+PASS  [desktop] 1/4 환경  (1/4)
+PASS  [desktop] 셔터 → 2/4
+PASS  [desktop] 셔터 → 3/4
+PASS  [desktop] 셔터 → 4/4
+PASS  [desktop] 4/4 건너뛰기·올리기 표시
+PASS  [desktop] 이동 → /analysis
+PASS  [desktop] 내비 활성: 내 분석
+PASS  [desktop] 이동 → /personal-color
+PASS  [desktop] 내비 활성: 퍼스널컬러
+PASS  [desktop] 의상색 선택: 코럴
+PASS  [desktop] 이동 → /muse
+PASS  [desktop] 내비 활성: 추구미
+PASS  [desktop] 검색 시트 열림
+PASS  [desktop] 검색 입력란에 초점
+PASS  [desktop] 검색 결과: 한서도
+PASS  [desktop] 검색 결과 없음 안내
+PASS  [desktop] Esc로 검색 시트 닫힘
+PASS  [desktop] 올린 사진: 분석 불가 안내에 표시  (올린 사진은 역광이 강해 분석하기 어려워요한서도의 다른 사진을 골라 주세요)
+PASS  [desktop] 다른 사진 고르기: 최근 룩
+PASS  [desktop] 다른 룩 보기: 다음 룩 선택
+PASS  [desktop] 가이드 저장 → 저장했어요
+PASS  [desktop] 이동 → /library
+PASS  [desktop] 경로 바뀌면 맨 위부터  (scrollTop 0)
+PASS  [desktop] 내비 활성: 내 기록
+PASS  [desktop] 초기화 대화상자 열림
+PASS  [desktop] 대화상자 초점: 취소
+PASS  [desktop] 대화상자 뒤 하단 내비 inert
+PASS  [desktop] Tab이 대화상자 안에서 돈다  (지우기)
+PASS  [desktop] Esc로 대화상자 닫힘
+PASS  [desktop] 닫으면 초점이 연 버튼으로
+PASS  [desktop] 이동 → /
+PASS  [desktop] 이동 → /muse
+PASS  [desktop] 이동 → /library
+PASS  [desktop] 이동 → /personal-color
+PASS  [desktop] 이동 → /library
+PASS  [desktop] 이동 → /analysis
+PASS  [desktop] 이동 → /personal-color
+PASS  [desktop] 내비 퍼스널컬러: 활성·맨 위  (active 퍼스널컬러, scrollTop 0)
+PASS  [desktop] 이동 → /muse
+PASS  [desktop] 내비 추구미: 활성·맨 위  (active 추구미, scrollTop 0)
+PASS  [desktop] 이동 → /library
+PASS  [desktop] 내비 내 기록: 활성·맨 위  (active 내 기록, scrollTop 0)
+PASS  [desktop] 이동 → /analysis
+PASS  [desktop] 내비 내 분석: 활성·맨 위  (active 내 분석, scrollTop 0)
+PASS  [desktop] 콘솔 오류·경고 없음
+
+96/96 PASS · 스크린샷 docs/dev-v1/logs/gate1-ui/flow/{mobile,desktop}/

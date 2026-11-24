@@ -1,0 +1,22 @@
+$ pnpm -r --if-present lint
+Scope: 10 of 11 workspace projects
+pocs/core lint$ eslint .
+pocs/ui lint$ eslint .
+pocs/ui/mockup lint$ eslint .
+pocs/core lint: Done
+pocs/ui lint: Done
+pocs/ui/mockup lint: Done
+pocs/camera-body lint$ eslint .
+pocs/camera-face lint$ eslint .
+pocs/hub lint$ eslint .
+pocs/celeb-vibe lint$ eslint .
+pocs/hub lint: Done
+pocs/search-celeb lint$ eslint .
+pocs/celeb-vibe lint: Done
+pocs/camera-face lint: Done
+pocs/camera-body lint: Done
+pocs/search-celeb lint: Done
+pocs/personal-color-report lint$ eslint .
+pocs/personal-color-report lint: Done
+pocs/celeb-vibe-report lint$ eslint .
+pocs/celeb-vibe-report lint: Done

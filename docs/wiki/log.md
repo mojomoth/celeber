@@ -37,3 +37,6 @@ camera-body major, core 회귀·data URL, AI 공급자 체인 리뷰, PoC별 min
 
 ## [2026-11-24] change | git 원격 연결
 - origin `https://github.com/mojomoth/celeber.git`(공개) 연결, `main` 푸시. 푸시 BLOCKED 해제. [run.md](../dev-v1/run.md)
+
+## [2026-11-24] verify | Gate 1 PASS: HIL과 UI 목업
+사용자 직접 지시로 HIL PASS. v4 시안 UI 목업(`pocs/ui/mockup`) 6화면 일치도 93–97, 전체 흐름 96/96, Codex 2차 리뷰 반영. [gate1-ui](../dev-v1/logs/gate1-ui.md), [ui-mockup-codex](../dev-v1/logs/critic/ui-mockup-codex.txt). 상태는 [run.md](../dev-v1/run.md), 결정(HIL 근거, 목업 위치·구조, 이미지 검색 대체, 공개 범위)은 [report.md](../dev-v1/report.md#결정)

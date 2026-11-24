@@ -6,11 +6,12 @@
 
 - [dev-v1/run.md](../dev-v1/run.md): 현재 단계, 게이트 조건, TODO, 역할·파일 소유권, PASS/FAIL/BLOCKED
 - [dev-v1/report.md](../dev-v1/report.md): 기술 검증 결과, 중요한 결정, 미해결 문제
-- [dev-v1/logs/](../dev-v1/logs/): 실행 로그 원문. Gate 0 [probe](../dev-v1/logs/gate0-probe.md), [dev 서버](../dev-v1/logs/gate0-devserver.md). Gate 1 [AI 공급자](../dev-v1/logs/gate1-ai.md), [core 수정](../dev-v1/logs/gate1-core-fix.md), [마감 확인](../dev-v1/logs/gate1-close.md). PoC별 로그는 run.md의 PoC별 결과 표에서 링크한다. 스크린샷은 커밋하지 않는다
+- [dev-v1/logs/](../dev-v1/logs/): 실행 로그 원문. Gate 0 [probe](../dev-v1/logs/gate0-probe.md), [dev 서버](../dev-v1/logs/gate0-devserver.md). Gate 1 [AI 공급자](../dev-v1/logs/gate1-ai.md), [core 수정](../dev-v1/logs/gate1-core-fix.md), [마감 확인](../dev-v1/logs/gate1-close.md), [UI 목업](../dev-v1/logs/gate1-ui.md)([Codex 리뷰](../dev-v1/logs/critic/ui-mockup-codex.txt)). PoC별 로그는 run.md의 PoC별 결과 표에서 링크한다. 스크린샷은 커밋하지 않는다
 
 ## 개발 문서
 
 - [api-contract.md](api-contract.md): PoC Route Handler 요청·응답 계약. 출처는 `pocs/core/src/contracts`와 각 PoC의 `src/lib`, `src/routes`
+- `pocs/ui/mockup`: v4 시안 UI 목업 앱(포트 3107). 화면은 `src/screens/`, 목업 데이터는 `src/data/mock.ts`. 출처는 `docs/ui/drafts/v4`
 - [tools.md](tools.md): 개발 도구 6종의 설치 위치와 적용 체크리스트. 출처는 각 도구의 원본 저장소와 gist
 
 ## 원본 (읽기 전용)

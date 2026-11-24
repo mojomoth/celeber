@@ -43,12 +43,16 @@ dev 서버, typecheck, lint, test, smoke 결과는 [gate0-devserver](logs/gate0-
 - **Gate 1 판정 규칙.** 모든 PoC와 core·AI 공급자 체인이 PASS(minor만 남음)이면 자동 검증 PASS로 보고, 게이트 통과는 HIL 판정 뒤에 한다.
 - **업로드 오류 코드를 나눴다.** 예전에는 모두 400 `upload_failed`였다. 이제 형식이 다르면 400 `unsupported_type`, 디코딩 실패는 422 `unreadable`, 약 4000만 화소 초과는 422 `too_many_pixels`, 얼굴·환경 사진의 SVG는 422 `svg_not_allowed`다. 메시지는 모두 한국어이고 sharp 원문은 서버 로그에만 남긴다. [api-contract](../wiki/api-contract.md#공용)
 - **git은 로컬 `main`만 만들었다.** 커밋은 셋이다(세 번째는 Gate 1 잔여 수정과 재검증). Gate 0 이전 코드 상태가 따로 남아 있지 않아, 첫 커밋 'PoC 기준선'에 Gate 1 코드 수정까지 들어갔다. 두 번째 커밋은 하네스와 검증 기록이다.
-- **커밋에서 뺀 것.** 스크린샷(`docs/dev-v1/logs/**/*.png`, 약 245MB)은 로컬에만 둔다. 그래서 로그 문서의 스크린샷 링크는 로컬에서만 열린다. MediaPipe 원본(`pocs/ui/static/mediapipe/`, 86MB)은 `pnpm fetch:models`로 다시 받는다. `.claude/settings.local.json`, `.vercel/`, `.turbo/`도 뺐다. 데모 사진(`pocs/core/fixtures/demo-people`)은 Mock 이미지 검색이 쓰므로 넣었다. origin(`mojomoth/celeber`)은 공개 저장소이고 이미 푸시됐다. 데모 사진과 레퍼런스 이미지의 공개 여부는 사용자 결정으로 남긴다.
+- **커밋에서 뺀 것.** 스크린샷(`docs/dev-v1/logs/**/*.png`, 약 245MB)은 로컬에만 둔다. 그래서 로그 문서의 스크린샷 링크는 로컬에서만 열린다. MediaPipe 원본(`pocs/ui/static/mediapipe/`, 86MB)은 `pnpm fetch:models`로 다시 받는다. `.claude/settings.local.json`, `.vercel/`, `.turbo/`도 뺐다. 데모 사진(`pocs/core/fixtures/demo-people`)은 Mock 이미지 검색이 쓰므로 넣었다. origin(`mojomoth/celeber`)은 공개 저장소이고 이미 푸시됐다. 데모 사진과 레퍼런스 이미지의 공개 여부는 아래 '공개 범위' 결정을 따른다.
+- **HIL PASS(2026-11-24).** 사용자가 직접 "HIL은 통과하고 UI랑 계속 진행해"라고 지시했다. 이 지시로 Gate 1의 HIL을 PASS로 올리고 UI 목업을 진행했다.
+- **UI 목업은 `pocs/ui/mockup`의 별도 Next.js 앱이다**(`@celeber/ui-mockup`, 포트 3107). PoC 6개가 공유하는 `@celeber/ui`를 깨지 않으려고 패키지를 나눴다. `@celeber/ui`는 eslint에서 `mockup/**`를 무시하고 test를 `src`로 한정했을 뿐 export는 그대로다. 화면은 `src/screens/<NN-name>/` 단위로 나누고 데이터는 props로 받아(목업 데이터는 `src/data/mock.ts`) Gate 2 통합 앱에서 그대로 쓸 수 있게 했다. 결과는 [gate1-ui](logs/gate1-ui.md).
+- **연예인 이미지 검색 대체 공급자는 OpenAI `web_search`다(Gate 2에서 연결).** Google Custom Search(401)와 Gemini 그라운딩(429)은 쓸 수 없고 다른 검색 키는 없다. OpenAI 키는 이미 쓰고 있고 시험 호출에서 실제 이미지 URL을 받았다. 결과 품질은 Gate 2에서 실제 사진으로 확인하고, 실패하면 Mock으로 떨어진다.
+- **공개 범위는 현행 유지다.** 사용자 응답이 없어 데모 사진·레퍼런스 이미지·목업 인물 사진(생성 이미지)을 공개 저장소에 그대로 둔다.
 
 ## 미해결
 
 - **Anthropic API 차단(2026-12-01 00:00 UTC까지).** 사용 한도 초과로 400이 난다. 각 앱 프로세스의 첫 AI 호출은 이 400을 한 번 거친 뒤 OpenAI로 넘어가고, 그 전까지 health의 `aiProvider`·`model`은 Anthropic으로 보인다. 지연을 없애려면 `CELEBER_AI_PROVIDER=openai`를 쓴다.
-- **연예인 사진 검색 경로 없음 (BLOCKED).** Google Custom Search는 이 키로 쓸 수 없고(OAuth 필요), Gemini 검색 그라운딩은 429다. `NAVER_*`, `SERPAPI_API_KEY`가 없어 이미지 검색과 역이미지 검색은 항상 Mock이다. OpenAI `web_search`는 시험 호출에서 실제로 열리는 이미지 URL 1개를 돌려줬다. 대체로 쓸지는 정해야 한다. 이 때문에 search-celeb의 동명이인 검색어 문제는 실제 사진으로 확인하지 못했다.
+- **연예인 사진 검색 경로 없음 (BLOCKED).** Google Custom Search는 이 키로 쓸 수 없고(OAuth 필요), Gemini 검색 그라운딩은 429다. `NAVER_*`, `SERPAPI_API_KEY`가 없어 이미지 검색과 역이미지 검색은 항상 Mock이다. OpenAI `web_search`는 시험 호출에서 실제로 열리는 이미지 URL 1개를 돌려줬다. Gate 2에서 대체 공급자로 붙이기로 했다([결정](#결정)). 이 때문에 search-celeb의 동명이인 검색어 문제는 실제 사진으로 확인하지 못했다.
 - **dev 서버(Turbopack) 새로고침 반복.** 'HMR hash mismatch'로 새로고침이 계속되던 문제가 celeb-vibe-report 재검증에서는 재현되지 않았다. 코드는 바뀌지 않았고 원인은 확정하지 못했다.
 - **camera-face 서버 검증(minor).** 서버가 클라이언트 랜드마크와 업로드 사진의 일치를 확인하지 않아, 조작한 API 호출로 다른 사진의 옆선이 저장될 수 있다(브라우저 경로는 해당 없음).
 - **남은 업로드 경계(minor).** 끝에 EOI를 붙인 잘린 JPEG, 아주 가늘거나 선언 크기가 아주 큰 SVG는 업로드 200 뒤 분석 단계에서 실패한다. [core-dataurl-r2-verify](logs/gate1b/core-dataurl-r2-verify.md)
