@@ -1,0 +1,87 @@
+/* 06 내 기록. 색·여백은 src/ui/tokens.css 변수를 쓴다. */
+
+/* 시안 pad-nav 140 = Screen 기본 132 + 8 */
+.root {
+  padding-bottom: 8px;
+}
+
+.sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px var(--gutter) 14px;
+}
+.count {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.count em {
+  font-style: normal;
+  color: var(--muted);
+  font-weight: 500;
+  margin-left: 4px;
+}
+.sort {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.item {
+  display: block;
+  color: inherit;
+}
+.cta {
+  min-height: 92px;
+  padding-top: 18px;
+}
+.go {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mine {
+  padding: 10px var(--gutter) 0;
+}
+.mineTitle {
+  margin-bottom: 14px;
+}
+.pcLink {
+  display: block;
+  color: inherit;
+}
+.pc {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+}
+.pcPhoto {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.pcType {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.pcMeta {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.chev {
+  color: var(--faint);
+}
+
+.list {
+  margin-top: 10px;
+}

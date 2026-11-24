@@ -1,0 +1,246 @@
+/* 05 추구미. 수치는 docs/ui/drafts/v4/_src/screens/05-style-muse.html 기준 (390pt). */
+
+/* ── 인물 사진 ─────────────────────────────── */
+.top {
+  position: relative;
+  height: 300px;
+  background: #c9c7c6;
+  overflow: hidden;
+}
+.topImg {
+  position: absolute;
+  left: 0;
+  top: -6px;
+  width: 100%;
+  height: 585px;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+
+/* ── 시트 ─────────────────────────────────── */
+.anchor {
+  position: absolute;
+  top: 0;
+  scroll-margin-top: var(--safe-top);
+}
+.sheetHead {
+  height: 60px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  padding: 4px 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.sheetTitle {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.sheetTitle small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.notice {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px var(--gutter);
+  background: var(--warn-bg);
+}
+.notice img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.notice p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--warn);
+}
+.notice b {
+  display: block;
+  font-weight: 600;
+  color: var(--warn-strong);
+}
+
+/* 사진 카드: 누르면 분석할 사진으로 고른다 */
+.lookCard {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 22px;
+  text-align: left;
+}
+.lookPh {
+  position: relative;
+  display: block;
+  height: 244px;
+  overflow: hidden;
+  background: #f3f2ef;
+}
+.lookPh img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+.lookCap {
+  display: block;
+  padding: 16px var(--gutter) 0;
+}
+.lookCap b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.lookCap span {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  color: var(--ink-2);
+  letter-spacing: -0.02em;
+}
+.lookCap em {
+  display: block;
+  margin-top: 6px;
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* 썸네일 띠: 넘치면 가로로 밀어 본다 */
+.strip {
+  display: flex;
+  gap: 10px;
+  padding: 14px var(--gutter);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.strip::-webkit-scrollbar {
+  display: none;
+}
+.thumb {
+  position: relative;
+  display: block;
+  flex: 0 0 48px;
+  height: 66px;
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f3f2ef;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+.thumbOn {
+  box-shadow: 0 0 0 1.5px var(--black);
+}
+.thumbNo span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3px 0;
+  background: rgba(20, 18, 24, 0.6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+.stripGap {
+  flex: 0 0 1px;
+  margin: 6px 0;
+  background: var(--line);
+}
+
+.band {
+  height: 8px;
+  background: var(--paper);
+}
+
+/* ── 가이드 · 팔레트 비교 ───────────────────── */
+.guide {
+  padding: 36px var(--gutter) 0;
+}
+.guideTitle {
+  margin-top: 8px;
+}
+.guideBody {
+  margin-top: 10px;
+}
+.pal {
+  margin: 22px var(--gutter) 0;
+  padding: 4px 18px;
+}
+.palRow {
+  padding: 16px 0 14px;
+}
+.palRow + .palRow {
+  border-top: 1px solid #e8e4de;
+}
+.palRow b {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.palRow small {
+  margin-left: 6px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.swatches {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+}
+.swatches li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 54px;
+  font-size: 11px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* ── 원본 룩 · 적용 룩 ─────────────────────── */
+.compare {
+  margin-top: 28px;
+}
+.compareImg {
+  top: 40px;
+  bottom: auto;
+  height: 290px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12px);
+}
+
+/* ── 스타일링 포인트 ─────────────────────── */
+.points {
+  padding: 12px var(--gutter) 0;
+}
+.pointsTitle {
+  margin-bottom: 12px;
+}

@@ -127,6 +127,9 @@ export const POCS: PocInfo[] = [
 
 export const HUB_PORT = 3100;
 
+/** UI 목업 앱 (pocs/ui/mockup, v4 시안 6화면). API·상태 프로브가 없어 PoC 레지스트리와 따로 둔다. */
+export const UI_MOCKUP = { pkg: '@celeber/ui-mockup', dir: 'ui/mockup', port: 3107, title: 'UI 목업', summary: 'v4 시안 6화면을 목업 데이터로 옮긴 앱. 데스크톱에서는 iPhone 프레임 안에 보인다.' } as const;
+
 export function pocByKey(key: PocKey): PocInfo {
   const p = POCS.find((x) => x.key === key);
   if (!p) throw new Error(`unknown poc ${key}`);

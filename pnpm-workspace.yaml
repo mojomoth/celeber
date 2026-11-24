@@ -1,5 +1,6 @@
 packages:
   - 'pocs/*'
+  - 'pocs/ui/mockup'
 
 # pnpm 11: 설치 스크립트(postinstall)를 실행해도 되는 패키지
 allowBuilds:

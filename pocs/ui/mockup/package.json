@@ -1,0 +1,22 @@
+{
+  "name": "@celeber/ui-mockup",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CELEBER UI 목업 (v4 시안): 랜딩 → 촬영 → 내 분석 → 퍼스널컬러 · 추구미 → 내 기록 (포트 3107)",
+  "scripts": {
+    "predev": "node ../../../scripts/sync-public.mjs .",
+    "dev": "next dev --port 3107",
+    "prebuild": "node ../../../scripts/sync-public.mjs .",
+    "build": "next build",
+    "start": "next start --port 3107",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "shot": "node scripts/shot.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}

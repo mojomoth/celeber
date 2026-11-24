@@ -1,0 +1,93 @@
+/* 추구미 검색 시트. 스크림·패널 바탕·아래 여백은 공용 BottomSheet */
+.panel {
+  padding-top: 20px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 var(--gutter);
+}
+.head h2 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  margin: 10px var(--gutter) 0;
+  padding: 0 14px;
+  border-radius: var(--btn-radius);
+  background: var(--paper);
+  color: var(--muted);
+}
+.field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+}
+.field:focus-within {
+  box-shadow: 0 0 0 1px var(--ink);
+}
+.label {
+  padding: 22px var(--gutter) 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.result {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 68px;
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.result img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.result span {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.result small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.chev {
+  color: var(--faint);
+}
+.empty {
+  padding: 14px var(--gutter);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.actions {
+  display: grid;
+  padding: 24px var(--gutter) 0;
+}

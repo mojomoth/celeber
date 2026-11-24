@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { HUB_PORT, POCS, dependentsOf, hostnameOf, pocUrl } from '../src/pocs';
+import { HUB_PORT, POCS, UI_MOCKUP, dependentsOf, hostnameOf, pocUrl } from '../src/pocs';
 
 const pocsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -14,7 +14,10 @@ describe('PoC 레지스트리', () => {
       expect(pkg.scripts.dev).toContain(`--port ${p.port}`);
       expect(pkg.scripts.start).toContain(`--port ${p.port}`);
     }
-    const ports = [HUB_PORT, ...POCS.map((p) => p.port)];
+    const mockup = JSON.parse(fs.readFileSync(path.join(pocsDir, UI_MOCKUP.dir, 'package.json'), 'utf8'));
+    expect(mockup.name).toBe(UI_MOCKUP.pkg);
+    expect(mockup.scripts.dev).toContain(`--port ${UI_MOCKUP.port}`);
+    const ports = [HUB_PORT, ...POCS.map((p) => p.port), UI_MOCKUP.port];
     expect(new Set(ports).size).toBe(ports.length);
   });
 

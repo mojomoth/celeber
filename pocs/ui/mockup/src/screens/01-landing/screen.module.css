@@ -1,0 +1,99 @@
+/* 01 랜딩. 수치는 v3/v4 01-landing.png(390x844pt) 실측. */
+.root {
+  /* 화보 색조에 맞춘 랜딩 전용 색 */
+  --landing-bg: #2b2742;
+  --landing-veil: rgb(14 12 22 / 0.6);
+  --landing-shade: 40 20 38;
+  --ivory: #fffdf8;
+  --ivory-pressed: #efebe3;
+  height: var(--screen-h);
+  overflow: hidden;
+  /* 화보 로딩 전 자리: color-halo를 화보와 같은 밝기로 어둡게 */
+  background-color: var(--landing-bg);
+  background-size: 100% 100%;
+}
+.stage {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+}
+.stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--landing-veil);
+}
+
+/*
+ * 화보(390x844 비율)는 위 기준으로 깐다. 시안보다 넓거나 짧은 화면에서는 아래쪽이 잘리고
+ * 로고 자리(인물 위 빈 공간)는 그대로 남는다. 잘릴 때만 아래에 어둠을 깔아 버튼 뒤를 시안처럼 가라앉힌다.
+ */
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+.shade {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--safe-bottom) + 190px);
+  background: linear-gradient(to bottom, rgb(var(--landing-shade) / 0), rgb(var(--landing-shade) / 0.6) 55%, rgb(var(--landing-shade) / 0.85));
+}
+@container (min-aspect-ratio: 391/844) {
+  .shade {
+    display: block;
+  }
+}
+
+/* 로고: 가로 184 (DESIGN.md), 위 113pt (상태 표시줄 54 + 59) */
+.logo {
+  position: absolute;
+  top: calc(var(--safe-top) + 59px);
+  left: 50%;
+  width: 184px;
+  margin: 0 0 0 -92px;
+  line-height: 0;
+}
+.logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 시작하기: 좌우 24, 높이 52, 반경 15, 아래 홈 인디케이터 영역 + 12 */
+.start {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(var(--safe-bottom) + 12px);
+  height: 52px;
+  border-radius: 15px;
+  padding-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ivory);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+.start:active {
+  background: var(--ivory-pressed);
+}
+.start:focus-visible {
+  outline: 2px solid var(--ivory);
+  outline-offset: 3px;
+}
+.arrow {
+  position: absolute;
+  right: 18.5px;
+  top: 50%;
+  margin-top: -8.25px;
+}

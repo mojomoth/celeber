@@ -2,7 +2,7 @@ import { headers } from 'next/headers';
 import { dbHealth } from '@celeber/core/server/db';
 import { getCapabilities, mockReasons } from '@celeber/core/server/env';
 import { BI, Button, Chips, Icon, MockBadge, Notice, PageContainer, SectionHeader } from '@celeber/ui';
-import { HUB_PORT, POCS, dependentsOf, pocByKey, pocUrl } from '../src/pocs';
+import { HUB_PORT, POCS, UI_MOCKUP, dependentsOf, pocByKey, pocUrl } from '../src/pocs';
 import { probeAll, type PocStatus } from '../src/status';
 import { FlowDiagram } from './_components/FlowDiagram';
 import { TokenPreview } from './_components/TokenPreview';
@@ -129,6 +129,18 @@ export default async function HubPage() {
               <PocCard key={p.key} pocKey={p.key} status={byKey.get(p.key)} host={host} />
             ))}
           </div>
+        </section>
+
+        {/* UI 목업 */}
+        <section className="cb-section" aria-labelledby="mockup-title">
+          <SectionHeader title={<span id="mockup-title">{UI_MOCKUP.title}</span>} subtitle={`:${UI_MOCKUP.port} · pocs/${UI_MOCKUP.dir}`} />
+          <p className="cb-body">{UI_MOCKUP.summary}</p>
+          <div className="hub-links">
+            <Button href={pocUrl(UI_MOCKUP, host, '/')} variant="primary" size="sm">
+              목업 열기
+            </Button>
+          </div>
+          <p className="cb-caption cb-muted hub-mono">pnpm dev:ui-mockup</p>
         </section>
 
         {/* 디자인 토큰 */}

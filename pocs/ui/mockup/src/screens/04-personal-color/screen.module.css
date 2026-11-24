@@ -1,0 +1,308 @@
+/* 04 퍼스널컬러. 수치는 docs/ui/drafts/v4/_src/screens/04-personal-color.html 기준 (390pt) */
+
+/* ── 타입 히어로 ─────────────────────────── */
+/* 390pt에서 500 높이. 넓은 화면에서는 같은 비율로 키워 드레이프가 페이드 뒤로 숨지 않게 한다 */
+.hero {
+  position: relative;
+  width: 100%;
+  min-width: 0; /* min-height가 비율을 타고 min-width로 옮겨 가 360 화면에서 넘치지 않게 */
+  aspect-ratio: 390 / 500;
+  min-height: 500px;
+  overflow: hidden;
+}
+.heroImg {
+  position: absolute;
+  left: 0;
+  top: -8%; /* 500 중 40 */
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+}
+.heroFade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 52%; /* 500 중 260 */
+}
+.heroCopy {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 54px;
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.heroType {
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+.heroEn {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+.heroConf {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.92;
+}
+.heroConf b {
+  display: block;
+  margin-top: 2px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* ── 추천 의상색 시트 ─────────────────────── */
+.sheet {
+  padding: 26px var(--gutter) 34px;
+}
+.sheetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.sheetHead h2 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.sheetHead span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.swatches {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+}
+.swatchBtn {
+  border-radius: 8px;
+}
+.sliders {
+  margin-top: 28px;
+  display: grid;
+  gap: 38px;
+}
+
+/* ── 본문 블록 ───────────────────────────── */
+.block {
+  padding: 40px var(--gutter) 0;
+}
+.body {
+  margin-top: 10px;
+}
+.tags {
+  margin-top: 14px;
+}
+
+.split {
+  margin-top: 18px;
+}
+.splitLab {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+}
+.splitCool {
+  color: var(--muted);
+  font-weight: 500;
+}
+.splitBar {
+  margin-top: 10px;
+  display: grid;
+  gap: 3px;
+  height: 10px;
+}
+.splitBar i:first-child {
+  border-radius: 5px 0 0 5px;
+  background: linear-gradient(to right, #f3c49b, #dd7330);
+}
+.splitBar i:last-child {
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(to right, #a8a3c2, #7f8aa6);
+}
+
+/* ── 드레이핑 2×2 ───────────────────────── */
+.drapes {
+  margin-top: 22px;
+}
+.drapeCap {
+  padding: 16px var(--gutter) 0;
+  height: 98px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.drapeName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.drapeDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  flex: none;
+}
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.meta {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.good {
+  color: var(--ok);
+}
+.bad {
+  color: var(--danger);
+}
+.warn {
+  color: var(--warn);
+}
+
+/* ── 스타일 가이드 ───────────────────────── */
+.guideBlock {
+  padding-top: 20px;
+}
+.guideRows {
+  margin-top: 12px;
+}
+
+/* ── 헤어와 액세서리 ─────────────────────── */
+.group {
+  margin-top: 18px;
+}
+.group + .group {
+  margin-top: 26px;
+}
+.groupTitle {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.groupSwatches {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.groupNote {
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ── 피할 스타일 ─────────────────────────── */
+.avoid {
+  margin-top: 12px;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.avoid li {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.avoidText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.avoidText b {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.avoidText span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ── 오늘 바로 해 볼 것 ──────────────────── */
+.today {
+  margin-top: 14px;
+  padding: 18px 20px;
+}
+.today ul {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.today li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.today li svg {
+  margin-top: 2px;
+}
+
+/* ── 진단 신뢰도 ─────────────────────────── */
+.accHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.accHead span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.accHead b {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.accBar {
+  margin-top: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.accBar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ink);
+}
+.status {
+  font-size: 13px;
+  font-weight: 600;
+}
+.caution {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--warn-bg);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--warn-strong);
+}

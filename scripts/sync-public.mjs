@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MEDIAPIPE_APPS = new Set(['camera-face', 'camera-body', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report']);
-const ALL_APPS = ['hub', 'camera-face', 'camera-body', 'search-celeb', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report'];
+const ALL_APPS = ['hub', 'camera-face', 'camera-body', 'search-celeb', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report', 'ui/mockup'];
 
 function syncDir(src, dst) {
   if (!fs.existsSync(src)) {

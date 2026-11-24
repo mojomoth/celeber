@@ -1,0 +1,66 @@
+/* 03 내 분석. 수치는 docs/ui/drafts/v4/_src/screens/03-self-analysis.html 기준 */
+
+/* 히어로: 왼쪽 전신 한 칸, 오른쪽 정면·측면 두 칸 (2pt 이음새) */
+.hero {
+  height: 452px;
+}
+.stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  row-gap: var(--grid-seam);
+  min-width: 0;
+}
+/* 전신 사진은 위 418만 채우고 아래는 배경 회색으로 이어 발끝이 잘리지 않게 한다 */
+.full {
+  background: #d6d5d5;
+}
+.full .fullImg {
+  height: 418px;
+}
+
+.summary {
+  padding: 28px var(--gutter) 0;
+}
+.headline {
+  margin-top: 10px;
+}
+.body {
+  margin-top: 12px;
+}
+.headline span,
+.body span {
+  display: block;
+}
+
+.skin {
+  margin: 28px var(--gutter) 0;
+  padding: 18px 18px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 18px;
+}
+.skinK {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.skinK small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.samples {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.features {
+  padding: 26px var(--gutter) 0;
+}
+.featuresTitle {
+  margin-bottom: 12px;
+}

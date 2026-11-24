@@ -1,0 +1,189 @@
+/* 02 나를 분석(촬영). 수치는 시안 02-self-capture.html (390×844) 기준.
+   세로: 상태 54 + 헤더 48 + 여백 66 + 카드 430 + 20 + 칩 32 + 42 + 셔터 76 + 42 + 홈 34 = 844.
+   카드 높이만 화면 높이를 따라 늘고 준다(260–540, 844에서 430). 셔터는 아래 기준으로 붙는다. */
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.count {
+  padding-right: 10px;
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stage {
+  position: relative;
+  margin: 66px var(--gutter) 0;
+}
+
+.card {
+  position: relative;
+  height: clamp(260px, calc(var(--screen-h) - var(--safe-top) - var(--safe-bottom) - 326px), 540px);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #1a181d;
+}
+.preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: in 0.24s ease-out;
+}
+/* 전신(2:3)은 발까지 보이게 contain으로 넣고, 머리가 자세 예시 원에 가리지 않게 위를 40 띄운다.
+   남는 자리는 같은 사진의 왼쪽 끝(인물 없는 배경)을 가로로 늘리고 흐리게 깔아 잇는다 */
+.cardBody .preview {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  height: calc(100% - 40px);
+  object-fit: contain;
+  object-position: 50% 100%;
+  /* 사진 테두리가 흐린 배경과 이어지게 가장자리를 녹인다 */
+  -webkit-mask-image: linear-gradient(to right, transparent 12%, #000 22%, #000 78%, transparent 88%), linear-gradient(to bottom, transparent, #000 8%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 12%, #000 22%, #000 78%, transparent 88%), linear-gradient(to bottom, transparent, #000 8%);
+  mask-composite: intersect;
+}
+.backdrop {
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: calc(100% + 200px);
+  height: calc(100% + 200px);
+  object-fit: fill;
+  transform: scaleX(5);
+  transform-origin: 0 50%;
+  filter: blur(28px);
+}
+
+.oval {
+  position: absolute;
+  left: 50%;
+  /* 시안(카드 430) 기준 위 62 · 164x206. 짧은 화면에서 카드가 줄면 타원도 같은 비율로 줄인다 */
+  top: min(62px, 14.5%);
+  height: min(206px, 62%);
+  aspect-ratio: 164 / 206;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+}
+
+/* 촬영 순간 흰 번쩍임 */
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: flash 0.32s ease-out;
+}
+
+.pose {
+  position: absolute;
+  left: 50%;
+  top: -42px;
+  margin-left: -42px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--camera-bg);
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+  z-index: 2;
+}
+.pose img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cond {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 셔터: 위로 칩과 최소 42, 아래로 홈 인디케이터 영역 + 42. 남는 높이는 칩과 셔터 사이로 간다 */
+.controls {
+  position: relative;
+  margin-top: auto;
+  padding: 42px 0 calc(var(--safe-bottom) + 42px);
+  display: flex;
+  justify-content: center;
+}
+.shutter {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  cursor: pointer;
+}
+.shutter i {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.12s ease-out;
+}
+.shutter:active i {
+  transform: scale(0.92);
+}
+
+/* 전신 단계만: 왼쪽 사진 올리기, 오른쪽 건너뛰기. 셔터 중심과 같은 높이 */
+.side,
+.skip {
+  position: absolute;
+  top: calc(42px + 13px);
+  height: 50px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  cursor: pointer;
+}
+.side {
+  left: 64px;
+  width: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+.side:focus-within {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.skip {
+  right: 56px;
+  padding: 0 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@keyframes in {
+  from {
+    opacity: 0.4;
+  }
+}
+@keyframes flash {
+  from {
+    opacity: 0.85;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview,
+  .flash {
+    animation: none;
+  }
+}

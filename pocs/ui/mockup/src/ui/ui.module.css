@@ -1,0 +1,557 @@
+/* 공용 컴포넌트 스타일. 수치는 docs/ui/drafts/v4/_src/base.css 기준. */
+
+/* ── Screen ───────────────────────────────── */
+.screen {
+  position: relative;
+  min-height: var(--screen-h);
+  background: var(--bg);
+  color: var(--ink);
+}
+.screenDark {
+  background: var(--camera-bg);
+  color: #fff;
+}
+/* 어두운 화면에서는 잉크색 초점 테두리가 묻히므로 흰색으로 */
+.screenDark :focus-visible {
+  outline-color: #fff;
+}
+.safeTop {
+  height: var(--safe-top);
+}
+.navPad {
+  height: calc(var(--nav-pad) + var(--safe-bottom));
+}
+
+/* 상태 표시줄 자리: 실기기에서는 OS 상태 표시줄 뒤 배경, 데스크톱 프레임·?chrome=sim에서는 9:41 표시줄 */
+.status {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: var(--safe-top);
+  padding: 0 30px 0 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  pointer-events: none;
+}
+.statusLight {
+  background: var(--bg);
+  color: var(--ink);
+}
+.statusDark {
+  color: #fff;
+}
+.statusInner {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+.statusSys {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.statusSys svg {
+  fill: currentColor;
+}
+.homeInd {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 8px;
+  width: 134px;
+  height: 5px;
+  margin-left: -67px;
+  border-radius: 3px;
+  background: #111013;
+  z-index: 60;
+  pointer-events: none;
+}
+.homeIndDark {
+  background: #fff;
+}
+@media (min-width: 501px) {
+  .statusInner {
+    display: flex;
+  }
+  .homeInd {
+    display: block;
+  }
+}
+:global(:root[data-chrome='sim']) .statusInner {
+  display: flex;
+}
+:global(:root[data-chrome='sim']) .homeInd {
+  display: block;
+}
+
+/* ── Header: 빈칸 · 제목 · 아이콘 1개 ───────── */
+.header {
+  height: var(--header-h);
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  position: relative;
+  z-index: 5;
+}
+.headerTitle {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.headerDark {
+  color: #fff;
+}
+.headerDark .headerTitle {
+  font-size: 17px;
+}
+.headerSide {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.headerSideEnd {
+  justify-content: flex-end;
+}
+.iconBtn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: inherit;
+  flex: none;
+}
+
+/* ── 하단 내비 (H&M 플로팅 pill) ─────────────── */
+.navWrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(84px + var(--safe-bottom));
+  z-index: 50;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.92) 38%, #fff 70%);
+  pointer-events: none;
+}
+.nav {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: max(var(--safe-bottom), 12px);
+  height: 66px;
+  border-radius: 33px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--nav-border);
+  box-shadow:
+    0 10px 30px rgba(37, 34, 43, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  padding: 0 6px;
+  pointer-events: auto;
+}
+.tab {
+  height: 54px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--ink);
+  border-radius: 27px;
+}
+.tabLabel {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tabOn {
+  background: var(--nav-active);
+}
+.tabOn .tabLabel {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ── 버튼 (Doji 페어) ─────────────────────── */
+.btnRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--btn-gap);
+  padding: 32px var(--gutter) 0;
+}
+.btn {
+  height: var(--btn-h);
+  border-radius: var(--btn-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 15.5px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.btnFill {
+  background: var(--black);
+  color: #fff;
+}
+.btnLine {
+  background: #fff;
+  color: var(--black);
+  border: 1px solid var(--black);
+}
+.btnDanger {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* ── 사진 그리드 · 타일 ───────────────────── */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--grid-seam);
+  background: #fff;
+}
+.tile {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+.tileImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  pointer-events: none;
+}
+.lbl {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 16px;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+.lbl small {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  opacity: 0.92;
+}
+.lblInk {
+  color: var(--ink);
+  top: 16px;
+  bottom: auto;
+}
+.cta {
+  padding: 16px var(--gutter) 0;
+  min-height: 76px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ctaMeta {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ── 스와치 ───────────────────────────────── */
+.sw {
+  display: block;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  flex: none;
+}
+.swSel {
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 0 0 4.5px var(--ink);
+}
+.swLabeled {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+/* 작은 회색 라벨 (03 피부색 견본) */
+.swLabelMuted {
+  gap: 6px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.dotSmall {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.dotsOverlap .dotSmall + .dotSmall {
+  margin-left: -4px;
+}
+.dotsOverlap .dotSmall {
+  box-shadow: 0 0 0 2px var(--dots-ring, var(--paper));
+}
+
+/* ── 칩 · 태그 ───────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px 0 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.chipDark {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+}
+.chipLight {
+  background: var(--paper);
+  color: var(--ink-2);
+}
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.chipSep {
+  width: 1px;
+  height: 10px;
+  background: currentColor;
+  opacity: 0.27;
+}
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tag {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  border: 1px solid var(--line-2);
+  font-size: 13px;
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── 시트 · 카드 ─────────────────────────── */
+.sheet {
+  position: relative;
+  z-index: 2;
+  border-radius: var(--sheet-radius);
+}
+.sheetTop {
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+}
+.card {
+  background: var(--paper);
+  border-radius: var(--card-radius);
+}
+
+/* ── 슬라이더 (ColorMo) ───────────────────── */
+.slider {
+  position: relative;
+  height: 34px;
+}
+.sliderTrack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: #e6e2dc;
+}
+.sliderPill {
+  position: absolute;
+  top: 0;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow:
+    0 2px 10px rgba(37, 34, 43, 0.1),
+    0 0 0 1px rgba(37, 34, 43, 0.04);
+  display: flex;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.sliderEnds {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ── 행 ──────────────────────────────────── */
+.rows {
+  border-top: 1px solid var(--line);
+}
+.row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid var(--line);
+  gap: 8px;
+  padding: 14px 0;
+}
+.rowTop {
+  align-items: start;
+}
+.rowTop .rowK {
+  line-height: 22.5px;
+}
+.rowK {
+  font-size: 14px;
+  color: var(--muted);
+}
+.rowV {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+.rowV small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.rowAvoid .rowK {
+  color: var(--danger);
+}
+.listRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  min-height: 60px;
+  border-bottom: 1px solid var(--line);
+  width: 100%;
+  text-align: left;
+}
+.listTitle {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.listTitle small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.listDanger .listTitle {
+  color: var(--danger);
+}
+.chev {
+  color: var(--faint);
+  margin-right: 14px;
+}
+
+/* ── 선택 표시 ───────────────────────────── */
+.chk {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #111013;
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+.radio {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #cfcad2;
+  background: rgba(255, 255, 255, 0.7);
+  display: block;
+}
+
+/* ── 하단 모달 시트 (BottomSheet: Dialog · 05 검색 시트) ──────────────── */
+.sheetScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(20, 18, 24, 0.42);
+  display: flex;
+  align-items: flex-end;
+}
+.sheetPanel {
+  width: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  padding-bottom: calc(var(--safe-bottom) + 20px);
+}
+.sheetPanel:focus {
+  outline: none;
+}
+
+/* ── 다이얼로그 ──────────────── */
+.dialog {
+  padding-top: 28px;
+}
+.dialogTitle {
+  padding: 0 var(--gutter);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.dialogBody {
+  padding: 8px var(--gutter) 0;
+}
+.dialog .btnRow {
+  padding-top: 24px;
+}

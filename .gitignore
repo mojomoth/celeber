@@ -34,3 +34,6 @@ pocs/ui/static/mediapipe/
 # 검증 스크린샷은 로컬에만 둔다 (약 245MB). 텍스트 로그는 커밋한다
 docs/dev-v1/logs/**/*.png
 !docs/dev-v1/logs/**/*.log
+
+# UI 목업 앱(pocs/ui/mockup)에 동기화되는 BI 에셋
+pocs/ui/mockup/public/bi/

@@ -13,7 +13,7 @@
     "./mediapipe": "./src/mediapipe.ts"
   },
   "scripts": {
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --passWithNoTests --dir src",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint ."
   },

@@ -6,5 +6,5 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   { rules: { '@next/next/no-html-link-for-pages': 'off' } },
-  globalIgnores(['node_modules/**', 'static/**']),
+  globalIgnores(['node_modules/**', 'static/**', 'mockup/**']),
 ]);
