@@ -48,7 +48,7 @@
 | UI 목업 (`pocs/ui`, v4 시안) | HOLD | 아래 참고 |
 | HIL 검증 | HIL 대기 | 사용자 판정 전까지 PASS로 올리지 않는다 |
 | 커밋 | PASS | 로컬 `main`에 커밋 3개 |
-| 푸시 | BLOCKED | 원격 없음 |
+| 푸시 | PASS | origin `mojomoth/celeber`(공개) `main`, 0660ef0까지 |
 
 ### PoC별 결과
 
@@ -86,7 +86,7 @@ Gate 1
 
 1. **HIL 판정.** PoC 6개를 실제로 써 보고 통과 여부를 정한다.
 2. **UI 목업 v4 진행 여부.** 진행하면 `@celeber/ui`와 분리된 경로에 둔다.
-3. **원격 저장소.** 연결할 저장소와 공개 범위(커밋에서 뺀 파일 포함)를 정한다.
+3. **공개 범위.** 원격(origin, 공개 저장소)은 연결됐다. 데모 사진(`pocs/core/fixtures/demo-people`)과 `docs/ui/refs` 레퍼런스 이미지를 공개 저장소에 둘지 정한다.
 4. **이미지 검색 대체.** 키가 없는 동안 OpenAI `web_search`를 연예인 사진 검색에 쓸지 정한다.
 
 ## 역할과 파일 소유권
@@ -111,7 +111,7 @@ Gate 1
 - 키 노출: 저장소, 각 앱 `.next`, docs, 로그, `pocs/.data`에서 `.env` 값 6개 일치 0건. 코드의 `NEXT_PUBLIC_` 사용 0건
 - 커밋 전 스테이징 검사: `.env`는 추적·스테이징되지 않았고, 스테이징된 파일 전체에서 `.env` 값 일치 0건
 - dev 서버는 띄우지 않았다. 3100~3106 LISTEN 0건
-- git: 로컬 `main`에 커밋 3개. 푸시: BLOCKED(원격 없음)
+- git: `main` 커밋 3개를 origin(`mojomoth/celeber`)에 푸시함. 이후 게이트 커밋은 바로 푸시한다
 
 ## 다음 작업
 

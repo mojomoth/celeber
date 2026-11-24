@@ -43,7 +43,7 @@ dev 서버, typecheck, lint, test, smoke 결과는 [gate0-devserver](logs/gate0-
 - **Gate 1 판정 규칙.** 모든 PoC와 core·AI 공급자 체인이 PASS(minor만 남음)이면 자동 검증 PASS로 보고, 게이트 통과는 HIL 판정 뒤에 한다.
 - **업로드 오류 코드를 나눴다.** 예전에는 모두 400 `upload_failed`였다. 이제 형식이 다르면 400 `unsupported_type`, 디코딩 실패는 422 `unreadable`, 약 4000만 화소 초과는 422 `too_many_pixels`, 얼굴·환경 사진의 SVG는 422 `svg_not_allowed`다. 메시지는 모두 한국어이고 sharp 원문은 서버 로그에만 남긴다. [api-contract](../wiki/api-contract.md#공용)
 - **git은 로컬 `main`만 만들었다.** 커밋은 셋이다(세 번째는 Gate 1 잔여 수정과 재검증). Gate 0 이전 코드 상태가 따로 남아 있지 않아, 첫 커밋 'PoC 기준선'에 Gate 1 코드 수정까지 들어갔다. 두 번째 커밋은 하네스와 검증 기록이다.
-- **커밋에서 뺀 것.** 스크린샷(`docs/dev-v1/logs/**/*.png`, 약 245MB)은 로컬에만 둔다. 그래서 로그 문서의 스크린샷 링크는 로컬에서만 열린다. MediaPipe 원본(`pocs/ui/static/mediapipe/`, 86MB)은 `pnpm fetch:models`로 다시 받는다. `.claude/settings.local.json`, `.vercel/`, `.turbo/`도 뺐다. 데모 사진(`pocs/core/fixtures/demo-people`)은 Mock 이미지 검색이 쓰므로 넣었다. 공개 원격에 올리기 전에 다시 정해야 한다.
+- **커밋에서 뺀 것.** 스크린샷(`docs/dev-v1/logs/**/*.png`, 약 245MB)은 로컬에만 둔다. 그래서 로그 문서의 스크린샷 링크는 로컬에서만 열린다. MediaPipe 원본(`pocs/ui/static/mediapipe/`, 86MB)은 `pnpm fetch:models`로 다시 받는다. `.claude/settings.local.json`, `.vercel/`, `.turbo/`도 뺐다. 데모 사진(`pocs/core/fixtures/demo-people`)은 Mock 이미지 검색이 쓰므로 넣었다. origin(`mojomoth/celeber`)은 공개 저장소이고 이미 푸시됐다. 데모 사진과 레퍼런스 이미지의 공개 여부는 사용자 결정으로 남긴다.
 
 ## 미해결
 

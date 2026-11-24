@@ -34,3 +34,6 @@ PoC 6개 입출력 검증·critic, core 공용 수정과 재검증 결과를 [ru
 
 ## [2026-11-24] verify | Gate 1 잔여 이슈 재검증과 마감
 camera-body major, core 회귀·data URL, AI 공급자 체인 리뷰, PoC별 minor를 고치고 재검증해 모두 PASS(minor만 남음). Gate 1은 자동 검증 PASS, HIL 대기, UI 목업 HOLD. 상태는 [run.md](../dev-v1/run.md), 마감 검사는 [gate1b/close](../dev-v1/logs/gate1b/close.md).
+
+## [2026-11-24] change | git 원격 연결
+- origin `https://github.com/mojomoth/celeber.git`(공개) 연결, `main` 푸시. 푸시 BLOCKED 해제. [run.md](../dev-v1/run.md)
