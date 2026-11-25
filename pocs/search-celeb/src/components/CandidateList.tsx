@@ -51,6 +51,9 @@ export function CandidateList({ items, apiBase = '', onSelect, busyKey, showEvid
               {showEvidence && c.evidence.length ? <span className={s.evidence} style={{ display: 'block' }}>{c.evidence.slice(0, 2).join(' · ')}</span> : null}
             </span>
           </button>
+          {c.thumbnailSourceUrl ? (
+            <a className={s.source} href={c.thumbnailSourceUrl} target="_blank" rel="noopener noreferrer nofollow" aria-label={`${c.name} 사진 출처`}>사진 출처</a>
+          ) : null}
           <Button size="sm" variant={c.celebId ? 'secondary' : 'primary'} onClick={() => onSelect(c)} loading={busyKey === key} disabled={!!busyKey && busyKey !== key} aria-label={`${label} ${selectLabel}`}>
             {c.celebId ? '열기' : selectLabel}
           </Button>

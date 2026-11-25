@@ -47,6 +47,8 @@ export function celebToCandidate(r: Row<CelebProfile>): CandidateItem {
     nameEn: c.nameEn,
     description: c.description,
     thumbnailUrl: c.thumbnail?.url,
+    thumbnailSourceUrl: c.thumbnailSourceUrl,
+    thumbnailProvider: c.thumbnailProvider ?? (c.thumbnail && c.isMock ? 'mock' : undefined),
     source: c.source,
     score: c.saved ? 0.95 : 0.85,
     evidence: [c.saved ? '저장한 인물' : '이전에 확정한 인물'],
@@ -86,7 +88,9 @@ export async function confirmCandidate(c: CelebCandidate): Promise<CelebProfile>
     const d = existing.data;
     const aliases = [...new Set([...d.aliases, ...(c.nameEn && c.nameEn !== d.nameEn ? [c.nameEn] : [])])];
     const thumbnail = d.thumbnail ?? (await thumbRef(c.thumbnailUrl));
-    const next: CelebProfile = { ...d, nameEn: d.nameEn ?? c.nameEn, description: d.description ?? c.description, aliases, thumbnail, updatedAt: now };
+    const thumbnailSourceUrl = d.thumbnail ? d.thumbnailSourceUrl : thumbnail && c.thumbnailSourceUrl;
+    const thumbnailProvider = d.thumbnail ? d.thumbnailProvider : thumbnail && c.thumbnailProvider;
+    const next: CelebProfile = { ...d, nameEn: d.nameEn ?? c.nameEn, description: d.description ?? c.description, aliases, thumbnail, thumbnailSourceUrl, thumbnailProvider, updatedAt: now };
     celebs.update(existing.id, { data: next, cols: { thumbnail_upload_id: thumbnail?.uploadId ?? null } });
     return next;
   }
@@ -101,6 +105,8 @@ export async function confirmCandidate(c: CelebCandidate): Promise<CelebProfile>
     aliases: [],
     description: c.description,
     thumbnail,
+    thumbnailSourceUrl: thumbnail && c.thumbnailSourceUrl,
+    thumbnailProvider: thumbnail && c.thumbnailProvider,
     saved: false,
     source: c.source,
     isMock: c.source === 'mock',

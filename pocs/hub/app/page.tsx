@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import type { ImageProviderId } from '@celeber/core/contracts';
 import { dbHealth } from '@celeber/core/server/db';
 import { getCapabilities, mockReasons } from '@celeber/core/server/env';
 import { BI, Button, Chips, Icon, MockBadge, Notice, PageContainer, SectionHeader } from '@celeber/ui';
@@ -18,6 +19,13 @@ const TABLE_LABEL: Record<string, string> = {
   personal_color_reports: '퍼스널컬러 리포트',
   vibe_guides: '추구미 가이드',
   uploads: '업로드',
+};
+
+const IMAGE_SEARCH_LABEL: Record<ImageProviderId, string> = {
+  naver: '실제 · 네이버',
+  serpapi: '실제 · SerpAPI',
+  openai: '실제 · OpenAI',
+  mock: '데모 · 실루엣 이미지',
 };
 
 export default async function HubPage() {
@@ -84,7 +92,7 @@ export default async function HubPage() {
               real={caps.ai}
               value={caps.ai ? `실제 · ${caps.model}` : caps.aiBlockedReason ? `데모 · 일시 중단 (${caps.aiBlockedReason})` : caps.forceMock ? '데모 · CELEBER_FORCE_MOCK=1' : '데모 · 키 없음 (규칙·템플릿)'}
             />
-            <ModeRow icon="image" label="이미지 검색" real={caps.imageSearch !== 'mock'} value={caps.imageSearch === 'naver' ? '실제 · 네이버' : caps.imageSearch === 'serpapi' ? '실제 · SerpAPI' : '데모 · 데모 실루엣 이미지'} />
+            <ModeRow icon="image" label="이미지 검색" real={caps.imageSearch !== 'mock'} value={IMAGE_SEARCH_LABEL[caps.imageSearch]} />
             <ModeRow
               icon="search"
               label="역이미지 검색"

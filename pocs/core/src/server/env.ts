@@ -4,6 +4,7 @@
  */
 import 'server-only';
 import path from 'node:path';
+import type { ImageProviderId } from '../contracts';
 
 export type AiProviderId = 'anthropic' | 'openai';
 export type AiProviderSetting = 'auto' | AiProviderId;
@@ -42,7 +43,7 @@ function warnOnce(msg: string): void {
 function parseAiProvider(raw: string | undefined): AiProviderSetting {
   const v = (raw ?? '').trim().toLowerCase();
   if (v === 'anthropic' || v === 'openai') return v;
-  if (v && v !== 'auto') warnOnce(`CELEBER_AI_PROVIDER 값 "${raw}"를 알 수 없어 auto로 동작합니다 (auto|anthropic|openai).`);
+  if (v && v !== 'auto') warnOnce('CELEBER_AI_PROVIDER에 지원하지 않는 값이 있어 auto로 동작합니다 (auto|anthropic|openai).');
   return 'auto';
 }
 
@@ -51,10 +52,9 @@ export function getEnv(): ServerEnv {
   const effort = (e.CELEBER_VISION_EFFORT ?? 'medium') as ServerEnv['visionEffort'];
   return {
     aiProvider: parseAiProvider(e.CELEBER_AI_PROVIDER),
-    // ANTHROPIC_API_KEY 우선, CLAUDE_API_KEY는 별칭
-    anthropicApiKey: nonEmpty(e.ANTHROPIC_API_KEY) ?? nonEmpty(e.CLAUDE_API_KEY),
+    anthropicApiKey: nonEmpty(e.ANTHROPIC_API_KEY) ?? nonEmpty(e.CLAUDE_API_KEY) ?? nonEmpty(e.CLAUDE_KEY),
     visionModel: nonEmpty(e.CELEBER_VISION_MODEL) ?? DEFAULT_VISION_MODEL,
-    openaiApiKey: nonEmpty(e.OPENAI_API_KEY),
+    openaiApiKey: nonEmpty(e.OPENAI_API_KEY) ?? nonEmpty(e.OPENAI_KEY),
     openaiModel: nonEmpty(e.CELEBER_OPENAI_MODEL) ?? DEFAULT_OPENAI_MODEL,
     visionEffort: ['low', 'medium', 'high', 'xhigh', 'max'].includes(effort) ? effort : 'medium',
     serpApiKey: nonEmpty(e.SERPAPI_API_KEY),
@@ -74,8 +74,8 @@ export interface Capabilities {
   ai: boolean;
   /** 지금 먼저 호출할 공급자 (표시용) */
   aiProvider: AiProviderId | null;
-  /** 이미지 검색 프로바이더: naver > serpapi > mock */
-  imageSearch: 'naver' | 'serpapi' | 'mock';
+  /** 키로 설정된 첫 이미지 검색 공급자 */
+  imageSearch: ImageProviderId;
   /** 역이미지 검색(Google Lens) 가능 */
   reverseImageSearch: boolean;
   /** 로컬 업로드 이미지를 Lens에 보낼 수 있는지 (CELEBER_PUBLIC_BASE_URL 필요) */
@@ -145,10 +145,11 @@ export function getCapabilities(env: ServerEnv = getEnv()): Capabilities {
   const active = chain.find((p) => !getAiBlock(p.id)) ?? null;
   const naver = !m && !!(env.naverClientId && env.naverClientSecret);
   const serp = !m && !!env.serpApiKey;
+  const openai = !m && !!env.openaiApiKey;
   return {
     ai: !!active,
     aiProvider: active?.id ?? null,
-    imageSearch: naver ? 'naver' : serp ? 'serpapi' : 'mock',
+    imageSearch: naver ? 'naver' : serp ? 'serpapi' : openai ? 'openai' : 'mock',
     reverseImageSearch: serp,
     reverseImageSearchUploads: serp && !!env.publicBaseUrl,
     model: active?.model ?? null,
@@ -169,7 +170,7 @@ export function isMock(feature: 'ai' | 'imageSearch' | 'reverseImageSearch'): bo
 export function mockReasons(c: Capabilities, features: ('ai' | 'imageSearch' | 'reverseImageSearch')[]): string[] {
   const r: string[] = [];
   if (features.includes('ai') && !c.ai) r.push(c.aiBlockedReason ? `AI 분석 일시 중단: ${c.aiBlockedReason}` : 'AI 분석: AI 키 없음 → 규칙 기반/템플릿 결과');
-  if (features.includes('imageSearch') && c.imageSearch === 'mock') r.push('이미지 검색: NAVER/SERPAPI 키 없음 → 데모 이미지');
+  if (features.includes('imageSearch') && c.imageSearch === 'mock') r.push('이미지 검색을 사용할 수 없어 데모 이미지를 표시합니다.');
   if (features.includes('reverseImageSearch') && !c.reverseImageSearch) r.push('역이미지 검색: SERPAPI_API_KEY 없음 → 이름 검색 안내');
   if (c.forceMock) r.unshift('CELEBER_FORCE_MOCK=1');
   return r;

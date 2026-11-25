@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'celeber-search-celeb-'));
 process.env.CELEBER_DATA_DIR = tmp;
@@ -31,6 +31,27 @@ describe('이름 검색 (Mock)', () => {
     expect(server.suggestCelebs('서지').items.map((i) => i.name)).toContain('서지온');
     expect(server.suggestCelebs('').items).toEqual([]);
   });
+});
+
+it('실제 공급자의 검색 결과를 얻지 못하면 데모 사진임을 표시한다', async () => {
+  vi.stubEnv('CELEBER_FORCE_MOCK', '0');
+  vi.stubEnv('NAVER_CLIENT_ID', undefined);
+  vi.stubEnv('SERPAPI_API_KEY', undefined);
+  vi.stubEnv('OPENAI_API_KEY', 'unused');
+  const request = vi.fn(async () => Response.json({ output: [] }));
+  vi.stubGlobal('fetch', request);
+  try {
+    const celeb = await server.confirmCandidate({ name: '검색 실패 검증', source: 'name-search', evidence: [] });
+    const result = await server.collectCelebImages(celeb.id, 'signature', { target: 2 });
+    expect(request).toHaveBeenCalled();
+    expect(result).toMatchObject({ provider: 'mock', isMock: true, added: 2 });
+    expect(result?.images.every((image) => image.isMock)).toBe(true);
+    expect(result?.notices.join(' ')).toContain('데모 이미지');
+    server.deleteCeleb(celeb.id);
+  } finally {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  }
 });
 
 describe('확정 → 사진 수집 → 선택 → 저장 → 삭제', () => {

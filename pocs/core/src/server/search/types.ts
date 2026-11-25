@@ -1,7 +1,8 @@
 /**
  * 이미지 검색 / 역이미지 검색 프로바이더 인터페이스.
  */
-export type ImageProviderId = 'naver' | 'serpapi' | 'mock';
+import type { ImageProviderId } from '../../contracts';
+export type { ImageProviderId } from '../../contracts';
 
 export interface ImageSearchQuery {
   /** 검색어 (예: '홍길동 공항패션 전신') */

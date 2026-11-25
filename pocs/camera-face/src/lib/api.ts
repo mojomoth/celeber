@@ -4,6 +4,7 @@
  */
 import { z } from 'zod';
 import { CaptureQualitySchema, EnvironmentAnalysisSchema, FaceAnalysisSchema, FaceSessionSchema, Landmark3Schema } from '@celeber/core/contracts';
+import { FACE_OVAL, faceBoxFromLandmarks, polygonArea } from '@celeber/core/face';
 import { EncodedMaskSchema } from './mask';
 
 const UploadIdSchema = z.string().regex(/^up_[a-z0-9]+$/, 'uploadId 형식이 아닙니다.');
@@ -60,13 +61,24 @@ export const BoundedLandmarkSchema = Landmark3Schema.extend({
   z: z.number().min(-10).max(10),
   visibility: z.number().min(-0.01).max(1.01).optional(),
 });
+const CaptureLandmarksSchema = z.array(BoundedLandmarkSchema).min(468).max(478)
+  .refine((points) => points.length === 468 || points.length === 478, {
+    error: '얼굴 랜드마크는 468점 또는 478점이어야 합니다.',
+    abort: true,
+  })
+  .refine((points) => {
+    const box = faceBoxFromLandmarks(points);
+    // 정규화 면적 1e-6은 1000×1000 이미지에서 1픽셀이다.
+    return box.x < 1 && box.y < 1 && box.x + box.w > 0 && box.y + box.h > 0 &&
+      polygonArea(FACE_OVAL.map((i) => points[i])) > 1e-6;
+  }, '사진 안에서 얼굴 윤곽의 범위를 확인할 수 없습니다.');
 const AngleDeg = z.number().min(-360).max(360);
 
 export const CaptureInputSchema = z.object({
   uploadId: UploadIdSchema,
   capturedAt: z.string().optional(),
   /** FaceLandmarker 정규화 랜드마크 (468 또는 478점) */
-  landmarks: z.array(BoundedLandmarkSchema).min(468).max(478),
+  landmarks: CaptureLandmarksSchema,
   yawDeg: AngleDeg,
   pitchDeg: AngleDeg,
   rollDeg: AngleDeg,
@@ -78,7 +90,7 @@ export type CaptureInput = z.infer<typeof CaptureInputSchema>;
 
 /** 측면은 완전 측면에서 얼굴 검출이 안 될 수 있으므로 랜드마크 없이도 받는다 */
 export const SideCaptureInputSchema = CaptureInputSchema.extend({
-  landmarks: z.array(BoundedLandmarkSchema).min(468).max(478).nullable(),
+  landmarks: CaptureLandmarksSchema.nullable(),
 });
 export type SideCaptureInput = z.infer<typeof SideCaptureInputSchema>;
 

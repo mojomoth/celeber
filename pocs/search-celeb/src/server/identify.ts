@@ -19,7 +19,7 @@ import { extractNameCandidates, photoTextCandidates, uniqueTexts } from '../lib/
 import { mergeCandidates } from '../lib/names';
 import type { IdentifyResponse, PhotoFraming } from '../lib/types';
 import { attachCelebIds } from './celebs';
-import { candidateThumbnail, proxyImageUrl } from './thumbs';
+import { candidatePhoto, proxyImageUrl } from './thumbs';
 import { mapLimit, shortWarning } from './util';
 
 const PhotoTextSchema = z.object({
@@ -113,10 +113,12 @@ export async function identifyFromPhoto(uploadId: string): Promise<IdentifyRespo
     isMock = true;
   }
 
-  const withThumbs = await mapLimit(attachCelebIds(candidates), 3, async (c) => ({
-    ...c,
-    thumbnailUrl: (await proxyImageUrl(c.thumbnailUrl)) ?? (await candidateThumbnail(c.name, c.description)),
-  }));
+  const withThumbs = await mapLimit(attachCelebIds(candidates), 3, async (c) => {
+    const cached = await proxyImageUrl(c.thumbnailUrl);
+    if (cached) return { ...c, thumbnailUrl: cached };
+    const photo = await candidatePhoto(c.name, c.description);
+    return { ...c, thumbnailUrl: photo?.thumbnailUrl, thumbnailSourceUrl: photo?.thumbnailSourceUrl, thumbnailProvider: photo?.thumbnailProvider };
+  });
 
   const realCount = withThumbs.filter((c) => c.source !== 'mock').length;
   const needsNameSearch = realCount === 0;

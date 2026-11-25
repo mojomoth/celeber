@@ -6,7 +6,7 @@ import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const KEYS = ['CELEBER_FORCE_MOCK', 'CELEBER_AI_PROVIDER', 'ANTHROPIC_API_KEY', 'CLAUDE_API_KEY', 'OPENAI_API_KEY', 'CELEBER_OPENAI_MODEL', 'CELEBER_VISION_MODEL'];
+const KEYS = ['CELEBER_FORCE_MOCK', 'CELEBER_AI_PROVIDER', 'ANTHROPIC_API_KEY', 'CLAUDE_API_KEY', 'CLAUDE_KEY', 'OPENAI_API_KEY', 'OPENAI_KEY', 'CELEBER_OPENAI_MODEL', 'CELEBER_VISION_MODEL'];
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 
 /** hang = 응답 헤더 전 무응답(signal은 따름), stall = 200 헤더 뒤 본문 정지(signal 무시), bodyError = 200 헤더 뒤 본문 오류 */
@@ -149,7 +149,15 @@ describe('설정·차단 사유', () => {
     expect(env.aiProviderChain().map((p) => p.id)).toEqual(['openai']);
     setEnv({ ANTHROPIC_API_KEY: 'a', OPENAI_API_KEY: 'o', CELEBER_AI_PROVIDER: 'gemini-test' });
     expect(env.getEnv().aiProvider).toBe('auto');
-    expect(vi.mocked(console.warn).mock.calls.flat().join(' ')).toContain('gemini-test');
+    const warnings = vi.mocked(console.warn).mock.calls.flat().join(' ');
+    expect(warnings).toContain('CELEBER_AI_PROVIDER');
+    expect(warnings).not.toContain('gemini-test');
+  });
+  it('표준 키 이름을 우선 사용하고 기존 CLAUDE_KEY와 OPENAI_KEY도 지원한다', () => {
+    setEnv({ CLAUDE_KEY: 'legacy-claude', OPENAI_KEY: 'legacy-openai' });
+    expect(env.getEnv()).toMatchObject({ anthropicApiKey: 'legacy-claude', openaiApiKey: 'legacy-openai' });
+    Object.assign(process.env, { CLAUDE_API_KEY: 'claude', OPENAI_API_KEY: 'openai' });
+    expect(env.getEnv()).toMatchObject({ anthropicApiKey: 'claude', openaiApiKey: 'openai' });
   });
   it('지정한 공급자의 키가 없으면 서버 로그에 경고', () => {
     setEnv({ ANTHROPIC_API_KEY: 'a', CELEBER_AI_PROVIDER: 'openai' });
@@ -166,6 +174,16 @@ describe('설정·차단 사유', () => {
     const r = await ask();
     expect(r.warning).toContain('API 키 인증 실패');
     expect(calls).toEqual([]);
+  });
+  it('앞 공급자를 기다리는 동안 다른 요청이 차단한 공급자는 건너뛴다', async () => {
+    setEnv({ ANTHROPIC_API_KEY: 'awaiting-provider', OPENAI_API_KEY: 'o' });
+    routes.anthropic = () => {
+      env.setAiBlock('API 사용 한도 초과', undefined, 'openai');
+      return { status: 400, json: { type: 'error', error: { type: 'invalid_request_error', message: 'bad request' } } };
+    };
+    routes.openai = openaiOk;
+    expect((await ask()).source).toBe('mock');
+    expect(calls).toEqual(['anthropic']);
   });
 });
 

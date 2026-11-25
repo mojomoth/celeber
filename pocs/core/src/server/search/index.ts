@@ -1,5 +1,5 @@
 /**
- * @celeber/core/server/search — 이미지 검색(네이버 > SerpAPI > Mock) / 역이미지 검색(SerpAPI Lens > Mock).
+ * @celeber/core/server/search — 이미지 검색(네이버 > SerpAPI > OpenAI > Mock) / 역이미지 검색(SerpAPI Lens > Mock).
  * 정책: 역이미지 검색 결과의 텍스트(제목/지식그래프)는 "후보"일 뿐이며 사용자가 확정해야 한다.
  */
 import 'server-only';
@@ -9,32 +9,32 @@ import { cacheGet, cacheSet } from '../db';
 import { getEnv } from '../env';
 import { createNaverImageProvider } from './naver';
 import { mockImageProvider, mockReverseProvider } from './mock';
+import { createOpenAiImageProvider } from './openai';
 import { createSerpApiImageProvider, createSerpApiLensProvider } from './serpapi';
 import type { ImageSearchProvider, ImageSearchQuery, ImageSearchResult, ReverseImageSearchProvider, ReverseImageSearchResult } from './types';
 
 export * from './types';
 export { createNaverImageProvider } from './naver';
+export { createOpenAiImageProvider } from './openai';
 export { createSerpApiImageProvider, createSerpApiLensProvider } from './serpapi';
 export { mockImageProvider, mockNameFromQuery, mockReverseProvider } from './mock';
 
 /** 사용 가능한 이미지 검색 프로바이더 (네이버 우선, 한국 연예인에 유리) */
 export function getImageSearchProvider(prefer?: 'naver' | 'serpapi'): ImageSearchProvider {
-  const env = getEnv();
-  if (env.forceMock) return mockImageProvider;
-  const naver = env.naverClientId && env.naverClientSecret ? createNaverImageProvider(env.naverClientId, env.naverClientSecret) : null;
-  const serp = env.serpApiKey ? createSerpApiImageProvider(env.serpApiKey) : null;
-  if (prefer === 'serpapi' && serp) return serp;
-  return naver ?? serp ?? mockImageProvider;
+  const providers = getImageSearchProviders();
+  return providers.find(({ id }) => id === prefer) ?? providers[0];
 }
 
-/** 사용 가능한 모든 실제 프로바이더 (네이버 실패 시 SerpAPI로 재시도 등) */
+/** 우선순위에 따라 검색할 공급자. 마지막에 데모를 제공한다. */
 export function getImageSearchProviders(): ImageSearchProvider[] {
   const env = getEnv();
   if (env.forceMock) return [mockImageProvider];
   const list: ImageSearchProvider[] = [];
   if (env.naverClientId && env.naverClientSecret) list.push(createNaverImageProvider(env.naverClientId, env.naverClientSecret));
   if (env.serpApiKey) list.push(createSerpApiImageProvider(env.serpApiKey));
-  return list.length ? list : [mockImageProvider];
+  if (env.openaiApiKey) list.push(createOpenAiImageProvider(env.openaiApiKey, env.openaiModel));
+  list.push(mockImageProvider);
+  return list;
 }
 
 export function getReverseImageSearchProvider(): ReverseImageSearchProvider {
@@ -74,10 +74,10 @@ export async function searchImagesCached(q: ImageSearchQuery, opts: { provider?:
   const key = `img:${provider.id}:${crypto.createHash('sha1').update(JSON.stringify([q.query, q.count ?? 20, q.large ?? true])).digest('hex')}`;
   if (provider.id !== 'mock') {
     const hit = cacheGet<ImageSearchResult[]>(key);
-    if (hit) return hit;
+    if (hit?.length) return hit;
   }
   const res = await provider.searchImages(q);
-  if (provider.id !== 'mock') cacheSet(key, provider.id, res, opts.ttlSec);
+  if (provider.id !== 'mock' && res.length) cacheSet(key, provider.id, res, opts.ttlSec);
   return res;
 }
 

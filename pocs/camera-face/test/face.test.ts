@@ -271,4 +271,16 @@ describe('마스크/요청 계약', () => {
     expect(ok.success).toBe(true);
     expect(AnalyzeRequestSchema.safeParse({ front: { uploadId: '../etc', landmarks: [], yawDeg: 0, pitchDeg: 0, rollDeg: 0, quality: q, fromUpload: false } }).success).toBe(false);
   });
+  it('468점과 478점은 허용하고 중간 개수와 무너진 얼굴 윤곽은 거부한다', () => {
+    const quality = evaluateCaptureQuality({ pose: 'front', landmarks: card.landmarks, faceLuma: 150 }).quality;
+    const front = { uploadId: 'up_abc', landmarks: card.landmarks, yawDeg: 0, pitchDeg: 0, rollDeg: 0, quality, fromUpload: true };
+    const parse = (landmarks: unknown) => AnalyzeRequestSchema.safeParse({ front: { ...front, landmarks }, side: { ...front, landmarks: null } }).success;
+    expect(parse(card.landmarks)).toBe(true);
+    expect(parse(card.landmarks.slice(0, 468))).toBe(true);
+    expect(parse(card.landmarks.slice(0, 200))).toBe(false);
+    expect(parse(card.landmarks.slice(0, 475))).toBe(false);
+    expect(AnalyzeRequestSchema.safeParse({ front, side: { ...front, landmarks: side.landmarks.slice(0, 475) } }).success).toBe(false);
+    expect(parse(card.landmarks.map((point) => ({ ...point, y: 0.5 })))).toBe(false);
+    expect(parse(card.landmarks.map((point) => ({ ...point, y: -0.4 + point.y * 0.2 })))).toBe(false);
+  });
 });

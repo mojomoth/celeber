@@ -347,6 +347,12 @@ export async function callVisionStructured<T>(opts: CallVisionOptions<T>): Promi
     for (const img of opts.images ?? []) images.push(await prepareImage(img, opts.maxImageEdge ?? 1568));
     const base = { opts, images, system: [IDENTITY_POLICY, opts.system].filter(Boolean).join('\n\n'), effort: opts.effort ?? env.visionEffort };
     for (const p of live) {
+      // 이미지 준비나 앞 공급자를 기다리는 동안 다른 요청이 이 공급자를 차단할 수 있다.
+      const blocked = getAiBlock(p.id);
+      if (blocked) {
+        lastError ??= new AiOutputError(`AI 일시 중단: ${blocked.reason}`, null);
+        continue;
+      }
       const remaining = deadline - Date.now();
       if (remaining < MIN_PROVIDER_MS) {
         // 체인 마감: 남은 공급자는 부르지 않고 Mock으로

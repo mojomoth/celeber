@@ -12,7 +12,7 @@ import { getCapabilities } from '@celeber/core/server/env';
 import { mergeCandidates, nameKey, sameName } from '../lib/names';
 import type { CandidateItem, SearchResponse, SuggestResponse } from '../lib/types';
 import { attachCelebIds, celebToCandidate, matchCelebs } from './celebs';
-import { candidateThumbnail, proxyImageUrl } from './thumbs';
+import { candidatePhoto, proxyImageUrl } from './thumbs';
 import { mapLimit, shortWarning } from './util';
 
 export const MAX_QUERY_LENGTH = 60;
@@ -100,23 +100,28 @@ export async function searchCelebCandidates(q: string): Promise<SearchResponse> 
 
   // 썸네일: 인물 사진 + 이름이 함께 보이도록 (서버 캐시 경유)
   const withThumbs = await mapLimit(merged, 3, async (c) => {
-    const thumb = (await proxyImageUrl(c.thumbnailUrl)) ?? (await candidateThumbnail(c.name, c.description));
-    return { ...c, thumbnailUrl: thumb };
+    const cached = await proxyImageUrl(c.thumbnailUrl);
+    if (cached) return { ...c, thumbnailUrl: cached };
+    const photo = await candidatePhoto(c.name, c.description);
+    return { ...c, thumbnailUrl: photo?.thumbnailUrl, thumbnailSourceUrl: photo?.thumbnailSourceUrl, thumbnailProvider: photo?.thumbnailProvider };
   });
+  const imageProvider = withThumbs.find(({ thumbnailProvider }) => thumbnailProvider && thumbnailProvider !== 'mock')?.thumbnailProvider
+    ?? withThumbs.find(({ thumbnailProvider }) => thumbnailProvider)?.thumbnailProvider ?? caps.imageSearch;
+  const hasDemoThumbnails = withThumbs.some(({ thumbnailProvider }) => thumbnailProvider === 'mock');
 
   if (origin === 'mock') {
     const now = getCapabilities();
     const why = now.forceMock ? 'CELEBER_FORCE_MOCK=1' : now.aiBlockedReason ? `AI 일시 중단: ${now.aiBlockedReason}` : 'AI 키 없음';
     notices.push(`이름 확인 AI를 쓸 수 없어(${why}) 입력한 이름과 데모 인물을 후보로 보여줍니다.`);
   }
-  if (caps.imageSearch === 'mock') notices.push('이미지 검색 키가 없어 썸네일은 데모 실루엣입니다.');
+  if (hasDemoThumbnails) notices.push('실제 후보 사진을 가져오지 못한 경우 데모 실루엣을 표시합니다.');
 
   return {
     query,
     candidates: withThumbs,
     origin,
-    isMock: origin === 'mock' || caps.imageSearch === 'mock',
-    imageProvider: caps.imageSearch,
+    isMock: origin === 'mock' || hasDemoThumbnails,
+    imageProvider,
     warning,
     notices,
   };

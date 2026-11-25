@@ -7,6 +7,8 @@ import { ImageRefSchema, IsoDateSchema, IssueSchema } from './common';
 
 /** 후보가 어디서 왔는지 */
 export const CandidateSourceSchema = z.enum(['name-search', 'reverse-image', 'photo-text', 'mock']);
+export const ImageProviderIdSchema = z.enum(['naver', 'serpapi', 'openai', 'mock']);
+export type ImageProviderId = z.infer<typeof ImageProviderIdSchema>;
 
 /** 인물 후보 (사용자가 확인/선택해야 확정) */
 export const CelebCandidateSchema = z.object({
@@ -16,6 +18,9 @@ export const CelebCandidateSchema = z.object({
   /** 직업/그룹 등 짧은 설명 (예: '배우', '가수 · 그룹명') */
   description: z.string().optional(),
   thumbnailUrl: z.string().optional(),
+  /** 후보 사진의 공개 출처 페이지 */
+  thumbnailSourceUrl: z.httpUrl().optional(),
+  thumbnailProvider: ImageProviderIdSchema.optional(),
   source: CandidateSourceSchema,
   /** 후보 순위 점수 0..1 (텍스트 언급 빈도 등) — 얼굴 유사도 아님 */
   score: z.number().min(0).max(1).optional(),
@@ -36,6 +41,8 @@ export const CelebProfileSchema = z.object({
   aliases: z.array(z.string()),
   description: z.string().optional(),
   thumbnail: ImageRefSchema.optional(),
+  thumbnailSourceUrl: z.httpUrl().optional(),
+  thumbnailProvider: ImageProviderIdSchema.optional(),
   /** 사용자가 '저장'한 인물이면 true */
   saved: z.boolean(),
   source: CandidateSourceSchema,
@@ -60,7 +67,7 @@ export const CelebImageSchema = z.object({
   category: CelebImageCategorySchema,
   /** 검색에 사용한 쿼리 */
   query: z.string(),
-  provider: z.enum(['naver', 'serpapi', 'mock']),
+  provider: ImageProviderIdSchema,
   /** 외부 원본 이미지 URL */
   sourceUrl: z.string(),
   /** 이미지가 실린 페이지 URL (출처 링크) */

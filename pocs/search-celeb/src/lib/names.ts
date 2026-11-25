@@ -72,7 +72,11 @@ export function mergeCandidates(lists: CelebCandidate[][], limit = 8): CelebCand
       hit.sources.add(c.source);
       m.nameEn ??= c.nameEn;
       m.description ??= c.description;
-      m.thumbnailUrl ??= c.thumbnailUrl;
+      if (!m.thumbnailUrl && c.thumbnailUrl) {
+        m.thumbnailUrl = c.thumbnailUrl;
+        m.thumbnailSourceUrl = c.thumbnailSourceUrl;
+        m.thumbnailProvider = c.thumbnailProvider;
+      }
       m.externalUrl ??= c.externalUrl;
       m.score = Math.max(m.score ?? 0, c.score ?? 0);
       for (const e of c.evidence) if (!m.evidence.includes(e)) m.evidence.push(e);

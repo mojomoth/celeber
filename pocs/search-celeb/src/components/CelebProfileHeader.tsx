@@ -13,9 +13,12 @@ export function CelebProfileHeader({ celeb, apiBase = '', onToggleSave, saving }
       <div className={s.rowText}>
         <div className={s.profileName}>{celeb.name}</div>
         <div className={s.sub}>{[celeb.nameEn, celeb.description].filter(Boolean).join(' · ') || '인물 정보'}</div>
-        {celeb.isMock ? (
+        {celeb.thumbnailSourceUrl ? (
+          <a className={s.source} href={celeb.thumbnailSourceUrl} target="_blank" rel="noopener noreferrer nofollow">사진 출처</a>
+        ) : null}
+        {celeb.isMock || celeb.thumbnailProvider === 'mock' ? (
           <div style={{ marginTop: 4 }}>
-            <MockBadge label="데모 인물" />
+            <MockBadge label={celeb.isMock ? '데모 인물' : '데모 사진'} />
           </div>
         ) : null}
       </div>

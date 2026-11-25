@@ -3,8 +3,8 @@
  */
 import 'server-only';
 import { cacheGet, cacheSet } from '@celeber/core/server/db';
-import { cacheRemoteImage } from '@celeber/core/server/fetch-image';
-import { getImageSearchProvider, searchImagesCached } from '@celeber/core/server/search';
+import { assertSafeUrl, cacheRemoteImage } from '@celeber/core/server/fetch-image';
+import { getImageSearchProviders, searchImagesCached, type ImageProviderId, type ImageSearchResult } from '@celeber/core/server/search';
 import { getUpload, uploadUrl } from '@celeber/core/server/uploads';
 import { nameKey } from '../lib/names';
 import { uploadIdFromUrl } from './util';
@@ -27,23 +27,46 @@ export async function proxyImageUrl(url: string | undefined): Promise<string | u
 
 /** 이름(+설명)으로 대표 썸네일 1장 */
 export async function candidateThumbnail(name: string, description?: string): Promise<string | undefined> {
-  const provider = getImageSearchProvider();
-  const key = `celeb-thumb:${provider.id}:${nameKey(name)}:${nameKey(description ?? '')}`;
-  const hit = cacheGet<string>(key);
-  if (hit && uploadIdFromUrl(hit) && getUpload(uploadIdFromUrl(hit) as string)) return hit;
-  const role = description?.split(/[(·,/|]/)[0]?.trim();
-  const query = provider.id === 'mock' ? name : [name, role && role.length <= 6 ? role : ''].filter(Boolean).join(' ');
-  try {
-    const results = await searchImagesCached({ query, count: 5, large: false });
-    for (const r of results.slice(0, 3)) {
-      const url = (await proxyImageUrl(r.thumbnailUrl)) ?? (await proxyImageUrl(r.imageUrl));
-      if (url) {
-        cacheSet(key, provider.id, url, 30 * 24 * 3600);
-        return url;
-      }
+  return (await candidatePhoto(name, description))?.thumbnailUrl;
+}
+
+type CandidatePhoto = { thumbnailUrl: string; thumbnailSourceUrl?: string; thumbnailProvider: ImageProviderId };
+
+export function photoSourceUrl(image: Pick<ImageSearchResult, 'provider' | 'pageUrl' | 'imageUrl'>): string | undefined {
+  if (image.provider === 'mock') return undefined;
+  for (const url of [image.pageUrl, image.imageUrl]) {
+    if (!url) continue;
+    try {
+      return assertSafeUrl(url).href;
+    } catch {
+      // 출처 페이지를 사용할 수 없으면 원본 이미지 주소를 확인한다.
     }
-  } catch (e) {
-    console.warn('[search-celeb] 썸네일 검색 실패:', (e as Error).message);
+  }
+  return undefined;
+}
+
+export async function candidatePhoto(name: string, description?: string): Promise<CandidatePhoto | undefined> {
+  const role = description?.split(/[(·,/|]/)[0]?.trim();
+  for (const provider of getImageSearchProviders()) {
+    const key = `celeb-thumb:${provider.id}:${nameKey(name)}:${nameKey(description ?? '')}`;
+    const cached = cacheGet<string | CandidatePhoto>(key);
+    const hit = typeof cached === 'string' ? { thumbnailUrl: cached, thumbnailProvider: provider.id } : cached;
+    const uploadId = uploadIdFromUrl(hit?.thumbnailUrl);
+    if (hit && uploadId && getUpload(uploadId)) return hit;
+    const query = provider.id === 'mock' ? name : [name, role && role.length <= 6 ? role : ''].filter(Boolean).join(' ');
+    try {
+      const results = await searchImagesCached({ query, count: 5, large: false }, { provider });
+      for (const r of results.slice(0, 3)) {
+        const thumbnailUrl = (await proxyImageUrl(r.thumbnailUrl)) ?? (await proxyImageUrl(r.imageUrl));
+        if (thumbnailUrl) {
+          const photo = { thumbnailUrl, thumbnailSourceUrl: photoSourceUrl(r), thumbnailProvider: provider.id };
+          cacheSet(key, provider.id, photo, 30 * 24 * 3600);
+          return photo;
+        }
+      }
+    } catch {
+      console.warn('[search-celeb] 썸네일 검색 실패:', provider.id);
+    }
   }
   return undefined;
 }

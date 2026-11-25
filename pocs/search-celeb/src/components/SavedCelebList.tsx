@@ -38,6 +38,9 @@ export function SavedCelebList({ items, apiBase = '', onOpen, onDelete, emptyTit
               </span>
               <Icon name="chevron-right" size={18} style={{ color: 'var(--cb-text-2)' }} />
             </button>
+            {celeb.thumbnailSourceUrl ? (
+              <a className={s.source} href={celeb.thumbnailSourceUrl} target="_blank" rel="noopener noreferrer nofollow" aria-label={`${celeb.name} 사진 출처`}>사진 출처</a>
+            ) : null}
             {onDelete ? (
               <button type="button" className="cb-icon-btn" aria-label={`${celeb.name} 삭제`} onClick={() => setTarget({ celeb, imageCount, selectedCount })}>
                 <Icon name="trash" size={18} />

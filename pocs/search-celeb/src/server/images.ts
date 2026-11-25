@@ -15,6 +15,7 @@ import { toImageRef } from '@celeber/core/server/uploads';
 import { judgeByMetadata, rankSearchResults } from '../lib/filter';
 import { buildCategoryQueries } from '../lib/queries';
 import type { CollectImagesResponse } from '../lib/types';
+import { photoSourceUrl } from './thumbs';
 import { mapLimit, shortWarning } from './util';
 
 /** 카테고리당 저장 목표 (3열 그리드 3줄) */
@@ -66,36 +67,42 @@ export async function collectCelebImages(celebId: string, category: CelebImageCa
   if (opts.refresh) celebImages.deleteWhere({ celeb_id: celebId, category, selected: false });
   const existing = listCategory(celebId, category);
   const providers = getImageSearchProviders();
-  const base = { celebId, category, queries, provider: providers[0].id } as const;
+  const base = { celebId, category, queries } as const;
   if (existing.length >= target) {
-    return { ...base, images: existing, added: 0, failed: 0, judge: { origin: existing.some((i) => i.reasons.some((r) => r.code.startsWith('ai-'))) ? 'ai' : 'rules' }, isMock: existing.some((i) => i.isMock), notices };
+    return { ...base, provider: (existing.find((i) => !i.isMock) ?? existing[0])?.provider ?? providers[0].id, images: existing, added: 0, failed: 0, judge: { origin: existing.some((i) => i.reasons.some((r) => r.code.startsWith('ai-'))) ? 'ai' : 'rules' }, isMock: existing.some((i) => i.isMock), notices };
   }
 
-  // 1) 검색 (프로바이더 실패 시 다음 프로바이더)
-  const { results, provider, errors } = await searchAll(providers, queries);
-  notices.push(...errors);
   const existingUrls = new Set(listAllUrls(celebId));
-  const ranked = rankSearchResults(results, existingUrls);
   const need = target - existing.length;
 
-  // 2) 서버 캐시 (외부 핫링크 대신 /api/uploads/<id>)
+  // 검색과 저장을 함께 확인한다. 쓸 수 있는 사진이 없으면 다음 공급자를 시도한다.
   const downloaded: Downloaded[] = [];
+  let provider = providers[0];
   let failed = 0;
-  let cursor = 0;
-  const maxAttempts = need + 10;
-  while (downloaded.length < need && cursor < ranked.length && cursor < maxAttempts) {
-    const batch = ranked.slice(cursor, cursor + Math.min(4, need - downloaded.length + 1));
-    cursor += batch.length;
-    const got = await mapLimit(batch, 4, (r) => download(r, provider, celeb.name, category));
-    for (const g of got) {
-      if (g && downloaded.length < need && !existingUrls.has(g.sourceUrl)) {
-        downloaded.push(g);
-        existingUrls.add(g.sourceUrl);
-      } else if (!g) failed++;
+  let found = 0;
+  for (const candidate of providers) {
+    provider = candidate;
+    const { results, errors } = await searchAll(provider, queries);
+    notices.push(...errors);
+    const ranked = rankSearchResults(results, existingUrls);
+    found += ranked.length;
+    let cursor = 0;
+    const maxAttempts = need + 10;
+    while (downloaded.length < need && cursor < ranked.length && cursor < maxAttempts) {
+      const batch = ranked.slice(cursor, cursor + Math.min(4, need - downloaded.length + 1));
+      cursor += batch.length;
+      const got = await mapLimit(batch, 4, (r) => download(r, provider, celeb.name, category));
+      for (const g of got) {
+        if (g && downloaded.length < need && !existingUrls.has(g.sourceUrl)) {
+          downloaded.push(g);
+          existingUrls.add(g.sourceUrl);
+        } else if (!g) failed++;
+      }
     }
+    if (downloaded.length) break;
   }
   if (failed) notices.push(`${failed}장은 원본 서버에서 내려받지 못해 제외했습니다.`);
-  if (!ranked.length) notices.push('검색 결과가 없습니다. 이름 표기를 바꿔 다시 찾아보세요.');
+  if (!found) notices.push('검색 결과가 없습니다. 이름 표기를 바꿔 다시 찾아보세요.');
 
   // 3) 전신/분석 가능 판정
   const judged = await judgeImages(downloaded, provider.id === 'mock');
@@ -152,10 +159,11 @@ export async function collectCelebImages(celebId: string, category: CelebImageCa
   if (!celeb.thumbnail) {
     const first = images.find((i) => i.isFullBody !== false && i.cached);
     if (first?.cached) {
-      celebs.update(celebId, { data: { ...celeb, thumbnail: first.cached, updatedAt: nowIso() }, cols: { thumbnail_upload_id: first.cached.uploadId } });
+      const thumbnailSourceUrl = photoSourceUrl({ ...first, imageUrl: first.sourceUrl });
+      celebs.update(celebId, { data: { ...celeb, thumbnail: first.cached, thumbnailSourceUrl, thumbnailProvider: first.provider, updatedAt: nowIso() }, cols: { thumbnail_upload_id: first.cached.uploadId } });
     }
   }
-  if (provider.id === 'mock') notices.push('이미지 검색 키가 없어 데모 이미지를 보여줍니다. 실루엣은 분석할 수 없고, 데모 사진은 검색한 인물과 무관한 데모 모델입니다.');
+  if (provider.id === 'mock') notices.push('실제 사진을 가져오지 못해 데모 이미지를 표시합니다. 데모 사진에는 별도의 모델이 등장하며, 실루엣은 분석할 수 없습니다.');
 
   return {
     ...base,
@@ -164,7 +172,7 @@ export async function collectCelebImages(celebId: string, category: CelebImageCa
     added: downloaded.length,
     failed,
     judge: { origin: judged.origin, warning: shortWarning(judged.warning) },
-    isMock: provider.id === 'mock',
+    isMock: images.some((i) => i.isMock),
     notices,
   };
 }
@@ -178,23 +186,19 @@ function listAllUrls(celebId: string): string[] {
 
 const rankOf = (j: { isFullBody: boolean | null; analyzable: boolean | null }) => (j.isFullBody === true ? (j.analyzable === false ? 1 : 0) : j.isFullBody === null ? 2 : 3);
 
-async function searchAll(providers: ImageSearchProvider[], queries: string[]): Promise<{ results: (ImageSearchResult & { query: string })[]; provider: ImageSearchProvider; errors: string[] }> {
-  const errors: string[] = [];
-  for (const provider of providers) {
-    const results: (ImageSearchResult & { query: string })[] = [];
-    let ok = 0;
-    for (const query of queries) {
-      try {
-        const res = await searchImagesCached({ query, count: provider.id === 'mock' ? 6 : 20, large: true }, { provider });
-        results.push(...res.map((r) => ({ ...r, query })));
-        ok++;
-      } catch (e) {
-        errors.push(`${provider.id} 검색 실패: ${(e as Error).message}`);
-      }
+async function searchAll(provider: ImageSearchProvider, queries: string[]) {
+  const batches = await mapLimit(queries, provider.id === 'openai' ? 3 : 1, async (query) => {
+    try {
+      const res = await searchImagesCached({ query, count: provider.id === 'mock' ? 6 : 20, large: true }, { provider });
+      return { results: res.map((r) => ({ ...r, query })) };
+    } catch {
+      return { results: [], error: `${provider.id} 이미지 검색 결과를 가져오지 못했습니다.` };
     }
-    if (ok > 0) return { results, provider, errors };
-  }
-  return { results: [], provider: providers[providers.length - 1], errors };
+  });
+  return {
+    results: batches.flatMap(({ results }) => results),
+    errors: [...new Set(batches.flatMap(({ error }) => error ? [error] : []))],
+  };
 }
 
 /** 원본 → 실패 시 썸네일로 캐시. 성공하면 Downloaded */

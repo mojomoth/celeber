@@ -2,7 +2,7 @@
  * search-celeb API 요청/응답 형태 (클라이언트/서버 공용 타입).
  * 저장 형태(CelebProfile, CelebImage, CelebCandidate)는 @celeber/core/contracts 계약을 그대로 쓴다.
  */
-import type { CelebCandidate, CelebImage, CelebImageCategory, CelebProfile, ImageRef } from '@celeber/core/contracts';
+import type { CelebCandidate, CelebImage, CelebImageCategory, CelebProfile, ImageProviderId, ImageRef } from '@celeber/core/contracts';
 
 /** 결과 출처 표시: rules = 규칙/DB, ai = Claude, mock = 데모 */
 export type ResultOrigin = 'rules' | 'ai' | 'mock';
@@ -28,7 +28,7 @@ export interface SearchResponse {
   origin: ResultOrigin;
   isMock: boolean;
   /** 썸네일 이미지 프로바이더 */
-  imageProvider: 'naver' | 'serpapi' | 'mock';
+  imageProvider: ImageProviderId;
   warning?: string;
   notices: string[];
 }
@@ -81,7 +81,7 @@ export interface CollectImagesResponse {
   queries: string[];
   added: number;
   failed: number;
-  provider: 'naver' | 'serpapi' | 'mock';
+  provider: ImageProviderId;
   /** 전신/분석 가능 판정 방식 */
   judge: { origin: ResultOrigin; warning?: string };
   isMock: boolean;
