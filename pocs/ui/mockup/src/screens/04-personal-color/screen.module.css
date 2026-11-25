@@ -306,3 +306,8 @@
   line-height: 1.55;
   color: var(--warn-strong);
 }
+.liveDrape canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}

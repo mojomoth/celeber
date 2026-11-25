@@ -2,13 +2,29 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import type { LibraryData } from '@/data/types';
 import { ROUTES } from '@/lib/routes';
 import { Card, Dialog, Header, Icon, IconButton, ListRow, Photo, PhotoGrid, PhotoTile, Screen, SectionTitle, SwatchDots, TileCaption } from '@/ui';
 import s from './screen.module.css';
 
-export function MyLibraryScreen({ data }: { data: LibraryData }) {
+type LibraryContent = Omit<LibraryData, 'personalColor' | 'muses' | 'reset'> & {
+  personalColor: (Omit<LibraryData['personalColor'], 'photo'> & { photo?: string }) | null;
+  muses: (Omit<LibraryData['muses'][number], 'photo'> & { photo?: string })[];
+  reset: Pick<LibraryData['reset'], 'title' | 'sub'> & Partial<LibraryData['reset']>;
+};
+
+type LibraryActions = {
+  guideHref: (id: string) => string;
+  personalColorHref: string;
+  analysisHref: string;
+  onReset: () => void;
+  resetDialog: ReactNode;
+  guideStatus?: ReactNode;
+  colorStatus?: ReactNode;
+};
+
+export function MyLibraryScreen({ data, actions }: { data: LibraryContent; actions?: LibraryActions }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const close = useCallback(() => setConfirming(false), []);
@@ -16,19 +32,19 @@ export function MyLibraryScreen({ data }: { data: LibraryData }) {
 
   return (
     <Screen nav="library" className={s.root}>
-      <Header title="내 기록" right={<IconButton icon="edit" label="편집" />} />
+      <Header title="내 기록" right={actions ? undefined : <IconButton icon="edit" label="편집" />} />
 
       <div className={s.sub}>
         <h2 className={s.count}>
-          찾은 추구미<em>{data.muses.length}</em>
+          찾은 추구미{actions?.guideStatus ? null : <em>{data.muses.length}</em>}
         </h2>
-        <span className={s.sort}>{data.sortLabel}</span>
+        {data.muses.length ? <span className={s.sort}>{data.sortLabel}</span> : null}
       </div>
 
-      <PhotoGrid>
+      {actions?.guideStatus ? <div className={s.status}>{actions.guideStatus}</div> : <PhotoGrid>
         {data.muses.map((m) => (
-          <Link key={m.id} href={ROUTES.muse} className={s.item} aria-label={`${m.name} ${m.look} 가이드 보기`}>
-            <PhotoTile src={m.photo} label={m.name} height={300} position="50% 12%" />
+          <Link key={m.id} href={actions?.guideHref(m.id) ?? ROUTES.muse} className={s.item} aria-label={`${m.name} ${m.look} 가이드 보기`}>
+            {m.photo ? <PhotoTile src={m.photo} label={m.name} height={300} position="50% 12%" /> : <div className={s.noPhoto}>{m.name}</div>}
             <TileCaption
               className={s.cta}
               title={
@@ -41,13 +57,13 @@ export function MyLibraryScreen({ data }: { data: LibraryData }) {
             />
           </Link>
         ))}
-      </PhotoGrid>
+      </PhotoGrid>}
 
       <section className={s.mine}>
         <SectionTitle className={s.mineTitle}>내 퍼스널컬러</SectionTitle>
-        <Link href={ROUTES.personalColor} className={s.pcLink}>
+        {pc ? <Link href={actions?.personalColorHref ?? ROUTES.personalColor} className={s.pcLink}>
           <Card className={s.pc}>
-            <Photo src={pc.photo} position="50% 15%" className={s.pcPhoto} />
+            {pc.photo ? <Photo src={pc.photo} position="50% 15%" className={s.pcPhoto} /> : <span className={s.pcPhoto} aria-hidden />}
             <span>
               <b className={s.pcType}>{pc.type}</b>
               <span className={s.pcMeta}>
@@ -57,18 +73,18 @@ export function MyLibraryScreen({ data }: { data: LibraryData }) {
             </span>
             <Icon name="chev" size={20} stroke={1.8} className={s.chev} />
           </Card>
-        </Link>
+        </Link> : actions?.colorStatus}
 
         <div className={s.list}>
-          <ListRow title={data.analysis.title} sub={data.analysis.sub} href={ROUTES.analysis} />
-          <ListRow title={data.reset.title} sub={data.reset.sub} onClick={() => setConfirming(true)} danger />
+          <ListRow title={data.analysis.title} sub={data.analysis.sub} href={actions?.analysisHref ?? ROUTES.analysis} />
+          <ListRow title={data.reset.title} sub={data.reset.sub} onClick={actions?.onReset ?? (() => setConfirming(true))} danger />
         </div>
       </section>
 
-      <Dialog
+      {actions ? actions.resetDialog : <Dialog
         open={confirming}
-        title={data.reset.confirmTitle}
-        confirmLabel={data.reset.confirmLabel}
+        title={data.reset.confirmTitle ?? '내 정보를 모두 지울까요?'}
+        confirmLabel={data.reset.confirmLabel ?? '모두 삭제'}
         danger
         onConfirm={() => {
           setConfirming(false);
@@ -77,7 +93,7 @@ export function MyLibraryScreen({ data }: { data: LibraryData }) {
         onClose={close}
       >
         {data.reset.confirmBody}
-      </Dialog>
+      </Dialog>}
     </Screen>
   );
 }

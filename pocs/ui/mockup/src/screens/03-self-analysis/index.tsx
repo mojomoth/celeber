@@ -3,18 +3,22 @@ import { ROUTES } from '@/lib/routes';
 import { ButtonPair, Card, Header, IconButton, PhotoGrid, PhotoTile, Row, Rows, Screen, SectionTitle, Swatch } from '@/ui';
 import s from './screen.module.css';
 
+type AnalysisData = Omit<SelfAnalysisData, 'photos'> & { photos: { front: string; full?: string; side?: string } };
+
 /** 03 내 분석: 촬영 사진 그리드 → 요약 → 피부색 견본 → 관찰한 특징 → 퍼스널컬러·추구미로 이동 */
-export function SelfAnalysisScreen({ data }: { data: SelfAnalysisData }) {
+export function SelfAnalysisScreen({ data, integrated }: { data: AnalysisData; integrated?: boolean }) {
+  const paired = Boolean(data.photos.full && data.photos.side);
   return (
     <Screen nav="analysis">
-      <Header title="내 분석" right={<IconButton icon="share" label="공유" />} />
+      <Header title="내 분석" right={integrated ? undefined : <IconButton icon="share" label="공유" />} />
 
-      <PhotoGrid className={s.hero}>
-        <PhotoTile src={data.photos.full} alt="전신 사진" label="전신" position="50% 0" className={s.full} imgClassName={s.fullImg} />
-        <div className={s.stack}>
-          <PhotoTile src={data.photos.front} alt="정면 사진" label="정면" position="50% 14%" />
-          <PhotoTile src={data.photos.side} alt="측면 사진" label="측면" position="40% 18%" />
+      <PhotoGrid className={paired ? s.hero : s.faces}>
+        {data.photos.full ? <PhotoTile src={data.photos.full} alt="전신 사진" label="전신" position="50% 0" className={s.full} imgClassName={paired ? s.fullImg : undefined} /> : null}
+        <div className={paired ? s.stack : undefined}>
+          <PhotoTile src={data.photos.front} alt="정면 사진" label="정면" position="50% 14%" height={paired ? undefined : 280} />
+          {paired && data.photos.side ? <PhotoTile src={data.photos.side} alt="측면 사진" label="측면" position="40% 18%" /> : null}
         </div>
+        {!paired && data.photos.side ? <PhotoTile src={data.photos.side} alt="측면 사진" label="측면" position="40% 18%" height={280} /> : null}
       </PhotoGrid>
 
       <section className={s.summary}>

@@ -1,0 +1,30 @@
+{
+  "name": "@celeber/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node ../../scripts/sync-public.mjs .",
+    "dev": "next dev --port 3108",
+    "prebuild": "node ../../scripts/sync-public.mjs .",
+    "build": "next build",
+    "start": "next start --port ${PORT:-3108}",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@celeber/camera-body": "workspace:*",
+    "@celeber/camera-face": "workspace:*",
+    "@celeber/celeb-vibe": "workspace:*",
+    "@celeber/celeb-vibe-report": "workspace:*",
+    "@celeber/core": "workspace:*",
+    "@celeber/personal-color-report": "workspace:*",
+    "@celeber/search-celeb": "workspace:*",
+    "@celeber/ui": "workspace:*",
+    "@next/env": "16.4.6",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sharp": "^0.35.5"
+  }
+}

@@ -11,6 +11,7 @@
 ## 개발 문서
 
 - [api-contract.md](api-contract.md): PoC Route Handler 요청·응답 계약. 출처는 `pocs/core/src/contracts`와 각 PoC의 `src/lib`, `src/routes`
+- [통합 앱 흐름](integration-flow.md): 촬영부터 기록까지의 순서, 함수 입출력과 HIL 확인 항목
 - `pocs/ui/mockup`: v4 시안 UI 목업 앱(포트 3107). 화면은 `src/screens/`, 목업 데이터는 `src/data/mock.ts`. 출처는 `docs/ui/drafts/v4`
 - [tools.md](tools.md): 개발 도구 6종의 설치 위치와 적용 체크리스트. 출처는 각 도구의 원본 저장소와 gist
 

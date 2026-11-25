@@ -9,8 +9,20 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MEDIAPIPE_APPS = new Set(['camera-face', 'camera-body', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report']);
-const ALL_APPS = ['hub', 'camera-face', 'camera-body', 'search-celeb', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report', 'ui/mockup'];
+const MEDIAPIPE_APPS = new Set(['camera-face', 'camera-body', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report', 'web']);
+const ALL_APPS = ['hub', 'camera-face', 'camera-body', 'search-celeb', 'celeb-vibe', 'personal-color-report', 'celeb-vibe-report', 'ui/mockup'].map((name) => `pocs/${name}`);
+ALL_APPS.push('apps/web');
+
+function syncFile(src, dst) {
+  if (fs.existsSync(dst) && fs.statSync(dst).size === fs.statSync(src).size) return 0;
+  fs.rmSync(dst, { force: true });
+  try {
+    fs.linkSync(src, dst);
+  } catch {
+    fs.copyFileSync(src, dst);
+  }
+  return 1;
+}
 
 function syncDir(src, dst) {
   if (!fs.existsSync(src)) {
@@ -27,15 +39,7 @@ function syncDir(src, dst) {
       continue;
     }
     if (ent.name === 'README.md' || ent.name === 'colors.json') continue;
-    const ss = fs.statSync(s);
-    if (fs.existsSync(d) && fs.statSync(d).size === ss.size) continue;
-    fs.rmSync(d, { force: true });
-    try {
-      fs.linkSync(s, d);
-    } catch {
-      fs.copyFileSync(s, d);
-    }
-    n++;
+    n += syncFile(s, d);
   }
   return n;
 }
@@ -46,9 +50,17 @@ function syncApp(appDir) {
   const pub = path.join(abs, 'public');
   let n = syncDir(path.join(root, 'assets/bi'), path.join(pub, 'bi'));
   if (MEDIAPIPE_APPS.has(name)) n += syncDir(path.join(root, 'pocs/ui/static/mediapipe'), path.join(pub, 'mediapipe'));
+  if (name === 'web') {
+    n += syncDir(path.join(root, 'assets/mockup'), path.join(pub, 'frame'));
+    const photos = path.join(pub, 'photos');
+    fs.mkdirSync(photos, { recursive: true });
+    for (const photo of ['g-pose.jpg', 'u-front.jpg', 'u-side.jpg', 'u-full.jpg', 'u-selfie.jpg']) {
+      n += syncFile(path.join(root, 'pocs/ui/mockup/public/photos', photo), path.join(photos, photo));
+    }
+  }
   if (n > 0) console.log(`[sync-public] ${name}: ${n}개 파일 갱신`);
 }
 
 const arg = process.argv[2] ?? '.';
-if (arg === '--all') for (const a of ALL_APPS) syncApp(path.join(root, 'pocs', a));
+if (arg === '--all') for (const a of ALL_APPS) syncApp(path.join(root, a));
 else syncApp(arg);

@@ -105,10 +105,61 @@
   object-fit: cover;
 }
 
+.poseLabel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2px 0 6px;
+  background-color: #0b0a0dbd;
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+}
+
 .cond {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.status {
+  color: rgba(255, 255, 255, 0.83);
+  text-align: center;
+  min-height: 22px;
+  margin: 12px var(--gutter) 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.review {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: auto var(--gutter) 0;
+  padding: 26px 0 calc(var(--safe-bottom) + 42px);
+}
+
+.review button {
+  min-height: 46px;
+  border-radius: 8px;
+  border: 1px solid #fff9;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+}
+
+.review button:last-child {
+  background: #fff;
+  color: var(--ink);
+}
+
+.review button:disabled,
+.shutter:disabled,
+.skip:disabled,
+.side:has(input:disabled) {
+  opacity: 0.44;
+  cursor: default;
 }
 
 /* 셔터: 위로 칩과 최소 42, 아래로 홈 인디케이터 영역 + 42. 남는 높이는 칩과 셔터 사이로 간다 */

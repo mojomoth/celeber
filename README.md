@@ -1,10 +1,23 @@
-# CELEBER PoC
+# CELEBER
 
-사진으로 퍼스널컬러를 진단하고 연예인 추구미 가이드를 받는 앱의 기능 프로토타입 모노레포다. pnpm workspace, Node 26, Next.js 16 App Router를 쓴다.
+사진으로 퍼스널컬러를 알아보고 연예인 스타일을 내게 맞춰 보는 앱이다. pnpm workspace, Node 26, Next.js 16 App Router를 쓴다.
 
 - 요구사항: [docs/POC.md](docs/POC.md)
 - 디자인: [docs/ui/design/DESIGN.md](docs/ui/design/DESIGN.md)
 - 결과 보고: [docs/POC-RESULT.md](docs/POC-RESULT.md)
+
+## 통합 앱 실행
+
+```bash
+node -v             # v26 이상
+pnpm install --frozen-lockfile
+pnpm fetch:models
+pnpm dev            # http://localhost:3108
+```
+
+루트 `.env`에 `OPENAI_API_KEY` 또는 `OPENAI_KEY`가 있으면 실제 비전 분석과 이미지 검색을 쓸 수 있다. [통합 흐름과 HIL 확인 항목](docs/wiki/integration-flow.md)을 참고한다.
+
+개인용 배포 설정은 [render.yaml](render.yaml)에 있다. 운영은 접속 코드로 제한하고 분석 기록과 업로드를 `/var/data/celeber`에 저장한다. 카메라 촬영은 localhost 또는 HTTPS에서 가능하다.
 
 ## 구조와 포트
 
@@ -17,6 +30,8 @@
 | 3104 | `pocs/celeb-vibe` | `@celeber/celeb-vibe` | 사진 한 장 → 분석 가능 여부, 코디·퍼스널컬러·분위기 | - |
 | 3105 | `pocs/personal-color-report` | `@celeber/personal-color-report` | 퍼스널컬러 리포트 ([레퍼런스 카드](docs/ui/personal-color-report-guide/navy-men-personal-color-report-card.jpeg) 구성) | camera-face, camera-body(선택) |
 | 3106 | `pocs/celeb-vibe-report` | `@celeber/celeb-vibe-report` | 추구미 가이드: 내 리포트와 연예인 분석의 갭, 얼굴·코디·분위기 가이드 | search-celeb, celeb-vibe, personal-color-report |
+| 3107 | `pocs/ui/mockup` | `@celeber/ui-mockup` | v4 화면 목업 | - |
+| 3108 | `apps/web` | `@celeber/web` | 실제 촬영, 분석, 퍼스널컬러, 추구미와 내 기록 | PoC Route Handler와 v4 화면 |
 | - | `pocs/core` | `@celeber/core` | 계약(zod), 색 과학, 퍼스널컬러 분류기·12톤 팔레트, 얼굴 색 샘플링, Mock, 서버 전용(SQLite·업로드·AI·검색) |  |
 | - | `pocs/ui` | `@celeber/ui` | 디자인 토큰(CSS 변수), 공용 컴포넌트, BI, MediaPipe 로더 |  |
 
@@ -37,21 +52,21 @@ MediaPipe wasm·모델과 BI 에셋은 각 앱의 `predev`/`prebuild`에서 `pub
 
 ## .env 설정
 
-루트 `.env` 하나를 모든 앱이 읽는다(각 앱 `next.config.ts`의 `loadEnvConfig`). 템플릿은 [.env.example](.env.example)이다. 모든 키는 서버 전용이며 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. **키가 하나도 없어도 모든 기능이 결정적 Mock으로 끝까지 동작**하고, 결과마다 "데모 데이터" 배지를 붙인다.
+루트 `.env` 하나를 모든 앱이 읽는다. 템플릿은 [.env.example](.env.example)이다. 모든 키는 서버 전용이다. PoC에는 키 없이 확인할 수 있는 데모 데이터가 있다.
 
 | 키 | 용도 | 없을 때 |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` (별칭 `CLAUDE_API_KEY`) | Claude 비전·구조화 출력: 환경 메모, 얼굴 서술(스타일 표현), 전신 코디 서술, 인물 후보 이름 정리·사진 속 글자 읽기·전신 판정, 추구미 분석, 리포트 서술, 가이드 서술 | 규칙 기반 결과 + 템플릿 서술 |
 | `CELEBER_VISION_MODEL` | 모델 ID (기본 `claude-opus-5-5`) | 기본값 |
 | `CELEBER_VISION_EFFORT` | `low`~`max` (기본 `medium`). 호출마다 `low`/`medium`을 따로 지정하는 곳이 있다 | 기본값 |
-| `OPENAI_API_KEY` | 대체 AI 공급자. Anthropic이 실패하거나 한도에 걸리면 같은 프롬프트·스키마로 호출 | Anthropic만 쓰거나 Mock |
+| `OPENAI_API_KEY` (별칭 `OPENAI_KEY`) | 대체 비전·텍스트 AI와 이미지 검색 | Anthropic, 다른 이미지 검색 공급자 또는 데모 |
 | `CELEBER_OPENAI_MODEL` | OpenAI 모델 ID (기본 `gpt-6.2-sol`) | 기본값 |
 | `CELEBER_AI_PROVIDER` | `auto`(기본, Anthropic → OpenAI) · `anthropic` · `openai` | `auto` |
-| `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` | 네이버 이미지 검색 (한국 연예인 우선) | SerpAPI, 그것도 없으면 데모 실루엣 이미지 |
+| `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` | 네이버 이미지 검색 (한국 연예인 우선) | SerpAPI → OpenAI → 데모 |
 | `SERPAPI_API_KEY` | Google Images 검색 + Google Lens 역이미지 검색 | 사진으로 찾기는 "이름으로 검색해 주세요" 안내 |
 | `CELEBER_PUBLIC_BASE_URL` | 로컬 업로드 사진을 Lens가 가져갈 수 있는 공개 주소(터널 등). Lens에는 서명·10분 만료 이미지 경로(`/api/public-image/<id>?exp&sig`)만 넘긴다 | 업로드 사진 역검색 비활성 |
 | `CELEBER_PUBLIC_IMAGE_SECRET` | 위 공개 이미지 URL의 HMAC 비밀값 | `CELEBER_ACCESS_TOKEN`, 그것도 없으면 프로세스마다 임의값 |
-| `CELEBER_ACCESS_TOKEN` | localhost 외(터널·LAN) 접근 토큰. `<주소>?access=<토큰>`으로 한 번 열면 12시간 쿠키 | localhost 외 접근은 모두 403 |
+| `CELEBER_ACCESS_TOKEN` | 통합 앱의 접속 코드. PoC는 `<주소>?access=<토큰>`도 지원 | 기본값으로 로컬에서만 접근 가능 |
 | `CELEBER_ALLOWED_HOSTS` | 토큰 없이 허용할 추가 호스트(쉼표 구분) | localhost만 |
 | `CELEBER_DATA_DIR` | DB·업로드 폴더 (기본 `pocs/.data`) | 기본값 |
 | `CELEBER_FORCE_MOCK` | `1`이면 키가 있어도 모든 외부 API를 Mock으로 | - |

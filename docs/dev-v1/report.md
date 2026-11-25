@@ -35,6 +35,24 @@ dev 서버, typecheck, lint, test, smoke 결과는 [gate0-devserver](logs/gate0-
 - **`/pocs/<앱>` 경로.** basePath는 `/api` 절대 경로와 허브 probe를 깨서 쓰지 않았다. 각 앱이 `/pocs/<앱>/<경로>`를 `/<경로>`로 307 리다이렉트한다.
 - **빌드·키 노출.** typecheck·lint·test(594개)·build:all 통과. 저장소, `.next` 산출물, docs·로그에서 키 값 0건. [gate1b/close](logs/gate1b/close.md)
 
+### Gate 2 통합
+
+- `apps/web`의 프로덕션 빌드로 통합 동작을 검증했다. 기존 v4 목업도 별도로 빌드했고 390×844 및 1440×900에서 96개 동작을 재검증했다. [통합 흐름](../wiki/integration-flow.md)
+- 통합 Chrome 검사 24/24 PASS, 콘솔 오류 0건. 모바일에서 생성 사진을 업로드했고 데스크톱에서는 테스트 영상을 카메라 입력으로 공급해 셔터를 눌렀다. 두 환경에서 분석 불가 사진에서 동일 인물의 실사진으로 전환했고, 개인 맞춤 가이드와 리포트를 저장·재열기한 뒤 초기화를 검증했다. 가로 4px 넘침은 검색 시트와 공유 푸터의 여백을 맞춰 수정했다. [통합 실행 로그](logs/gate2-browser/flow.log)
+- 통합 웹과 PoC 8개 빌드, 타입 검사, 린트, 테스트 602개가 통과했다. Git 대상과 통합 `.next`의 키 값 일치는 0건이다.
+- OpenAI 실제 이미지 결과를 기존 다운로드·형식 검증 경로로 받는다. 아이유의 평소 사진 9장 중 7장을 분석 가능으로 판정했으며 1000×1459 JPEG가 앱을 통해 열렸다. 제니의 이름 검색 결과에서 실제 썸네일과 출처 링크를 확인했다. [OpenAI 이미지 검색](https://developers.openai.com/api/docs/guides/tools-web-search?api-mode=responses#image-search-results), [제니 사진 출처](https://news.nate.com/view/20260211n21739)
+- 독립 검토에서 발견한 첫 접속 리디렉션, 로그인 쿠키, 이미지 캐시, 헬스체크 문제를 수정했다. 코드 입력과 만료 검사, 사진과 초기화 API 접근 제한, 교차 사이트 초기화 거부를 실제 응답으로 확인했다. 같은 SQLite와 업로드 디렉터리를 사용하는 새 프로세스로 재시작한 뒤 사진 바이트와 메타데이터가 유지됐다.
+- Codex CLI `gpt-6.2-sol`로 추구미 화면을 구현하고 `gpt-6.2-astra`로 운영 경로를 검토했다. Claude CLI `claude-sonnet-5-5`와 `claude-opus-5-5`는 기존 로그인 갱신에 실패했고 API 키 호출은 사용 한도에 걸렸다.
+
+랜딩 파일은 Codex의 내장 `image_gen`으로 생성했다. [landing-editorial.webp](../../apps/web/public/photos/landing-editorial.webp)
+
+<details>
+<summary>랜딩 이미지 생성 프롬프트</summary>
+
+> Use case: photorealistic-natural. Generate a new original premium Korean beauty editorial photograph for the full-bleed portrait phone landing of a personal color analysis app, narrow vertical 9:19.5 mobile framing if possible. A fictional adult Korean woman, dark bob with a few soft stray hairs, single subject, relaxed and composed, subtle turn toward camera and a direct gaze, authentic natural skin texture and barely-there makeup. Close-up head and shoulders, framed across the middle between 25% and 70% of frame height; forehead and hair begin below the top 21%, and reserve the top 20% as empty dim deep indigo studio atmosphere for a separate white logo. Broad matte fabric drapes around her shoulders and organically overlap below, using restrained muted sage left, soft hydrangea lavender mid, slate blue low, muted rose lower right, an editorial demonstration of personal color. Deep ink-indigo with soft teal at left and deep plum at right, restrained fine grain, faded softly colored edges of studio lighting, readable warm-ivory skin, sophisticated quiet elegance. In the lowest 15% the textiles fall into a very dark plum shadow for a separate white button. No text, no symbols, no logo, no borders, no interface, no phone. Final intended as a compressed WebP background image.
+
+</details>
+
 ## 결정
 
 - **AI 공급자는 Anthropic → OpenAI → Mock 순서다.** Gemini는 느리고 불안정해서 OpenAI(`gpt-6.2-sol`)를 대체로 붙였다. 프롬프트·zod 스키마는 그대로 쓰고, 응답의 `model`에 실제 모델이 남는다. 차단은 공급자별로 10분이다. `CELEBER_AI_PROVIDER`로 하나만 고를 수 있다. 근거는 [gate1-ai](logs/gate1-ai.md).
@@ -48,12 +66,13 @@ dev 서버, typecheck, lint, test, smoke 결과는 [gate0-devserver](logs/gate0-
 - **UI 목업은 `pocs/ui/mockup`의 별도 Next.js 앱이다**(`@celeber/ui-mockup`, 포트 3107). PoC 6개가 공유하는 `@celeber/ui`를 깨지 않으려고 패키지를 나눴다. `@celeber/ui`는 eslint에서 `mockup/**`를 무시하고 test를 `src`로 한정했을 뿐 export는 그대로다. 화면은 `src/screens/<NN-name>/` 단위로 나누고 데이터는 props로 받아(목업 데이터는 `src/data/mock.ts`) Gate 2 통합 앱에서 그대로 쓸 수 있게 했다. 결과는 [gate1-ui](logs/gate1-ui.md).
 - **연예인 이미지 검색 대체 공급자는 OpenAI `web_search`다(Gate 2에서 연결).** Google Custom Search(401)와 Gemini 그라운딩(429)은 쓸 수 없고 다른 검색 키는 없다. OpenAI 키는 이미 쓰고 있고 시험 호출에서 실제 이미지 URL을 받았다. 결과 품질은 Gate 2에서 실제 사진으로 확인하고, 실패하면 Mock으로 떨어진다.
 - **공개 범위는 현행 유지다.** 사용자 응답이 없어 데모 사진·레퍼런스 이미지·목업 인물 사진(생성 이미지)을 공개 저장소에 그대로 둔다.
+- **운영은 Render의 개인용 단일 인스턴스로 구성했다.** Vercel Functions의 지원 Node와 쓰기 가능한 파일시스템으로는 현행 SQLite와 업로드 파일을 유지하기 어렵다. Render에서는 `/var/data/celeber`를 영구 디스크에 둔다. 512MB 인스턴스와 1GB 디스크의 월 최소 비용은 미화 7.25달러다. [배포 설정](../../render.yaml), [Vercel Node 버전](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions), [Render 영구 디스크](https://render.com/docs/disks), [Render 가격](https://render.com/pricing)
 
 ## 미해결
 
 - **Anthropic API 차단(2026-12-01 00:00 UTC까지).** 사용 한도 초과로 400이 난다. 각 앱 프로세스의 첫 AI 호출은 이 400을 한 번 거친 뒤 OpenAI로 넘어가고, 그 전까지 health의 `aiProvider`·`model`은 Anthropic으로 보인다. 지연을 없애려면 `CELEBER_AI_PROVIDER=openai`를 쓴다.
-- **연예인 사진 검색 경로 없음 (BLOCKED).** Google Custom Search는 이 키로 쓸 수 없고(OAuth 필요), Gemini 검색 그라운딩은 429다. `NAVER_*`, `SERPAPI_API_KEY`가 없어 이미지 검색과 역이미지 검색은 항상 Mock이다. OpenAI `web_search`는 시험 호출에서 실제로 열리는 이미지 URL 1개를 돌려줬다. Gate 2에서 대체 공급자로 붙이기로 했다([결정](#결정)). 이 때문에 search-celeb의 동명이인 검색어 문제는 실제 사진으로 확인하지 못했다.
+- **Google Lens 역이미지 검색은 설정 대기다.** 현재 통합 앱에서 이름 검색과 사진 업로드 및 분석을 쓸 수 있다. Lens 연동에 필요한 `SERPAPI_API_KEY`와 공개 이미지 주소는 제공되지 않았다.
 - **dev 서버(Turbopack) 새로고침 반복.** 'HMR hash mismatch'로 새로고침이 계속되던 문제가 celeb-vibe-report 재검증에서는 재현되지 않았다. 코드는 바뀌지 않았고 원인은 확정하지 못했다.
-- **camera-face 서버 검증(minor).** 서버가 클라이언트 랜드마크와 업로드 사진의 일치를 확인하지 않아, 조작한 API 호출로 다른 사진의 옆선이 저장될 수 있다(브라우저 경로는 해당 없음).
+- **camera-face 서버 검증(minor).** 468/478점의 개수와 윤곽 범위를 검사한다. 저장 사진에서 랜드마크를 다시 추출해 좌표와 대조하는 기능은 남아 있다.
 - **남은 업로드 경계(minor).** 끝에 EOI를 붙인 잘린 JPEG, 아주 가늘거나 선언 크기가 아주 큰 SVG는 업로드 200 뒤 분석 단계에서 실패한다. [core-dataurl-r2-verify](logs/gate1b/core-dataurl-r2-verify.md)
 - **smoke 항목 수 57(POC-RESULT는 58).** 모두 통과했다. 테스트 인물 '윤하람'이 DB 사본에 이미 있으면 정리 단계의 DELETE가 집계에서 빠진다. 스크립트는 고치지 않았다.

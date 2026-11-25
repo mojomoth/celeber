@@ -48,6 +48,48 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(jsdom@31.0.1)(vite@8.3.8(@types/node@26.6.6))
 
+  apps/web:
+    dependencies:
+      '@celeber/camera-body':
+        specifier: workspace:*
+        version: link:../../pocs/camera-body
+      '@celeber/camera-face':
+        specifier: workspace:*
+        version: link:../../pocs/camera-face
+      '@celeber/celeb-vibe':
+        specifier: workspace:*
+        version: link:../../pocs/celeb-vibe
+      '@celeber/celeb-vibe-report':
+        specifier: workspace:*
+        version: link:../../pocs/celeb-vibe-report
+      '@celeber/core':
+        specifier: workspace:*
+        version: link:../../pocs/core
+      '@celeber/personal-color-report':
+        specifier: workspace:*
+        version: link:../../pocs/personal-color-report
+      '@celeber/search-celeb':
+        specifier: workspace:*
+        version: link:../../pocs/search-celeb
+      '@celeber/ui':
+        specifier: workspace:*
+        version: link:../../pocs/ui
+      '@next/env':
+        specifier: 16.4.6
+        version: 16.4.6
+      next:
+        specifier: 16.4.6
+        version: 16.4.6(@babel/core@7.29.13)(@opentelemetry/api@1.10.0)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+      sharp:
+        specifier: ^0.35.5
+        version: 0.35.5(@types/node@26.6.6)
+
   pocs/camera-body:
     dependencies:
       '@anthropic-ai/sdk':

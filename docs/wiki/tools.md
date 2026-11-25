@@ -74,7 +74,7 @@ PROMPT_V0이 지정한 도구 6개를 원문으로 확인하고, 이 프로젝�
 
 - 출처: https://github.com/Nutlope/hallmark (`skills/hallmark/SKILL.md`, `references/flow.md` § App screens)
 - 하는 일: 생성형 UI의 상투적인 디자인을 막는 하한선(Floor)과 린터(`sloplint`)를 제공한다.
-- 언제: UI 목업은 현재 HOLD라 새 화면을 Hallmark로 만들지 않는다. 기존 디자인에는 이름을 붙여 부를 때만 쓴다. Gate 2·3에서 `/hallmark audit <경로>`로 보고만 받고, 고칠지는 사람이 정한다. 디자인 시스템은 `@celeber/ui`의 토큰이 기준이며 Hallmark 테마로 바꾸지 않는다.
+- 언제: Gate 1에서 통과한 v4 목업을 기준으로 Gate 2·3에서 UI를 점검한다. `@celeber/ui`와 v4 목업의 토큰을 적용한다.
 - 린트: `node .claude/skills/hallmark/scripts/sloplint.mjs <경로> --scope app` (.html, .css, .tsx를 읽는다). 정적 검사는 동작을 확인했다. `--render`와 `--url http://localhost:310x`는 puppeteer-core가 필요한데 아직 설치하지 않았다. 20번(Hallmark 스탬프) FAIL은 Hallmark가 만든 페이지가 아니므로 이 프로젝트에서는 무시한다.
 
 체크리스트

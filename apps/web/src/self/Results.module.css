@@ -1,0 +1,6 @@
+.status {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  padding: 48px var(--gutter);
+}

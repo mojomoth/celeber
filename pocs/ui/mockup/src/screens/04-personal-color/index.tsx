@@ -1,20 +1,27 @@
 import type { PersonalColorData } from '@/data/types';
+import type { ReactNode } from 'react';
 import { ROUTES } from '@/lib/routes';
 import { ButtonPair, Header, Icon, IconButton, Photo, PhotoGrid, PhotoTile, Rows, Row, Screen, SectionTitle, Sheet, Slider, SwatchDots, Tags } from '@/ui';
 import { Palette } from './Palette';
 import { Report } from './Report';
 import s from './screen.module.css';
 
-export function PersonalColorScreen({ data }: { data: PersonalColorData }) {
+export function PersonalColorScreen({ data, renderDrape, features, integrated, heroForeground }: {
+  data: PersonalColorData;
+  renderDrape?: (drape: PersonalColorData['drapes'][number]) => ReactNode;
+  features?: { label: string; value: string }[];
+  integrated?: boolean;
+  heroForeground?: string;
+}) {
   const { type } = data;
   return (
     <Screen nav="personalColor">
-      <Header title="퍼스널컬러" right={<IconButton icon="share" label="공유" />} />
+      <Header title="퍼스널컬러" right={integrated ? undefined : <IconButton icon="share" label="공유" />} />
 
       <div className={s.hero} style={{ background: type.color }}>
-        <Photo src={data.hero} alt="드레이프를 두른 정면 사진" className={s.heroImg} />
+        <Photo src={data.hero} alt={integrated ? '분석에 사용한 정면 사진' : '드레이프를 두른 정면 사진'} className={s.heroImg} />
         <div className={s.heroFade} style={{ background: `linear-gradient(to bottom, transparent 0%, ${type.color} 52%)` }} aria-hidden />
-        <div className={s.heroCopy}>
+        <div className={s.heroCopy} style={heroForeground ? { color: heroForeground } : undefined}>
           <div>
             <p className={s.heroType}>
               {type.ko.map((line, i) => (
@@ -51,6 +58,13 @@ export function PersonalColorScreen({ data }: { data: PersonalColorData }) {
         <Tags items={data.firstImpression.tags} className={s.tags} />
       </section>
 
+      {features?.length ? (
+        <section className={s.block}>
+          <SectionTitle>주요 특징</SectionTitle>
+          <Rows className={s.guideRows}>{features.map((feature) => <Row key={feature.label} k={feature.label} v={feature.value} />)}</Rows>
+        </section>
+      ) : null}
+
       <section className={s.block}>
         <SectionTitle>얼굴 주변 컬러 비교</SectionTitle>
         <div className={s.split}>
@@ -66,8 +80,8 @@ export function PersonalColorScreen({ data }: { data: PersonalColorData }) {
       </section>
       <PhotoGrid className={s.drapes}>
         {data.drapes.map((d) => (
-          <figure key={d.color.name}>
-            <PhotoTile src={d.photo} alt={`${d.color.name} 천을 두른 사진`} height={226} position="50% 0" />
+          <figure key={d.color.name} className={renderDrape ? s.liveDrape : undefined}>
+            {renderDrape ? renderDrape(d) : <PhotoTile src={d.photo} alt={`${d.color.name} 천을 두른 사진`} height={226} position="50% 0" />}
             <figcaption className={s.drapeCap}>
               <b className={s.drapeName}>
                 <i className={s.drapeDot} style={{ background: d.color.hex }} aria-hidden />
@@ -94,7 +108,7 @@ export function PersonalColorScreen({ data }: { data: PersonalColorData }) {
 
       {data.report ? <Report report={data.report} confidence={type.confidence} /> : null}
 
-      <ButtonPair primary={{ label: '추구미 찾기', href: ROUTES.muse }} secondary={{ label: '리포트 저장' }} />
+      <ButtonPair primary={{ label: '추구미 찾기', href: ROUTES.muse }} secondary={integrated ? { label: '내 기록', href: ROUTES.library } : { label: '리포트 저장' }} />
     </Screen>
   );
 }

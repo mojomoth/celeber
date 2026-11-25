@@ -37,3 +37,13 @@ docs/dev-v1/logs/**/*.png
 
 # UI 목업 앱(pocs/ui/mockup)에 동기화되는 BI 에셋
 pocs/ui/mockup/public/bi/
+
+# 통합 앱에 동기화되는 에셋
+apps/web/public/bi/
+apps/web/public/frame/
+apps/web/public/mediapipe/
+apps/web/public/photos/g-pose.jpg
+apps/web/public/photos/u-front.jpg
+apps/web/public/photos/u-side.jpg
+apps/web/public/photos/u-full.jpg
+apps/web/public/photos/u-selfie.jpg

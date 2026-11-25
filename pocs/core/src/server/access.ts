@@ -49,7 +49,13 @@ function cookieValue(cookieHeader: string | null, name: string): string | null {
   if (!cookieHeader) return null;
   for (const part of cookieHeader.split(';')) {
     const [k, ...v] = part.trim().split('=');
-    if (k === name) return decodeURIComponent(v.join('='));
+    if (k === name) {
+      try {
+        return decodeURIComponent(v.join('='));
+      } catch {
+        return null;
+      }
+    }
   }
   return null;
 }
@@ -60,11 +66,13 @@ export type AccessDecision =
   | { ok: true; setCookie?: string; redirectTo?: string }
   | { ok: false; status: 403; code: 'remote_access_denied' | 'cross_site_request'; message: string };
 
+type AccessSettings = { token?: string; requireToken?: boolean; allowQueryToken?: boolean; allowCookieToken?: boolean };
+
 /**
  * 요청 하나에 대한 접근 판정 (순수 함수에 가깝게: 입력은 method, url, 헤더).
  * proxy.ts에서 호출한다.
  */
-export function decideAccess(input: { method: string; url: string; headers: Headers }, env: { token?: string } = { token: process.env.CELEBER_ACCESS_TOKEN }): AccessDecision {
+export function decideAccess(input: { method: string; url: string; headers: Headers }, env: AccessSettings = { token: process.env.CELEBER_ACCESS_TOKEN }): AccessDecision {
   const url = new URL(input.url);
   const host = input.headers.get('host') ?? url.host;
   const method = input.method.toUpperCase();
@@ -86,7 +94,7 @@ export function decideAccess(input: { method: string; url: string; headers: Head
   }
 
   // 1) localhost는 허용
-  if (isLocalHostHeader(host)) return { ok: true };
+  if (!env.requireToken && isLocalHostHeader(host)) return { ok: true };
 
   // 2) 서명된 공개 이미지 경로는 라우트에서 서명을 검증하므로 통과
   if (method === 'GET' && url.pathname.startsWith(PUBLIC_IMAGE_PREFIX)) return { ok: true };
@@ -100,7 +108,7 @@ export function decideAccess(input: { method: string; url: string; headers: Head
       message: '이 PoC는 localhost에서만 열 수 있습니다. 터널·다른 기기에서 열려면 루트 .env에 CELEBER_ACCESS_TOKEN을 설정하고 주소 뒤에 ?access=<토큰>을 붙여 한 번 열어 주세요.',
     };
   }
-  const q = url.searchParams.get('access');
+  const q = env.allowQueryToken === false ? null : url.searchParams.get('access');
   if (q && timingSafeEqualStr(q, token)) {
     url.searchParams.delete('access');
     return {
@@ -109,7 +117,7 @@ export function decideAccess(input: { method: string; url: string; headers: Head
       redirectTo: url.pathname + (url.search || ''),
     };
   }
-  const presented = input.headers.get(ACCESS_HEADER) ?? cookieValue(input.headers.get('cookie'), ACCESS_COOKIE);
+  const presented = input.headers.get(ACCESS_HEADER) ?? (env.allowCookieToken === false ? null : cookieValue(input.headers.get('cookie'), ACCESS_COOKIE));
   if (presented && timingSafeEqualStr(presented, token)) return { ok: true };
   return { ok: false, status: 403, code: 'remote_access_denied', message: '접근 토큰이 없거나 맞지 않습니다. 주소 뒤에 ?access=<CELEBER_ACCESS_TOKEN>을 붙여 열어 주세요.' };
 }
@@ -148,8 +156,8 @@ export function verifyPublicImage(uploadId: string, exp: string | null, sig: str
  *   import { accessProxy } from '@celeber/core/server/access';
  *   export function proxy(request: Request) { return accessProxy(request); }
  */
-export function accessProxy(request: Request): Response | undefined {
-  const d = decideAccess({ method: request.method, url: request.url, headers: request.headers });
+export function accessProxy(request: Request, env?: AccessSettings): Response | undefined {
+  const d = decideAccess({ method: request.method, url: request.url, headers: request.headers }, env);
   if (d.ok) {
     if (d.setCookie && d.redirectTo) return new Response(null, { status: 307, headers: { Location: d.redirectTo, 'Set-Cookie': d.setCookie } });
     return undefined;

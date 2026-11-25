@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: celeber
+    runtime: node
+    plan: 0.5c-512mb
+    autoDeployTrigger: 'off'
+    buildCommand: npx --yes pnpm@11.6.0 install --frozen-lockfile && npx --yes pnpm@11.6.0 fetch:models && npx --yes pnpm@11.6.0 build
+    startCommand: npx --yes pnpm@11.6.0 start
+    healthCheckPath: /api/health
+    disk:
+      name: celeber-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 26.13.1
+      - key: CELEBER_DATA_DIR
+        value: /var/data/celeber
+      - key: CELEBER_REQUIRE_ACCESS_TOKEN
+        value: '1'
+      - key: CELEBER_ACCESS_TOKEN
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false

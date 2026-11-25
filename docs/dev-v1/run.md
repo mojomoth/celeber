@@ -2,8 +2,8 @@
 
 개발 진행을 통제하는 단일 문서다. 기술 검증 결과와 결정 근거는 [report.md](report.md), 문서 목록은 [wiki/index.md](../wiki/index.md)에 있다.
 
-- 갱신: 2026-11-24
-- 현재 단계: **Gate 1 PASS → Gate 2 준비**. PoC 자동 검증, HIL, UI 목업(v4)이 모두 PASS다. 다음은 Gate 2(통합)다.
+- 갱신: 2026-11-26
+- 현재 단계는 **Gate 2 자동 검증 PASS, HIL 대기**다. Gate 3의 운영 설정은 준비했고 Render 배포는 비용 승인 대기다.
 - 루프: Plan → Build → Independent Critic → Fix → Recheck → PASS ([gauntlet-loop 적용법](../wiki/tools.md))
 
 ## 게이트 통과 조건
@@ -42,7 +42,7 @@
 | 실제 API 호출 | PASS | Anthropic → OpenAI(`gpt-6.2-sol`) → Mock. 각 PoC에서 `source: 'ai'`·`hybrid` 확인. [gate1-ai](logs/gate1-ai.md) |
 | AI 공급자 체인(`ai.ts`·`env.ts`) | PASS | Codex sol 포함 독립 재검증 r2, major 0·minor 8. [ai-chain-review-r2](logs/gate1b/ai-chain-review-r2.md) |
 | core 공용 수정 | PASS | 회귀·data URL 오류 수정 후 재검증 r2, major 0·minor 5. [core-dataurl-r2-verify](logs/gate1b/core-dataurl-r2-verify.md) |
-| 이미지 검색 실제 공급자 | BLOCKED | 키가 없어 지금은 Mock. Gate 2에서 OpenAI `web_search`를 대체 공급자로 붙인다. [결정 기록](#결정-기록) |
+| 이미지 검색 실제 공급자 | 당시 BLOCKED | Gate 2에서 OpenAI 이미지 검색으로 실제 사진을 검증했다. [검증 결과](report.md#gate-2-통합) |
 | `/pocs/<앱>` 경로 | PASS | 6개 PoC 모두 307로 앱 경로에 연결. 각 PoC 로그 참고 |
 | 빌드·테스트·키 노출 | PASS | [gate1b/close](logs/gate1b/close.md) |
 | UI 목업 (`pocs/ui/mockup`, v4 시안) | PASS | 아래 [UI 목업 결과](#ui-목업-결과) |
@@ -96,15 +96,19 @@ Gate 1
 - [x] UI 목업 v4 6화면, 전체 흐름 검증, Codex 2차 리뷰 ([gate1-ui](logs/gate1-ui.md))
 
 Gate 2
-- [ ] 통합 앱 위치·구조 정하기. 목업 화면(`src/screens/*`)을 재사용하고 PoC 기능을 props로 연결한다
-- [ ] 랜딩부터 내 기록까지 실제 데이터로 화면 이동
-- [ ] HIL을 통과한 PoC 기능 통합 (촬영·체형·검색·추구미·퍼스널컬러 리포트·추구미 가이드)
-- [ ] 이미지 검색 대체 공급자: OpenAI `web_search` 연결과 실제 사진 검증
-- [ ] 목업 데이터 한계 해소: 인물별·룩별 가이드, 촬영 단계별 자세 예시
-- [ ] 01 랜딩 배경을 Codex image_gen으로 새로 만들기
-- [ ] 통합 영향이 큰 PoC minor: camera-face 서버 랜드마크 검증, ai.ts 동시 요청, env.ts 경고 로그 원문
-- [ ] HIL 시퀀스·함수 입출력 문서(그림 위주)
-- [ ] 독립 검증, 빌드·테스트·키 노출 검사, 커밋·푸시
+- [x] `apps/web`에서 v4 화면과 PoC Route Handler 재사용
+- [x] 실제 촬영·전신 분석·퍼스널컬러·추구미·내 기록 연결
+- [x] OpenAI 이미지 검색과 실제 사진 검증
+- [x] 인물·사진별 가이드와 촬영 단계별 예시 적용
+- [x] Codex `image_gen`으로 랜딩 배경 제작
+- [x] 얼굴 좌표 입력 범위 보강, AI 동시 차단 상태 재확인, 설정 오류 로그에서 입력값 제거
+- [x] [HIL 시퀀스·함수 입출력 문서](../wiki/integration-flow.md)
+- [x] 독립 검증, 빌드·테스트·키 노출 검사, 커밋·푸시
+- [ ] 사용자 HIL 판정
+
+Gate 3
+- [x] Render용 단일 사용자 접속 제어, 영구 디스크 설정
+- [ ] Render 인스턴스 생성 및 배포 URL 검증
 
 ## 결정 기록
 
@@ -128,21 +132,17 @@ Gate 2
 | 2차 독립 리뷰 | Codex CLI `gpt-6.2-sol` (깊은 검토는 `gpt-6.2-astra`) | 코드 리뷰, 계약 위반·회귀 탐지 | 읽기 전용(`-s read-only`). 결과는 `docs/dev-v1/logs/` |
 | 기록 | 오케스트레이터 | 기술 검증·결정, 위키, 읽기 전용 에이전트의 결과 기록 | `docs/dev-v1/report.md`, `docs/wiki/`, `docs/dev-v1/logs/` |
 
+- Gate 2에서 구현 단위는 촬영·리포트(`apps/web/src/self`, v4 02–04), 추구미·기록(`apps/web/src/muse`, v4 05–06), 검색·공용 계약(`pocs/core`, `pocs/search-celeb`)으로 나눴다. 독립 검증은 통합 구현과 분리해 운영 코드와 실제 Chrome 화면을 확인했다. Claude CLI 제약과 대체 실행은 [기술 보고](report.md#gate-2-통합)에 있다.
 - `pocs/ui`(`@celeber/ui`)는 모든 PoC 앱이 공유하므로 꼭 필요한 버그 수정만 한다.
 - Codex는 `.claude/skills`를 읽지 않으므로 프롬프트에 체크리스트를 직접 붙인다. 실행 명령은 [gate0-probe](logs/gate0-probe.md)에 있다.
 
-## 마지막 검증 (2026-11-24, Gate 1 UI 목업 마감)
+## 마지막 검증 (2026-11-26, Gate 2 통합)
 
-- `pnpm typecheck`·`pnpm lint` exit 0(경고 0), `pnpm test` 594개 통과(17개 건너뜀, 실제 키가 필요한 live 테스트), `pnpm build:all` 8개 앱(기존 7 + 목업) 성공, `sync-public --all` exit 0. 로그는 [logs/gate1-ui/](logs/gate1-ui/)
-- 테스트 수는 Gate 1 마감([gate1b/close](logs/gate1b/close.md))보다 줄지 않았다
-- 키 노출: 목업 폴더(`.next` 포함)와 로그 폴더에서 `.env` 값 6개 일치 0건. 커밋 전 스테이징 파일 전체에서도 일치 0건, `.env`·`pocs/.data`는 스테이징되지 않았다
-- 서버: 검증에 쓴 dev·start 서버는 cwd 확인 뒤 PID로만 종료했다. 3107 포트는 비어 있다
-- 병렬 검증 때 여러 에이전트가 같은 `.next`에 빌드해 서로의 서버를 깨뜨렸다. 앞으로 검증은 빌드 하나·서버 하나로 돌린다
+- Chrome 390×844 및 1440×900에서 통합 프로덕션 전체 흐름 24/24 PASS, 콘솔 오류 0건. 별도 v4 목업은 96/96 PASS. [통합 실행 로그](logs/gate2-browser/flow.log), [기술 검증](report.md#gate-2-통합)
+- `pnpm typecheck`·`pnpm lint`·`pnpm test` 성공. 테스트 602개 통과, 실제 키를 쓰는 단위 테스트 17개 건너뜀. 통합 웹과 PoC 8개 프로덕션 빌드 성공.
+- Git 대상 및 통합 앱 `.next`에서 로컬 키 값 일치 0건. 접속 코드 세션과 사진 보호, 삭제, 저장소를 유지한 재시작 확인.
 
-## 다음 작업 (Gate 2 통합)
+## 다음 작업
 
-1. 통합 앱의 위치와 구조를 정한다. 목업 화면 컴포넌트를 그대로 쓰고, PoC의 Route Handler·core를 재사용한다(새로 쓰지 않는다).
-2. 랜딩 → 촬영 → 내 분석 → 퍼스널컬러 → 추구미 → 내 기록을 실제 데이터로 잇는다.
-3. 이미지 검색에 OpenAI `web_search` 대체 공급자를 붙이고 실제 사진으로 검증한다.
-4. 통합에 영향이 큰 minor(camera-face 서버 검증, ai.ts 동시 요청, env.ts 경고 로그)와 목업 데이터 한계(인물별·룩별 가이드)를 함께 처리한다.
-5. HIL 시퀀스·함수 입출력 문서를 그림 위주로 쓰고, 통합 기능은 HIL 판정을 받는다.
+1. 통합 화면을 [확인 시퀀스](../wiki/integration-flow.md#사람이-확인할-항목)로 HIL 판정한다.
+2. 비용 승인을 받으면 Render에 개인용 앱을 배포한다. 배포 URL에서 HTTPS 카메라 권한, 저장·재시작, 핵심 흐름을 다시 확인한다.

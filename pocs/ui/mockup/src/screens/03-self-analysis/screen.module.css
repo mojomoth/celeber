@@ -4,6 +4,9 @@
 .hero {
   height: 452px;
 }
+.faces > :only-child {
+  grid-column: 1 / -1;
+}
 .stack {
   display: grid;
   grid-template-rows: 1fr 1fr;

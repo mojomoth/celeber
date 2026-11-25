@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode, type Ref } from 'react';
 import type { StyleMuseData } from '@/data/types';
 import { ButtonPair, CheckMark, Card, Header, IconButton, Photo, PhotoGrid, PhotoTile, RadioMark, Row, Rows, Screen, SectionTitle, Sheet, Swatch, TileCaption } from '@/ui';
 import { SearchSheet } from './SearchSheet';
@@ -64,13 +64,8 @@ export function StyleMuseScreen({ data }: { data: StyleMuseData }) {
   const compare = data.compare.map((c, i) => (i === 0 && !isDefault ? { ...c, photo: selected, title: look?.title ?? '고른 사진', meta: look?.outfit } : c));
 
   return (
-    <Screen nav="muse">
-      <span ref={topRef} aria-hidden />
-      <Header title="추구미" right={<IconButton icon="search" label="연예인 검색" onClick={() => setSearchOpen(true)} />} />
-
-      <div className={s.top}>
-        <Photo src={data.hero} alt={`${data.name} 인물 사진`} className={s.topImg} />
-      </div>
+    <MuseScreen topRef={topRef} onSearch={() => setSearchOpen(true)}>
+      <MusePortrait src={data.hero} name={data.name} />
 
       <Sheet bg="white" overlap={24} corners="top" className={s.sheet}>
         <span ref={sheetRef} className={s.anchor} aria-hidden />
@@ -124,10 +119,61 @@ export function StyleMuseScreen({ data }: { data: StyleMuseData }) {
         </div>
       </Sheet>
 
+      <MuseGuide data={{
+        palettes: data.palettes,
+        points: data.points,
+        guide: isDefault ? data.guide : { ...data.guide, eyebrow: `${look?.title ?? '고른 사진'}으로 분석했어요` },
+        compare,
+      }} />
+
+      <ButtonPair primary={{ label: saved ? '저장했어요' : '가이드 저장', onClick: () => setSaved(true) }} secondary={{ label: '다른 룩 보기', onClick: nextLook }} />
+
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={onUpload} />
+      <SearchSheet open={searchOpen} name={data.name} photo={data.hero} photoCount={data.photoCount} onClose={() => setSearchOpen(false)} onPick={() => {
+          setSearchOpen(false);
+          topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }} onUpload={upload} />
+    </MuseScreen>
+  );
+}
+
+export function MuseScreen({ children, topRef, onSearch, searchHref }: {
+  children: ReactNode;
+  topRef?: Ref<HTMLSpanElement>;
+  onSearch?: () => void;
+  searchHref?: string;
+}) {
+  return (
+    <Screen nav="muse">
+      {topRef ? <span ref={topRef} aria-hidden /> : null}
+      <Header title="추구미" right={onSearch || searchHref ? <IconButton icon="search" label="연예인 검색" onClick={onSearch} href={searchHref} /> : undefined} />
+      {children}
+    </Screen>
+  );
+}
+
+export function MusePortrait({ src, name }: { src: string; name: string }) {
+  return (
+    <div className={s.top}>
+      <Photo src={src} alt={`${name} 인물 사진`} className={s.topImg} />
+    </div>
+  );
+}
+
+type GuideContent = Pick<StyleMuseData, 'guide' | 'palettes' | 'points'> & {
+  compare?: (Omit<StyleMuseData['compare'][number], 'meta'> & { meta?: string })[];
+};
+
+export function MuseGuide({ data, comparison }: {
+  data: GuideContent;
+  comparison?: ReactNode;
+}) {
+  return (
+    <>
       <div className={s.band} aria-hidden />
 
       <div className={s.guide}>
-        <p className="t-eyebrow">{isDefault ? data.guide.eyebrow : `${look?.title ?? '고른 사진'}으로 분석했어요`}</p>
+        {data.guide.eyebrow ? <p className="t-eyebrow">{data.guide.eyebrow}</p> : null}
         <h2 className={`t-h1 ${s.guideTitle}`}>{data.guide.title}</h2>
         <p className={`t-body ${s.guideBody}`}>
           {data.guide.body.map((line, i) => (
@@ -139,7 +185,7 @@ export function StyleMuseScreen({ data }: { data: StyleMuseData }) {
         </p>
       </div>
 
-      <Card className={s.pal}>
+      {data.palettes.length ? <Card className={s.pal}>
         {data.palettes.map((p) => (
           <div key={p.who} className={s.palRow}>
             <b>
@@ -148,7 +194,7 @@ export function StyleMuseScreen({ data }: { data: StyleMuseData }) {
             </b>
             <ul className={s.swatches}>
               {p.colors.map((c) => (
-                <li key={c.name}>
+                <li key={`${c.name}-${c.hex}`}>
                   <Swatch color={c.hex} size={36} />
                   {c.name}
                 </li>
@@ -156,16 +202,16 @@ export function StyleMuseScreen({ data }: { data: StyleMuseData }) {
             </ul>
           </div>
         ))}
-      </Card>
+      </Card> : null}
 
-      <PhotoGrid className={s.compare}>
-        {compare.map((c) => (
+      {comparison ?? (data.compare?.length ? <PhotoGrid className={s.compare}>
+        {data.compare.map((c) => (
           <div key={c.label}>
             <PhotoTile src={c.photo} alt={`${c.label} ${c.title}`} label={c.label} labelTone="ink" height={330} position="50% 0" imgClassName={s.compareImg} style={{ background: c.bg }} />
             <TileCaption title={c.title} meta={c.meta} />
           </div>
         ))}
-      </PhotoGrid>
+      </PhotoGrid> : null)}
 
       <section className={s.points}>
         <SectionTitle className={s.pointsTitle}>스타일링 포인트</SectionTitle>
@@ -185,14 +231,6 @@ export function StyleMuseScreen({ data }: { data: StyleMuseData }) {
           ))}
         </Rows>
       </section>
-
-      <ButtonPair primary={{ label: saved ? '저장했어요' : '가이드 저장', onClick: () => setSaved(true) }} secondary={{ label: '다른 룩 보기', onClick: nextLook }} />
-
-      <input ref={fileRef} type="file" accept="image/*" hidden onChange={onUpload} />
-      <SearchSheet open={searchOpen} name={data.name} photo={data.hero} photoCount={data.photoCount} onClose={() => setSearchOpen(false)} onPick={() => {
-          setSearchOpen(false);
-          topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }} onUpload={upload} />
-    </Screen>
+    </>
   );
 }

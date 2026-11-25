@@ -1,0 +1,32 @@
+.form {
+  display: grid;
+  gap: 12px;
+  padding: 32px var(--gutter);
+}
+
+.form label {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.form input {
+  width: 100%;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: var(--btn-radius);
+  font: inherit;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.submit {
+  min-height: var(--btn-h);
+  border-radius: var(--btn-radius);
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 700;
+}

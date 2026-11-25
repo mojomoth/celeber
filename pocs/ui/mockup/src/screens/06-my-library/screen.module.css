@@ -85,3 +85,20 @@
 .list {
   margin-top: 10px;
 }
+
+.status {
+  padding: 0 var(--gutter) 20px;
+}
+
+.noPhoto {
+  display: grid;
+  place-items: end start;
+  min-height: 120px;
+  padding: 16px var(--gutter);
+  background: var(--paper);
+  font-weight: 700;
+}
+
+span.pcPhoto {
+  background: var(--paper);
+}

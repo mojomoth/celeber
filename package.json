@@ -8,6 +8,9 @@
     "node": ">=26"
   },
   "scripts": {
+    "dev": "pnpm --filter @celeber/web dev",
+    "build": "pnpm --filter @celeber/web build",
+    "start": "pnpm --filter @celeber/web start",
     "dev:hub": "pnpm --filter @celeber/hub dev",
     "dev:camera-face": "pnpm --filter @celeber/camera-face dev",
     "dev:camera-body": "pnpm --filter @celeber/camera-body dev",
@@ -16,7 +19,7 @@
     "dev:personal-color-report": "pnpm --filter @celeber/personal-color-report dev",
     "dev:celeb-vibe-report": "pnpm --filter @celeber/celeb-vibe-report dev",
     "dev:ui-mockup": "pnpm --filter @celeber/ui-mockup dev",
-    "build:all": "pnpm -r --workspace-concurrency=1 --filter \"./pocs/*\" --filter \"!@celeber/core\" --filter \"!@celeber/ui\" --filter @celeber/ui-mockup build",
+    "build:all": "pnpm -r --workspace-concurrency=1 --filter \"./pocs/*\" --filter \"!@celeber/core\" --filter \"!@celeber/ui\" --filter @celeber/ui-mockup --filter @celeber/web build",
     "sync:public": "node scripts/sync-public.mjs --all",
     "fetch:models": "node scripts/fetch-mediapipe-models.mjs",
     "test": "pnpm -r --if-present test",

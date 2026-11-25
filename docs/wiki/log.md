@@ -40,3 +40,7 @@ camera-body major, core 회귀·data URL, AI 공급자 체인 리뷰, PoC별 min
 
 ## [2026-11-24] verify | Gate 1 PASS: HIL과 UI 목업
 사용자 직접 지시로 HIL PASS. v4 시안 UI 목업(`pocs/ui/mockup`) 6화면 일치도 93–97, 전체 흐름 96/96, Codex 2차 리뷰 반영. [gate1-ui](../dev-v1/logs/gate1-ui.md), [ui-mockup-codex](../dev-v1/logs/critic/ui-mockup-codex.txt). 상태는 [run.md](../dev-v1/run.md), 결정(HIL 근거, 목업 위치·구조, 이미지 검색 대체, 공개 범위)은 [report.md](../dev-v1/report.md#결정)
+
+## [2026-11-26] change | Gate 2 웹 앱 통합
+
+`apps/web`에서 v4 화면, 여섯 PoC의 기능, OpenAI 이미지 검색을 연결했다. 시퀀스와 함수 입출력은 [통합 앱 흐름](integration-flow.md), 기술 결과는 [보고](../dev-v1/report.md#gate-2-통합)에 기록했다.

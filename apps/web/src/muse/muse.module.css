@@ -1,0 +1,54 @@
+.content {
+  --cb-gutter: var(--gutter);
+  padding: 20px var(--gutter) 0;
+}
+
+.photoSource {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--gutter);
+  text-decoration: underline;
+}
+
+.state {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  color: var(--ink-2);
+}
+
+.feedback {
+  margin: 12px var(--gutter) 0;
+}
+
+.feedback[role='alert'] {
+  color: var(--danger);
+}
+
+.resetSheet {
+  display: grid;
+  gap: 12px;
+  padding: 24px var(--gutter) calc(20px + var(--safe-bottom));
+}
+
+.resetSheet ul {
+  display: grid;
+  gap: 4px;
+  padding-inline-start: 20px;
+}
+
+.resetActions {
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.comparison, .actions ol {
+  display: grid;
+  gap: 12px;
+}
+
+.actions ol {
+  margin-top: 12px;
+  padding-inline-start: 22px;
+}
