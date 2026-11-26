@@ -6,6 +6,9 @@ import '@celeber/ui/styles.css';
 import '@/ui/tokens.css';
 import '@/ui/base.css';
 
+// 첫 방문의 Set-Cookie가 다른 방문자에게 공유되지 않도록 페이지 응답을 동적으로 생성한다.
+export const dynamic = 'force-dynamic';
+
 const pretendard = localFont({
   src: '../../../pocs/ui/mockup/src/fonts/PretendardVariable.woff2',
   weight: '45 920',

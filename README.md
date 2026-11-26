@@ -17,7 +17,7 @@ pnpm dev            # http://localhost:3108
 
 루트 `.env`에 `OPENAI_API_KEY` 또는 `OPENAI_KEY`가 있으면 실제 비전 분석과 이미지 검색을 쓸 수 있다. [통합 흐름과 HIL 확인 항목](docs/wiki/integration-flow.md)을 참고한다.
 
-개인용 배포 설정은 [render.yaml](render.yaml)에 있다. 운영은 접속 코드로 제한하고 분석 기록과 업로드를 `/var/data/celeber`에 저장한다. 카메라 촬영은 localhost 또는 HTTPS에서 가능하다.
+[운영 앱](https://celeber.onrender.com)은 접속 코드 없이 열린다. 분석과 업로드는 브라우저 세션별로 영구 디스크에 저장한다. 다른 브라우저를 쓰거나 쿠키를 지우면 새 세션이 시작된다. 카메라 촬영은 localhost 또는 HTTPS에서 가능하다. 배포 설정은 [render.yaml](render.yaml)에 있다.
 
 ## 구조와 포트
 
@@ -66,7 +66,8 @@ MediaPipe wasm·모델과 BI 에셋은 각 앱의 `predev`/`prebuild`에서 `pub
 | `SERPAPI_API_KEY` | Google Images 검색 + Google Lens 역이미지 검색 | 사진으로 찾기는 "이름으로 검색해 주세요" 안내 |
 | `CELEBER_PUBLIC_BASE_URL` | 로컬 업로드 사진을 Lens가 가져갈 수 있는 공개 주소(터널 등). Lens에는 서명·10분 만료 이미지 경로(`/api/public-image/<id>?exp&sig`)만 넘긴다 | 업로드 사진 역검색 비활성 |
 | `CELEBER_PUBLIC_IMAGE_SECRET` | 위 공개 이미지 URL의 HMAC 비밀값 | `CELEBER_ACCESS_TOKEN`, 그것도 없으면 프로세스마다 임의값 |
-| `CELEBER_ACCESS_TOKEN` | 통합 앱의 접속 코드. PoC는 `<주소>?access=<토큰>`도 지원 | 기본값으로 로컬에서만 접근 가능 |
+| `CELEBER_SESSION_SECRET` | 통합 앱의 익명 브라우저 세션 쿠키 서명 키. 운영에서는 32바이트 이상의 무작위 값을 설정 | 로컬용 세션 키 |
+| `CELEBER_ACCESS_TOKEN` | 원격 PoC 접근 토큰. PoC는 `<주소>?access=<토큰>`도 지원 | PoC는 기본값으로 로컬에서만 접근 가능 |
 | `CELEBER_ALLOWED_HOSTS` | 토큰 없이 허용할 추가 호스트(쉼표 구분) | localhost만 |
 | `CELEBER_DATA_DIR` | DB·업로드 폴더 (기본 `pocs/.data`) | 기본값 |
 | `CELEBER_FORCE_MOCK` | `1`이면 키가 있어도 모든 외부 API를 Mock으로 | - |

@@ -125,14 +125,8 @@ async function run(viewport, environment) {
     await browser.metrics(...viewports[viewport]);
     if (desktop) await browser.send('Page.addScriptToEvaluateOnNewDocument', { source: `(${installCameraFixture})()` });
     await browser.go(`${base}/`);
-    if (await browser.evaluate("location.pathname === '/access'")) {
-      assert.equal(await browser.evaluate("fetch('/api/guide/my-data').then(response => response.status)"), 403, '접속 코드 전 기록 API가 열려 있음');
-      const code = process.env.CELEBER_ACCESS_TOKEN;
-      assert(code, '접속 코드가 필요한 환경에서는 CELEBER_ACCESS_TOKEN을 설정해 주세요.');
-      await ui.fill('input[name=code]', code);
-      await ui.click('열기');
-      await ui.route('/');
-    }
+    await ui.route('/');
+    assert.equal(await browser.evaluate("!!document.querySelector('input[name=code]')"), false, '접속 코드 화면이 나타남');
     const starting = await browser.evaluate("fetch('/api/guide/my-data').then(async response => response.ok ? response.json() : null)");
     assert(starting?.photos === 0 && starting?.counts?.every(({ count }) => count === 0), '사진과 기록이 없는 독립 데이터 디렉터리에서 확인해 주세요.');
     await picture(browser, viewport, '01-랜딩');

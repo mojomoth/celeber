@@ -23,9 +23,7 @@ services:
         value: '1'
       - key: CELEBER_DATA_DIR
         value: /var/data/celeber
-      - key: CELEBER_REQUIRE_ACCESS_TOKEN
-        value: '1'
-      - key: CELEBER_ACCESS_TOKEN
+      - key: CELEBER_SESSION_SECRET
         generateValue: true
       - key: OPENAI_API_KEY
         sync: false

@@ -1,5 +1,5 @@
 /**
- * SQLite (Node 내장 node:sqlite, DatabaseSync) — 모든 앱이 pocs/.data/celeber.db 하나를 공유한다.
+ * SQLite (Node 내장 node:sqlite, DatabaseSync). PoC는 공용 DB를, 웹은 브라우저별 DB를 사용한다.
  * - WAL 모드 + busy_timeout으로 여러 앱 프로세스 동시 접근 허용
  * - 스키마는 PRAGMA user_version 기반 마이그레이션으로 모든 PoC 테이블을 미리 생성
  * - 패턴: 각 테이블 = 조회/정렬용 스칼라 컬럼 + data(JSON, 계약 스키마 전체)
@@ -20,7 +20,10 @@ import {
   VibeAnalysisSchema,
   VibeGuideSchema,
 } from '../contracts';
+import { getBrowserDataScope } from './data-scope';
 import { getEnv } from './env';
+
+export { withBrowserDataScope } from './data-scope';
 
 /* ================================================================== 스키마 */
 
@@ -185,7 +188,7 @@ const MIGRATIONS: string[] = [
 const G = globalThis as unknown as { __celeberDb?: { db: DatabaseSync; path: string } };
 
 export function dataDir(): string {
-  const dir = getEnv().dataDir;
+  const dir = getBrowserDataScope()?.directory ?? getEnv().dataDir;
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
@@ -193,14 +196,22 @@ export function dbPath(): string {
   return path.join(dataDir(), 'celeber.db');
 }
 
-/** 싱글턴 DB 연결 (HMR에서도 재사용). 최초 호출 시 마이그레이션 수행. */
+/** 웹 요청 내에서는 같은 연결을 재사용하고, PoC는 기존 싱글턴을 사용한다. */
 export function getDb(): DatabaseSync {
+  const scope = getBrowserDataScope();
+  if (scope?.db) return scope.db;
   const p = dbPath();
-  if (G.__celeberDb && G.__celeberDb.path === p) return G.__celeberDb.db;
+  if (!scope && G.__celeberDb?.path === p) return G.__celeberDb.db;
   const db = new DatabaseSync(p);
-  db.exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA synchronous = NORMAL;');
-  migrate(db);
-  G.__celeberDb = { db, path: p };
+  try {
+    db.exec('PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA synchronous = NORMAL;');
+    migrate(db);
+  } catch (error) {
+    db.close();
+    throw error;
+  }
+  if (scope) scope.db = db;
+  else G.__celeberDb = { db, path: p };
   return db;
 }
 

@@ -6,12 +6,12 @@ PoC 앱들이 노출하는 Route Handler의 요청·응답 형태다. 2026-11-24
 
 - 런타임: 모든 라우트가 `runtime = 'nodejs'`, `dynamic = 'force-dynamic'`이다.
 - 앱과 포트: hub 3100, camera-face 3101, camera-body 3102, search-celeb 3103, celeb-vibe 3104, personal-color-report 3105, celeb-vibe-report 3106. 모든 앱이 같은 SQLite(`pocs/.data`, `CELEBER_DATA_DIR`로 변경)를 쓴다.
-- 통합 앱은 3108에서 `apps/web/app/api/[...path]/route.ts`에 등록된 경로를 같은 계약으로 제공한다. 추구미 화면의 `/muse/api`는 공유 PoC 흐름을 사용하면서 데모 사진과 데모 인물 데이터를 화면에서 제외한다.
+- 통합 앱은 3108에서 `apps/web/src/server/api.ts`에 등록된 경로를 같은 계약으로 제공한다. 추구미 화면의 `/muse/api`는 공유 PoC 흐름을 사용하면서 데모 사진과 데모 인물 데이터를 화면에서 제외한다.
 - 요청 본문: JSON을 zod로 검증한다. 실패하면 400 `invalid_json` 또는 `validation_error`(`details`에 zod issues)를 돌려준다. [http.ts](../../pocs/core/src/server/http.ts)
 - 오류 형태: `{ error: { code, message, details? } }` ([ApiErrorSchema](../../pocs/core/src/contracts/common.ts)). 404는 `not_found`, 처리되지 않은 예외는 500 `internal_error`다.
 - 전체 삭제: `?confirm=1`이 없으면 400 `confirm_required`다. vibe만 본문 `{ confirm: true }`를 받는다.
 - AI 출처: face·report·guide 생성 응답에는 `aiSource: 'ai' | 'mock' | 'skipped'`가 있다. vibe 응답(`{ analysis, warning? }`)에는 없으므로 저장 결과의 `source`([ResultSource](../../pocs/core/src/contracts/common.ts): rules·ai·mock·hybrid)와 `isMock`으로 판단한다.
-- 접근 제어는 로컬을 기본 허용하며, 다른 사이트에서 온 상태 변경 요청을 거부한다. 통합 앱의 운영 환경에서는 `/access`에 접속 코드를 입력해 12시간 동안 유효한 세션을 발급받는다. [공용 접근 제어](../../pocs/core/src/server/access.ts), [통합 앱 프록시](../../apps/web/proxy.ts)
+- 통합 앱은 페이지를 열 때 익명 브라우저 쿠키를 자동 발급한다. `/api`와 `/muse/api`의 저장·조회·초기화는 검증된 세션의 SQLite와 업로드 폴더에서 처리한다. 쿠키가 필요한 API를 세션 없이 호출하면 `401 session_required`를 돌려준다. 다른 사이트에서 온 상태 변경 요청은 거부한다. PoC에서 설정할 수 있는 Lens 외부 공유 경로는 통합 앱에서 사용할 수 없다. [통합 앱 프록시](../../apps/web/proxy.ts)
 
 ## 앱별 노출 경로
 
