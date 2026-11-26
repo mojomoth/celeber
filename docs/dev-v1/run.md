@@ -3,7 +3,7 @@
 개발 진행을 통제하는 단일 문서다. 기술 검증 결과와 결정 근거는 [report.md](report.md), 문서 목록은 [wiki/index.md](../wiki/index.md)에 있다.
 
 - 갱신: 2026-11-26
-- 현재 단계는 **Gate 3 Render 운영 배포 및 자동 검증 PASS**다. 사용자 실기기 HIL은 대기 중이다. [운영 URL](https://celeber.onrender.com)
+- 현재 단계는 **Gate 3 Render 공개 운영 배포 및 자동 검증 PASS**다. 접속 코드 없이 열리며 기록은 브라우저 세션별로 저장된다. 사용자 실기기 HIL은 대기 중이다. [운영 URL](https://celeber.onrender.com)
 - 루프: Plan → Build → Independent Critic → Fix → Recheck → PASS ([gauntlet-loop 적용법](../wiki/tools.md))
 
 ## 게이트 통과 조건
@@ -107,7 +107,7 @@ Gate 2
 - [ ] 사용자 HIL 판정
 
 Gate 3
-- [x] Render용 단일 사용자 접속 제어, 영구 디스크 설정
+- [x] 코드 없는 첫 접속, 브라우저 세션별 기록 분리, 영구 디스크 설정
 - [x] 싱가포르 Render 인스턴스와 1GB 디스크로 운영 배포
 - [x] 운영 URL 독립 확인, 주요 흐름과 업로드 한도 검증, 재시작 후 사진·SQLite 보존 확인
 
@@ -143,6 +143,7 @@ Gate 3
 - `pnpm typecheck`·`pnpm lint`·`pnpm test` 성공. 테스트 602개 통과, 실제 키를 쓰는 단위 테스트 17개 건너뜀. 통합 웹과 PoC 8개 프로덕션 빌드 성공.
 - Git 대상 및 통합 앱 `.next`에서 로컬 키 값 일치 0건. 접속 코드 세션과 사진 보호, 삭제, 저장소를 유지한 재시작 확인.
 - Render 운영 모바일 Chrome 12/12 PASS. 512MiB 인스턴스를 유지하고 사진 수집 중 재시작 원인을 수정했다. 재시작 후 업로드 보존과 최종 운영 데이터 분리를 확인했다. [운영 실행 로그](logs/gate3-browser/flow.log) · [운영 기술 검증](report.md#gate-3-render-배포)
+- 공개 접속 전환 후 새 브라우저 두 곳에서 사진·분석과 초기화가 분리되는 것을 확인했다. [기술 검증](report.md#접속-코드-제거와-세션-분리)
 
 ## 다음 작업
 

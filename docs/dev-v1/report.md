@@ -61,6 +61,14 @@ dev 서버, typecheck, lint, test, smoke 결과는 [gate0-devserver](logs/gate0-
 - 수정판으로 운영 URL에서 모바일 Chrome 전체 흐름 12/12를 통과했다. 사진을 새로 수집해 추구미 가이드를 만들고 저장·재열기·초기화를 확인했다. 24MiB JPEG는 저장됐고 26MiB 요청은 HTTP 413을 반환했다. [운영 실행 로그](logs/gate3-browser/flow.log)
 - 같은 디스크로 새 인스턴스를 시작한 뒤 업로드 레코드와 사진 SHA-256이 일치했다. 검증을 마치고 운영 디렉터리 `/var/data/celeber`로 전환했다. 최종 배포 `dep-dc3rcv6i0phs738b4k3g`에서 헬스체크, 접속 코드, 주요 화면, 초기 운영 데이터와 검증 데이터의 분리를 확인했다. [배포 소스 커밋](https://github.com/mojomoth/celeber/commit/12672f6e9877548b1c12576b11ad459b96982abb)
 
+### 접속 코드 제거와 세션 분리
+
+- 사용자의 요청으로 코드 입력 화면을 제거했다. `/access`는 홈으로 이동한다. 새 익명 세션은 서버가 서명한 HttpOnly 쿠키로 자동 발급한다. 운영 쿠키는 HTTPS에서만 사용하고 첫 방문 응답은 캐시에 저장하지 않는다.
+- 모든 개인 기록과 사진 조회·저장·삭제 요청은 검증한 브라우저 세션의 SQLite와 업로드 폴더에서 처리한다. 추구미의 API 전·후처리도 같은 범위에서 처리한다. 기존 접속 코드 방식의 공유 저장소는 분리해 보존한다. [API 계약](../wiki/api-contract.md)
+- 깨끗한 로컬 프로덕션 빌드에서 두 세션의 기록과 초기화 격리, 이전·변조·만료 쿠키 거부, 다른 출처의 쓰기 거부, 새 모바일 Chrome 접속을 확인했다. 저장소 테스트를 포함해 전체 테스트 606개가 통과했다.
+- 운영 배포 `dep-dc40ff95efls73cmuf20`에서 새 모바일 브라우저의 코드 없는 접속, 기존 `/access` 연결, 두 세션의 사진·분석 조회와 초기화 격리를 확인했다. 화면을 처음 열 때마다 서로 다른 Secure 쿠키를 발급했다. 운영 HTML 6개와 JavaScript 19개에서 키 값 일치는 0건이었다. Render의 기존 접속 코드 환경변수를 제거했다. [운영 URL](https://celeber.onrender.com) · [배포 커밋](https://github.com/mojomoth/celeber/commit/c0ae6b8d424a12b4fc3f7a3f159622202d5f2021)
+- 운영 모바일 Chrome의 새 세션에서 실 API를 사용한 전체 흐름 12/12 PASS. 촬영 사진 업로드, 퍼스널컬러 리포트, 인물 사진 다시 선택, 추구미 가이드 저장·열기·초기화를 확인했다. [공개 운영 실행 로그](logs/public-browser/flow.log)
+
 ## 결정
 
 - **AI 공급자는 Anthropic → OpenAI → Mock 순서다.** Gemini는 느리고 불안정해서 OpenAI(`gpt-6.2-sol`)를 대체로 붙였다. 프롬프트·zod 스키마는 그대로 쓰고, 응답의 `model`에 실제 모델이 남는다. 차단은 공급자별로 10분이다. `CELEBER_AI_PROVIDER`로 하나만 고를 수 있다. 근거는 [gate1-ai](logs/gate1-ai.md).
