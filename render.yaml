@@ -2,10 +2,11 @@ services:
   - type: web
     name: celeber
     runtime: node
+    region: singapore
     plan: 0.5c-512mb
     autoDeployTrigger: 'off'
     buildCommand: npx --yes pnpm@11.6.0 install --frozen-lockfile && npx --yes pnpm@11.6.0 fetch:models && npx --yes pnpm@11.6.0 build
-    startCommand: npx --yes pnpm@11.6.0 start
+    startCommand: cd apps/web && exec node node_modules/next/dist/bin/next start --port "${PORT:-10000}" --hostname 0.0.0.0
     healthCheckPath: /api/health
     disk:
       name: celeber-data
@@ -14,6 +15,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 26.13.1
+      - key: SKIP_INSTALL_DEPS
+        value: 'true'
+      - key: MALLOC_ARENA_MAX
+        value: '2'
       - key: CELEBER_DATA_DIR
         value: /var/data/celeber
       - key: CELEBER_REQUIRE_ACCESS_TOKEN

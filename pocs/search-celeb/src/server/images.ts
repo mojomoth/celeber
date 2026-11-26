@@ -21,6 +21,7 @@ import { mapLimit, shortWarning } from './util';
 /** 카테고리당 저장 목표 (3열 그리드 3줄) */
 export const IMAGES_PER_CATEGORY = 9;
 const FETCH = { maxBytes: 10 * 1024 * 1024, timeoutMs: 10_000 };
+const DOWNLOAD_CONCURRENCY = 2;
 
 const ISSUE_CODES = ['not-full-body', 'multiple-people', 'backlight', 'occluded', 'low-resolution', 'blurry', 'no-person', 'not-a-photo', 'other'] as const;
 const JudgeSchema = z.object({
@@ -89,9 +90,10 @@ export async function collectCelebImages(celebId: string, category: CelebImageCa
     let cursor = 0;
     const maxAttempts = need + 10;
     while (downloaded.length < need && cursor < ranked.length && cursor < maxAttempts) {
-      const batch = ranked.slice(cursor, cursor + Math.min(4, need - downloaded.length + 1));
+      // 원본 다운로드 버퍼와 sharp 디코드가 운영 인스턴스 메모리에서 겹치는 수를 제한한다.
+      const batch = ranked.slice(cursor, cursor + Math.min(DOWNLOAD_CONCURRENCY, need - downloaded.length));
       cursor += batch.length;
-      const got = await mapLimit(batch, 4, (r) => download(r, provider, celeb.name, category));
+      const got = await mapLimit(batch, DOWNLOAD_CONCURRENCY, (r) => download(r, provider, celeb.name, category));
       for (const g of got) {
         if (g && downloaded.length < need && !existingUrls.has(g.sourceUrl)) {
           downloaded.push(g);
