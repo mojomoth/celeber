@@ -53,6 +53,14 @@ dev 서버, typecheck, lint, test, smoke 결과는 [gate0-devserver](logs/gate0-
 
 </details>
 
+### Gate 3 Render 배포
+
+- 싱가포르에서 `0.5c-512mb` 인스턴스 하나와 `/var/data`에 마운트한 1GB 디스크를 사용한다. 접속 코드는 Render 환경변수와 Git에서 제외한 로컬 파일에 두었다. [운영 URL](https://celeber.onrender.com) · [Render 대시보드](https://dashboard.render.com/web/srv-dc3r5mmi0phs738afm6g)
+- 독립 검증에서 HTTP의 HTTPS 전환, 비인증 요청의 로그인 화면과 API 차단, Chrome 모바일·데스크톱 보안 컨텍스트와 카메라 API, MediaPipe 파일 제공을 확인했다. 운영 HTML 7개와 JavaScript 파일 19개에서 로컬 키와 운영 접속 코드의 값이 일치한 사례는 0건이다.
+- 첫 운영 검사에서 연예인 사진 수집 중 HTTP 502가 발생했다. Render의 `server_failed` 이벤트에 `oomKilled`와 512MiB 한도가 기록됐다. 사진 다운로드·정규화 병렬도를 4건에서 2건으로 줄이고 Next.js를 Node에서 직접 실행한다. Linux의 메모리 할당 영역과 이미지 작업 스레드도 제한했다.
+- 수정판으로 운영 URL에서 모바일 Chrome 전체 흐름 12/12를 통과했다. 사진을 새로 수집해 추구미 가이드를 만들고 저장·재열기·초기화를 확인했다. 24MiB JPEG는 저장됐고 26MiB 요청은 HTTP 413을 반환했다. [운영 실행 로그](logs/gate3-browser/flow.log)
+- 같은 디스크로 새 인스턴스를 시작한 뒤 업로드 레코드와 사진 SHA-256이 일치했다. 검증을 마치고 운영 디렉터리 `/var/data/celeber`로 전환했다. 최종 배포 `dep-dc3rcv6i0phs738b4k3g`에서 헬스체크, 접속 코드, 주요 화면, 초기 운영 데이터와 검증 데이터의 분리를 확인했다. [배포 소스 커밋](https://github.com/mojomoth/celeber/commit/12672f6e9877548b1c12576b11ad459b96982abb)
+
 ## 결정
 
 - **AI 공급자는 Anthropic → OpenAI → Mock 순서다.** Gemini는 느리고 불안정해서 OpenAI(`gpt-6.2-sol`)를 대체로 붙였다. 프롬프트·zod 스키마는 그대로 쓰고, 응답의 `model`에 실제 모델이 남는다. 차단은 공급자별로 10분이다. `CELEBER_AI_PROVIDER`로 하나만 고를 수 있다. 근거는 [gate1-ai](logs/gate1-ai.md).

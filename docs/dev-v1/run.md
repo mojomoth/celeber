@@ -3,7 +3,7 @@
 개발 진행을 통제하는 단일 문서다. 기술 검증 결과와 결정 근거는 [report.md](report.md), 문서 목록은 [wiki/index.md](../wiki/index.md)에 있다.
 
 - 갱신: 2026-11-26
-- 현재 단계는 **Gate 2 자동 검증 PASS, HIL 대기**다. Gate 3의 운영 설정은 준비했고 Render 배포는 비용 승인 대기다.
+- 현재 단계는 **Gate 3 Render 운영 배포 및 자동 검증 PASS**다. 사용자 실기기 HIL은 대기 중이다. [운영 URL](https://celeber.onrender.com)
 - 루프: Plan → Build → Independent Critic → Fix → Recheck → PASS ([gauntlet-loop 적용법](../wiki/tools.md))
 
 ## 게이트 통과 조건
@@ -108,7 +108,8 @@ Gate 2
 
 Gate 3
 - [x] Render용 단일 사용자 접속 제어, 영구 디스크 설정
-- [ ] Render 인스턴스 생성 및 배포 URL 검증
+- [x] 싱가포르 Render 인스턴스와 1GB 디스크로 운영 배포
+- [x] 운영 URL 독립 확인, 주요 흐름과 업로드 한도 검증, 재시작 후 사진·SQLite 보존 확인
 
 ## 결정 기록
 
@@ -136,13 +137,13 @@ Gate 3
 - `pocs/ui`(`@celeber/ui`)는 모든 PoC 앱이 공유하므로 꼭 필요한 버그 수정만 한다.
 - Codex는 `.claude/skills`를 읽지 않으므로 프롬프트에 체크리스트를 직접 붙인다. 실행 명령은 [gate0-probe](logs/gate0-probe.md)에 있다.
 
-## 마지막 검증 (2026-11-26, Gate 2 통합)
+## 마지막 검증 (2026-11-26)
 
 - Chrome 390×844 및 1440×900에서 통합 프로덕션 전체 흐름 24/24 PASS, 콘솔 오류 0건. 별도 v4 목업은 96/96 PASS. [통합 실행 로그](logs/gate2-browser/flow.log), [기술 검증](report.md#gate-2-통합)
 - `pnpm typecheck`·`pnpm lint`·`pnpm test` 성공. 테스트 602개 통과, 실제 키를 쓰는 단위 테스트 17개 건너뜀. 통합 웹과 PoC 8개 프로덕션 빌드 성공.
 - Git 대상 및 통합 앱 `.next`에서 로컬 키 값 일치 0건. 접속 코드 세션과 사진 보호, 삭제, 저장소를 유지한 재시작 확인.
+- Render 운영 모바일 Chrome 12/12 PASS. 512MiB 인스턴스를 유지하고 사진 수집 중 재시작 원인을 수정했다. 재시작 후 업로드 보존과 최종 운영 데이터 분리를 확인했다. [운영 실행 로그](logs/gate3-browser/flow.log) · [운영 기술 검증](report.md#gate-3-render-배포)
 
 ## 다음 작업
 
-1. 통합 화면을 [확인 시퀀스](../wiki/integration-flow.md#사람이-확인할-항목)로 HIL 판정한다.
-2. 비용 승인을 받으면 Render에 개인용 앱을 배포한다. 배포 URL에서 HTTPS 카메라 권한, 저장·재시작, 핵심 흐름을 다시 확인한다.
+실기기 촬영과 결과를 [확인 시퀀스](../wiki/integration-flow.md#사람이-확인할-항목)로 HIL 판정한다.

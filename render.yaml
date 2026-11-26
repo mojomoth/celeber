@@ -19,6 +19,8 @@ services:
         value: 'true'
       - key: MALLOC_ARENA_MAX
         value: '2'
+      - key: VIPS_CONCURRENCY
+        value: '1'
       - key: CELEBER_DATA_DIR
         value: /var/data/celeber
       - key: CELEBER_REQUIRE_ACCESS_TOKEN

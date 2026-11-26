@@ -44,3 +44,7 @@ camera-body major, core 회귀·data URL, AI 공급자 체인 리뷰, PoC별 min
 ## [2026-11-26] change | Gate 2 웹 앱 통합
 
 `apps/web`에서 v4 화면, 여섯 PoC의 기능, OpenAI 이미지 검색을 연결했다. 시퀀스와 함수 입출력은 [통합 앱 흐름](integration-flow.md), 기술 결과는 [보고](../dev-v1/report.md#gate-2-통합)에 기록했다.
+
+## [2026-11-26] verify | Gate 3 Render 운영 배포
+
+싱가포르 인스턴스와 영구 디스크로 배포했다. 운영 URL에서 인증, 모바일 전체 흐름, 업로드 상한과 재시작 후 파일 보존을 확인했다. 메모리 문제와 수정 결과는 [운영 기술 보고](../dev-v1/report.md#gate-3-render-배포)에 기록했다.
